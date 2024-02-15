@@ -6,30 +6,38 @@ h_serv = input("Please enter the host name: ")
 port = 5000
 server.connect((h_serv, port))
 
+QUIT = "QUIT"
+
 #send request to web server
 print("")
 
-message = "GET /~listerhg/index.html HTTP/1.0\r\n"
-request = bytes(message, 'utf-8')
-server.send(request)
-print(message)
+cols = 3
+rows = 3
 
-message = "\r\n"
-request=bytes(message, 'utf-8')
-server.send(request)
+board = [["-"]*cols]*rows
 
-print("Server Response:\n")
-response = server.recv(2048)
-print(response.decode())
+def update_board():
+   pass
 
-while message != "QUIT":
-   message = input("try to send a message (QUIT to end)")
+def print_board():
+   for i in range(len(board)):
+      print("|", end="")
+      for j in range(len(board[i])):
+         print(f"{board[i][j]}|", end="")
+      print("\n")
+
+print_board()
+
+message = ""
+
+while message != QUIT:
+   message = input(f"try to send a message ({QUIT} to end)")
    request = bytes(message, 'utf-8')
    server.send(request)
-
-   print("Server Response:\n")
-   response = server.recv(2048)
-   print(response.decode())
+   if message != QUIT:
+      print("Server Response:\n")
+      response = server.recv(2048)
+      print(response.decode())
 
 print("all done!")
    
