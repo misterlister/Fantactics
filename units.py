@@ -64,10 +64,13 @@ class Unit:
         pass
 
     def take_damage(self, damage):
-        self.__curr_hp
+        self.__curr_hp -= damage
 
     def heal(self, healing):
-        pass
+        if healing + self.__curr_hp > self.__max_hp:
+            self.__curr_hp = self.__max_hp
+        else:
+            self.__curr_hp += healing
 
     def is_dead(self):
         if self.__curr_hp <= 0:
@@ -104,7 +107,7 @@ class Peasant(Unit):
                  move=MoveSpeed.MED, 
                  move_type = MoveType.FOOT
                  ) -> None:
-        super().__init__(hp, location, dam_val, dam_type, arm_val, arm_type, move, move_type)
+        super().__init__(location, hp, dam_val, dam_type, arm_val, arm_type, move, move_type)
 
 class Soldier(Unit):
     def __init__(self, 
@@ -117,7 +120,7 @@ class Soldier(Unit):
                  move=MoveSpeed.MED, 
                  move_type = MoveType.FOOT
                  ) -> None:
-        super().__init__(hp, location, dam_val, dam_type, arm_val, arm_type, move, move_type)
+        super().__init__(location, hp, dam_val, dam_type, arm_val, arm_type, move, move_type)
 
 class Sorcerer(Unit):
     def __init__(self, 
@@ -130,7 +133,7 @@ class Sorcerer(Unit):
                  move=MoveSpeed.MED, 
                  move_type = MoveType.FOOT
                  ) -> None:
-        super().__init__(hp, location, dam_val, dam_type, arm_val, arm_type, move, move_type)
+        super().__init__(location, hp, dam_val, dam_type, arm_val, arm_type, move, move_type)
 
 class Healer(Unit):
     def __init__(self, 
@@ -143,7 +146,7 @@ class Healer(Unit):
                  move=MoveSpeed.MED, 
                  move_type = MoveType.FOOT
                  ) -> None:
-        super().__init__(hp, location, dam_val, dam_type, arm_val, arm_type, move, move_type)
+        super().__init__(location, hp, dam_val, dam_type, arm_val, arm_type, move, move_type)
 
 class Archer(Unit):
     def __init__(self, 
@@ -156,7 +159,7 @@ class Archer(Unit):
                  move=MoveSpeed.MED, 
                  move_type = MoveType.FOOT
                  ) -> None:
-        super().__init__(hp, location, dam_val, dam_type, arm_val, arm_type, move, move_type)
+        super().__init__(location, hp, dam_val, dam_type, arm_val, arm_type, move, move_type)
 
 class Cavalry(Unit):
     def __init__(self, 
@@ -169,7 +172,7 @@ class Cavalry(Unit):
                  move=MoveSpeed.FAST, 
                  move_type = MoveType.HORSE
                  ) -> None:
-        super().__init__(hp, location, dam_val, dam_type, arm_val, arm_type, move, move_type)
+        super().__init__(location, hp, dam_val, dam_type, arm_val, arm_type, move, move_type)
 
 class Archmage(Unit):
     def __init__(self, 
@@ -182,7 +185,7 @@ class Archmage(Unit):
                  move=MoveSpeed.MED, 
                  move_type = MoveType.FLY
                  ) -> None:
-        super().__init__(hp, location, dam_val, dam_type, arm_val, arm_type, move, move_type)
+        super().__init__(location, hp, dam_val, dam_type, arm_val, arm_type, move, move_type)
 
 class General(Unit):
     def __init__(self, 
@@ -195,7 +198,7 @@ class General(Unit):
                  move=MoveSpeed.SLOW, 
                  move_type = MoveType.FOOT
                  ) -> None:
-        super().__init__(hp, location, dam_val, dam_type, arm_val, arm_type, move, move_type)
+        super().__init__(location, hp, dam_val, dam_type, arm_val, arm_type, move, move_type)
 
 def weapon_matchup(weapon, armour):
     if weapon == DamageType.SLASH:
