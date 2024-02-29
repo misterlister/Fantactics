@@ -1,4 +1,5 @@
 from enum import IntEnum
+from math import ceil
 
 
 class DamageType(IntEnum):
@@ -13,6 +14,11 @@ class ArmourType(IntEnum):
     CHAIN = 3
     PLATE = 4
 
+class Effect(IntEnum):
+    POOR = 1
+    NEUTRAL = 2
+    STRONG = 3
+
 class MoveSpeed(IntEnum):
     SLOW = 1
     MED = 2
@@ -26,37 +32,66 @@ class MoveType(IntEnum):
 
 class Unit:
     def __init__(self, location, hp, dam_val, dam_type, arm_val, arm_type, move, move_type) -> None:
-        self.location = location
-        self.max_hp = hp
-        self.curr_hp = hp
-        self.damage = dam_val
-        self.damage_type = dam_type
-        self.armour = arm_val
-        self.armour_type = arm_type
-        self.movement = move
-        self.move_type = move_type
+        self.__location = location
+        self.__max_hp = hp
+        self.__curr_hp = hp
+        self.__damage = dam_val
+        self.__damage_type = dam_type
+        self.__armour = arm_val
+        self.__armour_type = arm_type
+        self.__movement = move
+        self.__move_type = move_type
         
+    def get_max_hp(self):
+        return self.__max_hp
+
+    def get_curr_hp(self):
+        return self.__curr_hp
+
+    def get_damage_val(self):
+        return self.__damage
+    
+    def get_damage_type(self):
+        return self.__damage_type
+    
+    def get_armour_val(self):
+        return self.__armour
+    
+    def get_armour_type(self):
+        return self.__armour_type
 
     def move(self):
         pass
 
-    def attack(self, target):
-        pass
-
-    def special_ability(self):
-        pass
-
     def take_damage(self, damage):
-        pass
+        self.__curr_hp
 
     def heal(self, healing):
         pass
 
-    def get_max_hp(self):
+    def is_dead(self):
+        if self.__curr_hp <= 0:
+            return True
+        return False
+
+    def basic_attack(self, target):
+        self.attack(target, self.__damage, self.__damage_type)
+        if target.is_dead():
+            self.move()
+
+    def attack(self, target, damage, damage_type):
+        effectiveness = weapon_matchup(damage_type, target.get_armour_type())
+        atk_damage = damage
+        if effectiveness == Effect.STRONG:
+            atk_damage *= 2
+        atk_damage -= target.get_armour_val()
+        if effectiveness == Effect.POOR:
+            atk_damage = ceil(atk_damage / 2)
+        target.take_damage(atk_damage)
+
+    def special_ability(self):
         pass
 
-    def get_curr_hp(self):
-        pass
 
 class Peasant(Unit):
     def __init__(self, 
@@ -161,3 +196,46 @@ class General(Unit):
                  move_type = MoveType.FOOT
                  ) -> None:
         super().__init__(hp, location, dam_val, dam_type, arm_val, arm_type, move, move_type)
+
+def weapon_matchup(weapon, armour):
+    if weapon == DamageType.SLASH:
+        if armour == ArmourType.ROBES:
+            return Effect.STRONG
+        elif armour == ArmourType.PADDED:
+            return Effect.STRONG
+        elif armour == ArmourType.CHAIN:
+            return Effect.POOR
+        elif armour == ArmourType.PLATE:
+            return Effect.POOR
+        
+    elif weapon == DamageType.PIERCE:
+        if armour == ArmourType.ROBES:
+            return Effect.STRONG
+        elif armour == ArmourType.PADDED:
+            return Effect.NEUTRAL
+        elif armour == ArmourType.CHAIN:
+            return Effect.NEUTRAL
+        elif armour == ArmourType.PLATE:
+            return Effect.POOR
+        
+    elif weapon == DamageType.BLUDGEON:
+        if armour == ArmourType.ROBES:
+            return Effect.NEUTRAL
+        elif armour == ArmourType.PADDED:
+            return Effect.NEUTRAL
+        elif armour == ArmourType.CHAIN:
+            return Effect.NEUTRAL
+        elif armour == ArmourType.PLATE:
+            return Effect.STRONG
+        
+    elif weapon == DamageType.MAGIC:
+        if armour == ArmourType.ROBES:
+            return Effect.POOR
+        elif armour == ArmourType.PADDED:
+            return Effect.NEUTRAL
+        elif armour == ArmourType.CHAIN:
+            return Effect.STRONG
+        elif armour == ArmourType.PLATE:
+            return Effect.STRONG
+        
+    return None
