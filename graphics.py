@@ -18,20 +18,6 @@ class Window:
         self.canvas = Canvas(self.__root)
         self.canvas.pack(fill=BOTH, expand=1)
         self.canvas.configure(background=bg_col)
-        self.running = True
-        self.__root.protocol("WM_DELETE_WINDOW", self.close)
-
-    def redraw(self):
-        self.__root.update_idletasks()
-        self.__root.update()
-
-    def wait_for_close(self):
-        self.running = True
-        while self.running == True:
-            self.redraw()
-        
-    def close(self):
-        self.running = False
 
     def draw_line(self, p1: Point, p2: Point, fill_colour = "black", width: int = 2):
         self.canvas.create_line(

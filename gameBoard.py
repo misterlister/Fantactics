@@ -1,7 +1,7 @@
 from graphics import Window, Point, window_height, window_width
 from tkinter import Tk
 
-default_square_size = 50
+default_square_size = 64
 default_board_rows = 8
 default_board_cols = 8
 board_width = default_square_size * default_board_cols
