@@ -1,6 +1,7 @@
 from graphics import Window, Point, window_height, window_width
 from tkinter import Tk
 
+
 default_square_size = 64
 default_board_rows = 8
 default_board_cols = 8
@@ -31,6 +32,8 @@ class GameBoard:
         self.square_size = square_size
         self.spaces = [[[None]*self.num_cols]*num_rows]
         self.draw_board()
+        self.window.canvas.bind('<Motion>',self.motion)
+        self.window.canvas.bind('<Button-1>',self.click)
 
     def draw_board(self):
         for i in range (self.num_rows + 1):
@@ -44,3 +47,17 @@ class GameBoard:
             p1 = Point(x_position, self.y_start)
             p2 = Point(x_position, self.y_end)
             self.window.draw_line(p1, p2)
+
+    def motion(self, event):
+        print("Mouse position: (%s %s)" % (event.x, event.y))
+
+    def click(self, event):
+        if event.x > self.x_start and event.x < self.x_end:
+            if event.y > self.y_start and event.y < self.y_end:
+                print("Clicked Inside Grid")
+                return
+        print("Clicked Outside Grid")
+
+        
+
+    

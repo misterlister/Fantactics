@@ -10,7 +10,7 @@ class Point:
         self.y = y
 
 class Window:
-    def __init__(self, width_val, height_val, root: Tk) -> None:
+    def __init__(self, width_val: int, height_val: int, root: Tk) -> None:
         self.__root = root
         self.__root.title("Fantactics")
         self.__root.geometry(f"{width_val}x{height_val}")
@@ -18,14 +18,17 @@ class Window:
         self.canvas = Canvas(self.__root)
         self.canvas.pack(fill=BOTH, expand=1)
         self.canvas.configure(background=bg_col)
+        
 
-    def draw_line(self, p1: Point, p2: Point, fill_colour = "black", width: int = 2):
+    def draw_line(self, p1: Point, p2: Point, fill_colour = "black", width: int = 2) -> None:
         self.canvas.create_line(
             p1.x, 
             p1.y, 
             p2.x, 
             p2.y, 
             fill=fill_colour, 
-            width=2
+            width=width
         )
         self.canvas.pack()
+
+    
