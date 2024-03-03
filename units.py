@@ -44,6 +44,7 @@ class Unit:
             arm_type: ArmourType, 
             move: MoveSpeed, 
             move_type: MoveType,
+            sprite
             ) -> None:
         
         self.__max_hp = hp
@@ -54,6 +55,7 @@ class Unit:
         self.__armour_type = arm_type
         self.__movement = move
         self.__move_type = move_type
+        self.__sprite = sprite
         self.__location = None
         self.__dead = False
         self.__player = None
@@ -78,6 +80,9 @@ class Unit:
     
     def get_player(self):
         return self.__player
+    
+    def get_sprite(self):
+        return self.__sprite
     
     def set_player(self, player):
         self.__player = player
@@ -130,6 +135,8 @@ class Unit:
         self.__dead = True
 
 
+
+
 class Peasant(Unit):
     def __init__(self, 
                  hp=9, 
@@ -138,9 +145,10 @@ class Peasant(Unit):
                  arm_val=2, 
                  arm_type=ArmourType.PADDED, 
                  move=MoveSpeed.MED, 
-                 move_type = MoveType.FOOT
+                 move_type = MoveType.FOOT,
+                 sprite = "Pst"
                  ) -> None:
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type)
+        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite)
 
 class Soldier(Unit):
     def __init__(self, 
@@ -150,9 +158,10 @@ class Soldier(Unit):
                  arm_val=3, 
                  arm_type=ArmourType.CHAIN, 
                  move=MoveSpeed.MED, 
-                 move_type = MoveType.FOOT
+                 move_type = MoveType.FOOT,
+                 sprite = "Sld"
                  ) -> None:
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type)
+        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite)
 
 class Sorcerer(Unit):
     def __init__(self, 
@@ -162,9 +171,10 @@ class Sorcerer(Unit):
                  arm_val=1, 
                  arm_type=ArmourType.ROBES, 
                  move=MoveSpeed.MED, 
-                 move_type = MoveType.FOOT
+                 move_type = MoveType.FOOT,
+                 sprite = "Sor"
                  ) -> None:
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type)
+        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite)
 
 class Healer(Unit):
     def __init__(self, 
@@ -174,9 +184,10 @@ class Healer(Unit):
                  arm_val=3, 
                  arm_type=ArmourType.CHAIN, 
                  move=MoveSpeed.MED, 
-                 move_type = MoveType.FOOT
+                 move_type = MoveType.FOOT,
+                 sprite = "Hlr"
                  ) -> None:
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type)
+        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite)
 
 class Archer(Unit):
     def __init__(self, 
@@ -186,9 +197,10 @@ class Archer(Unit):
                  arm_val=2, 
                  arm_type=ArmourType.PADDED, 
                  move=MoveSpeed.MED, 
-                 move_type = MoveType.FOOT
+                 move_type = MoveType.FOOT,
+                 sprite = "Arc"
                  ) -> None:
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type)
+        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite)
 
 class Cavalry(Unit):
     def __init__(self, 
@@ -198,9 +210,10 @@ class Cavalry(Unit):
                  arm_val=4, 
                  arm_type=ArmourType.PLATE, 
                  move=MoveSpeed.FAST, 
-                 move_type = MoveType.HORSE
+                 move_type = MoveType.HORSE,
+                 sprite = "Cav"
                  ) -> None:
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type)
+        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite)
 
 class Archmage(Unit):
     def __init__(self, 
@@ -210,9 +223,10 @@ class Archmage(Unit):
                  arm_val=1, 
                  arm_type=ArmourType.ROBES, 
                  move=MoveSpeed.MED, 
-                 move_type = MoveType.FLY
+                 move_type = MoveType.FLY,
+                 sprite = "Acm"
                  ) -> None:
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type)
+        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite)
 
 class General(Unit):
     def __init__(self, 
@@ -222,9 +236,10 @@ class General(Unit):
                  arm_val=4, 
                  arm_type=ArmourType.PLATE, 
                  move=MoveSpeed.SLOW, 
-                 move_type = MoveType.FOOT
+                 move_type = MoveType.FOOT,
+                 sprite = "Gen"
                  ) -> None:
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type)
+        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite)
 
 
 def weapon_matchup(weapon, armour):

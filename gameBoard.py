@@ -101,6 +101,13 @@ class Space:
     
     def assign_unit(self, unit):
         self.__unit = unit
-        
+
+    def get_terrain(self):
+        return self.__terrain
+    
+    def get_unit_sprite(self):
+        if self.__unit == None:
+            return None
+        return self.__unit.get_sprite()
 
 
