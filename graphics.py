@@ -1,8 +1,8 @@
 from tkinter import Tk, BOTH, Canvas
 
 bg_col = '#d9d9d9'
-window_width = 1200
-window_height = 900
+window_width = 1280
+window_height = 720
 
 class Point:
     def __init__(self, x:int, y:int) -> None:

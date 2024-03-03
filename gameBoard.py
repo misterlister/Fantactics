@@ -32,7 +32,6 @@ class GameBoard:
         self.square_size = square_size
         self.spaces = [[None for j in range(self.num_cols)] for i in range(self.num_rows)]
         self.draw_board()
-        self.window.canvas.bind('<Motion>',self.motion)
         self.window.canvas.bind('<Button-1>',self.click)
 
     def draw_board(self) -> None:
@@ -47,9 +46,6 @@ class GameBoard:
             p1 = Point(x_position, self.y_start)
             p2 = Point(x_position, self.y_end)
             self.window.draw_line(p1, p2)
-
-    def motion(self, event):
-        print("Mouse position: (%s %s)" % (event.x, event.y))
 
     def click(self, event):
         if event.x > self.x_start and event.x < self.x_end:
