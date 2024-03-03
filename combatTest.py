@@ -1,30 +1,28 @@
 from units import *
 
-location = None
-
 lg_divider = "\n" + ("*" * 10) + "\n"
 sm_divider = "-" * 3
 
 
 unitList = {}
-peasant = Peasant(location)
-soldier = Soldier(location)
-sorcerer = Sorcerer(location)
-healer = Healer(location)
-archer = Archer(location)
-cavalry = Cavalry(location)
-archmage = Archmage(location)
-general = General(location)
+peasant = Peasant()
+soldier = Soldier()
+sorcerer = Sorcerer()
+healer = Healer()
+archer = Archer()
+cavalry = Cavalry()
+archmage = Archmage()
+general = General()
 
 unitList2 = {}
-peasant2 = Peasant(location)
-soldier2 = Soldier(location)
-sorcerer2 = Sorcerer(location)
-healer2 = Healer(location)
-archer2 = Archer(location)
-cavalry2 = Cavalry(location)
-archmage2 = Archmage(location)
-general2 = General(location)
+peasant2 = Peasant()
+soldier2 = Soldier()
+sorcerer2 = Sorcerer()
+healer2 = Healer()
+archer2 = Archer()
+cavalry2 = Cavalry()
+archmage2 = Archmage()
+general2 = General()
 
 unitList[peasant] = "Peasant"
 unitList[soldier] = "Soldier"

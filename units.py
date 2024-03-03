@@ -1,5 +1,6 @@
 from enum import IntEnum
 from math import ceil
+from gameBoard import Space
 
 first_strike_boost = 1.2
 poor_effect_mod = 3/4
@@ -34,8 +35,17 @@ class MoveType(IntEnum):
 
 
 class Unit:
-    def __init__(self, location, hp, dam_val, dam_type, arm_val, arm_type, move, move_type) -> None:
-        self.__location = location
+    def __init__(
+            self, 
+            hp: int, 
+            dam_val: int, 
+            dam_type: DamageType, 
+            arm_val: int, 
+            arm_type: ArmourType, 
+            move: MoveSpeed, 
+            move_type: MoveType,
+            ) -> None:
+        
         self.__max_hp = hp
         self.__curr_hp = hp
         self.__damage = dam_val
@@ -44,7 +54,9 @@ class Unit:
         self.__armour_type = arm_type
         self.__movement = move
         self.__move_type = move_type
+        self.__location = None
         self.__dead = False
+        self.__player = None
         
     def get_max_hp(self):
         return self.__max_hp
@@ -63,9 +75,18 @@ class Unit:
     
     def get_armour_type(self):
         return self.__armour_type
+    
+    def get_player(self):
+        return self.__player
+    
+    def set_player(self, player):
+        self.__player = player
 
     def move(self):
         pass
+
+    def _place(self, space: Space):
+        self.location = space
 
     def take_damage(self, damage):
         self.__curr_hp -= damage
@@ -92,7 +113,7 @@ class Unit:
     def retaliate(self, target):
         self.attack(target, self.__damage, self.__damage_type)
 
-    def attack(self, target, damage, damage_type):
+    def attack(self, target, damage: int, damage_type):
         effectiveness = weapon_matchup(damage_type, target.get_armour_type())
         atk_damage = damage
         if effectiveness == Effect.STRONG:
@@ -111,7 +132,6 @@ class Unit:
 
 class Peasant(Unit):
     def __init__(self, 
-                 location, 
                  hp=9, 
                  dam_val=5, 
                  dam_type=DamageType.BLUDGEON, 
@@ -120,11 +140,10 @@ class Peasant(Unit):
                  move=MoveSpeed.MED, 
                  move_type = MoveType.FOOT
                  ) -> None:
-        super().__init__(location, hp, dam_val, dam_type, arm_val, arm_type, move, move_type)
+        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type)
 
 class Soldier(Unit):
     def __init__(self, 
-                 location, 
                  hp=15, 
                  dam_val=7, 
                  dam_type=DamageType.PIERCE, 
@@ -133,11 +152,10 @@ class Soldier(Unit):
                  move=MoveSpeed.MED, 
                  move_type = MoveType.FOOT
                  ) -> None:
-        super().__init__(location, hp, dam_val, dam_type, arm_val, arm_type, move, move_type)
+        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type)
 
 class Sorcerer(Unit):
     def __init__(self, 
-                 location, 
                  hp=12, 
                  dam_val=5, 
                  dam_type=DamageType.PIERCE, 
@@ -146,11 +164,10 @@ class Sorcerer(Unit):
                  move=MoveSpeed.MED, 
                  move_type = MoveType.FOOT
                  ) -> None:
-        super().__init__(location, hp, dam_val, dam_type, arm_val, arm_type, move, move_type)
+        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type)
 
 class Healer(Unit):
     def __init__(self, 
-                 location, 
                  hp=14, 
                  dam_val=7, 
                  dam_type=DamageType.BLUDGEON, 
@@ -159,11 +176,10 @@ class Healer(Unit):
                  move=MoveSpeed.MED, 
                  move_type = MoveType.FOOT
                  ) -> None:
-        super().__init__(location, hp, dam_val, dam_type, arm_val, arm_type, move, move_type)
+        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type)
 
 class Archer(Unit):
     def __init__(self, 
-                 location, 
                  hp=14, 
                  dam_val=6, 
                  dam_type=DamageType.PIERCE, 
@@ -172,11 +188,10 @@ class Archer(Unit):
                  move=MoveSpeed.MED, 
                  move_type = MoveType.FOOT
                  ) -> None:
-        super().__init__(location, hp, dam_val, dam_type, arm_val, arm_type, move, move_type)
+        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type)
 
 class Cavalry(Unit):
     def __init__(self, 
-                 location, 
                  hp=18, 
                  dam_val=8, 
                  dam_type=DamageType.SLASH, 
@@ -185,11 +200,10 @@ class Cavalry(Unit):
                  move=MoveSpeed.FAST, 
                  move_type = MoveType.HORSE
                  ) -> None:
-        super().__init__(location, hp, dam_val, dam_type, arm_val, arm_type, move, move_type)
+        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type)
 
 class Archmage(Unit):
     def __init__(self, 
-                 location, 
                  hp=20, 
                  dam_val=7, 
                  dam_type=DamageType.BLUDGEON, 
@@ -198,11 +212,10 @@ class Archmage(Unit):
                  move=MoveSpeed.MED, 
                  move_type = MoveType.FLY
                  ) -> None:
-        super().__init__(location, hp, dam_val, dam_type, arm_val, arm_type, move, move_type)
+        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type)
 
 class General(Unit):
     def __init__(self, 
-                 location, 
                  hp=22, 
                  dam_val=10, 
                  dam_type=DamageType.SLASH, 
@@ -211,7 +224,8 @@ class General(Unit):
                  move=MoveSpeed.SLOW, 
                  move_type = MoveType.FOOT
                  ) -> None:
-        super().__init__(location, hp, dam_val, dam_type, arm_val, arm_type, move, move_type)
+        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type)
+
 
 def weapon_matchup(weapon, armour):
     if weapon == DamageType.SLASH:

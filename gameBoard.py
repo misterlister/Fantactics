@@ -27,21 +27,27 @@ class GameBoard:
         self.y_start = y_start
         self.x_end = x_start + (num_cols * square_size) 
         self.y_end = y_start + (num_rows * square_size)
-        self.num_rows = num_rows
-        self.num_cols = num_cols
+        self.__num_rows = num_rows
+        self.__num_cols = num_cols
         self.square_size = square_size
-        self.spaces = [[None for j in range(self.num_cols)] for i in range(self.num_rows)]
+        self.__spaces = [[Space(i, j) for j in range(self.__num_cols)] for i in range(self.__num_rows)]
         self.draw_board()
         self.window.canvas.bind('<Button-1>',self.click)
 
+    def get_num_rows(self):
+        return self.__num_rows
+
+    def get_num_cols(self):
+        return self.__num_cols
+    
     def draw_board(self) -> None:
-        for i in range (self.num_rows + 1):
+        for i in range (self.__num_rows + 1):
             y_position = (self.y_start + i * self.square_size)
             p1 = Point(self.x_start, y_position)
             p2 = Point(self.x_end, y_position)
             self.window.draw_line(p1, p2)
 
-        for j in range (self.num_cols + 1):
+        for j in range (self.__num_cols + 1):
             x_position = (self.x_start + j * self.square_size)
             p1 = Point(x_position, self.y_start)
             p2 = Point(x_position, self.y_end)
@@ -58,9 +64,43 @@ class GameBoard:
         print("Clicked Outside Grid")
 
     def check_square(self, i: int, j: int):
-        if i > self.num_rows or j > self.num_cols:
+        if i > self.__num_rows or j > self.__num_cols:
             return "Outside Grid"
         else:
-            return self.spaces[i][j]
+            return self.__spaces[i][j].contains()
+        
+    def get_space(self, i, j):
+        return self.__spaces[i][j]
+        
+    def place_unit(self, unit, i: int, j: int) -> bool:
+        if self.__spaces[i][j].contains() != None:
+            return False
+        self.__spaces[i][j].assign_unit(unit)
+        return True
 
+class Terrain:
+    def __init__(self) -> None:
+        pass
     
+
+class Space:
+    def __init__(
+            self,
+            row: int,
+            col: int,
+            terrain = None,
+            unit = None,
+            ) -> None:
+        self.__row = row
+        self.__col = col
+        self.__terrain = terrain
+        self.__unit = unit
+
+    def contains(self):
+        return self.__unit
+    
+    def assign_unit(self, unit):
+        self.__unit = unit
+        
+
+
