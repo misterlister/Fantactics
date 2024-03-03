@@ -1,7 +1,13 @@
 from tkinter import Tk
 from graphics import Window, window_width, window_height
+from gameBoard import GameBoard
+from gameState import Player, GameState
 
 if __name__ == "__main__":
     root = Tk()
     window = Window(window_width, window_height, root)
-    window.wait_for_close()
+    board = GameBoard(window, root)
+    player1 = Player()
+    player2 = Player()
+    gameState = GameState(player1, player2, board)
+    root.mainloop()
