@@ -30,12 +30,12 @@ class GameBoard:
         self.num_rows = num_rows
         self.num_cols = num_cols
         self.square_size = square_size
-        self.spaces = [[[None]*self.num_cols]*num_rows]
+        self.spaces = [[None for j in range(self.num_cols)] for i in range(self.num_rows)]
         self.draw_board()
         self.window.canvas.bind('<Motion>',self.motion)
         self.window.canvas.bind('<Button-1>',self.click)
 
-    def draw_board(self):
+    def draw_board(self) -> None:
         for i in range (self.num_rows + 1):
             y_position = (self.y_start + i * self.square_size)
             p1 = Point(self.x_start, y_position)
@@ -54,10 +54,17 @@ class GameBoard:
     def click(self, event):
         if event.x > self.x_start and event.x < self.x_end:
             if event.y > self.y_start and event.y < self.y_end:
-                print("Clicked Inside Grid")
+                row = (event.y-self.y_start) // self.square_size
+                col = (event.x-self.x_start) // self.square_size
+                contents = self.check_square(row, col)
+                print(f"Clicked square {row},{col}. Contents: {contents}")
                 return
         print("Clicked Outside Grid")
 
-        
+    def check_square(self, i: int, j: int):
+        if i > self.num_rows or j > self.num_cols:
+            return "Outside Grid"
+        else:
+            return self.spaces[i][j]
 
     
