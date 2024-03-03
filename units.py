@@ -44,6 +44,7 @@ class Unit:
         self.__armour_type = arm_type
         self.__movement = move
         self.__move_type = move_type
+        self.__dead = False
         
     def get_max_hp(self):
         return self.__max_hp
@@ -68,6 +69,8 @@ class Unit:
 
     def take_damage(self, damage):
         self.__curr_hp -= damage
+        if self.__curr_hp <= 0:
+            self.die()
 
     def heal(self, healing):
         if healing + self.__curr_hp > self.__max_hp:
@@ -76,7 +79,7 @@ class Unit:
             self.__curr_hp += healing
 
     def is_dead(self):
-        if self.__curr_hp <= 0:
+        if self.__dead:
             return True
         return False
 
@@ -101,6 +104,9 @@ class Unit:
 
     def special_ability(self):
         pass
+
+    def die(self):
+        self.__dead = True
 
 
 class Peasant(Unit):
