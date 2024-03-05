@@ -1,6 +1,7 @@
 from enum import IntEnum
 from math import ceil
 from gameBoard import Space
+from graphics import SpriteType
 
 first_strike_boost = 1.2
 poor_effect_mod = 3/4
@@ -146,7 +147,7 @@ class Peasant(Unit):
                  arm_type=ArmourType.PADDED, 
                  move=MoveSpeed.MED, 
                  move_type = MoveType.FOOT,
-                 sprite = "Pst"
+                 sprite = SpriteType.PEASANT
                  ) -> None:
         super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite)
 
@@ -159,7 +160,7 @@ class Soldier(Unit):
                  arm_type=ArmourType.CHAIN, 
                  move=MoveSpeed.MED, 
                  move_type = MoveType.FOOT,
-                 sprite = "Sld"
+                 sprite = SpriteType.SOLDIER
                  ) -> None:
         super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite)
 
@@ -172,7 +173,7 @@ class Sorcerer(Unit):
                  arm_type=ArmourType.ROBES, 
                  move=MoveSpeed.MED, 
                  move_type = MoveType.FOOT,
-                 sprite = "Sor"
+                 sprite = SpriteType.SORCERER
                  ) -> None:
         super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite)
 
@@ -185,7 +186,7 @@ class Healer(Unit):
                  arm_type=ArmourType.CHAIN, 
                  move=MoveSpeed.MED, 
                  move_type = MoveType.FOOT,
-                 sprite = "Hlr"
+                 sprite = SpriteType.PEASANT
                  ) -> None:
         super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite)
 
@@ -198,7 +199,7 @@ class Archer(Unit):
                  arm_type=ArmourType.PADDED, 
                  move=MoveSpeed.MED, 
                  move_type = MoveType.FOOT,
-                 sprite = "Arc"
+                 sprite = SpriteType.ARCHER
                  ) -> None:
         super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite)
 
@@ -211,7 +212,7 @@ class Cavalry(Unit):
                  arm_type=ArmourType.PLATE, 
                  move=MoveSpeed.FAST, 
                  move_type = MoveType.HORSE,
-                 sprite = "Cav"
+                 sprite = SpriteType.PEASANT
                  ) -> None:
         super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite)
 
@@ -224,7 +225,7 @@ class Archmage(Unit):
                  arm_type=ArmourType.ROBES, 
                  move=MoveSpeed.MED, 
                  move_type = MoveType.FLY,
-                 sprite = "Acm"
+                 sprite = SpriteType.PEASANT
                  ) -> None:
         super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite)
 
@@ -237,7 +238,7 @@ class General(Unit):
                  arm_type=ArmourType.PLATE, 
                  move=MoveSpeed.SLOW, 
                  move_type = MoveType.FOOT,
-                 sprite = "Gen"
+                 sprite = SpriteType.PEASANT
                  ) -> None:
         super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite)
 

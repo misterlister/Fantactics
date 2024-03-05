@@ -36,6 +36,7 @@ class GameState:
             p2_units_r2 = [Peasant(), Peasant(), Soldier(), Soldier(), Soldier(), Soldier(), Peasant(), Peasant()]
             self.setup_row(6, 7, p2_units_r2, True) 
             self.player1.assign_units(p2_units_r1+p2_units_r2)
+            self.board.draw_sprites()
 
         except Exception as e:
             print(e)

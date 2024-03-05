@@ -1,14 +1,15 @@
 from graphics import Window, Point, window_height, window_width
 from tkinter import Tk
 
-
-default_square_size = 64
+sprite_buffer = 8
+default_square_size = 64 + sprite_buffer
 default_board_rows = 8
 default_board_cols = 8
 board_width = default_square_size * default_board_cols
 board_height = default_square_size * default_board_rows
 default_x_pos = (window_width - board_width) // 2
 default_y_pos = (window_height - board_height) // 2
+
 
 class GameBoard:
     def __init__(
@@ -77,6 +78,23 @@ class GameBoard:
             return False
         self.__spaces[i][j].assign_unit(unit)
         return True
+    
+    def draw_space(self, i: int, j: int) -> None:
+        x = self.x_start + sprite_buffer/2 + (j * self.square_size)
+        y = self.y_start + sprite_buffer/2 + (i * self.square_size)
+        #terrain = self.__spaces[i][j].get_terrain()
+        #terrain_sprite = terrain.get_sprite()
+        #self.window.draw_sprite(x, y, terrain_sprite)
+        unit = self.__spaces[i][j].contains()
+        if unit is not None:
+            unit_sprite = unit.get_sprite()
+            self.window.draw_sprite(x, y, unit_sprite)
+
+    def draw_sprites(self):
+        for i in range(self.__num_rows):
+            for j in range(self.__num_cols):
+                self.draw_space(i, j)
+
 
 class Terrain:
     def __init__(self) -> None:
