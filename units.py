@@ -2,6 +2,8 @@ from enum import IntEnum
 from math import ceil
 from gameBoard import Space
 from graphics import SpriteType
+from random import randint
+from names import Names, Titles
 
 FIRST_STRIKE_BOOST = 1.2
 POOR_EFFECT_MOD = 3/4
@@ -45,7 +47,9 @@ class Unit:
             arm_type: ArmourType, 
             move: MoveSpeed, 
             move_type: MoveType,
-            sprite
+            sprite,
+            name_list,
+            title_list
             ) -> None:
         
         self.__max_hp = hp
@@ -57,6 +61,7 @@ class Unit:
         self.__movement = move
         self.__move_type = move_type
         self.__sprite = sprite
+        self.__name = self.make_name(name_list, title_list)
         self.__location = None
         self.__dead = False
         self.__player = None
@@ -91,11 +96,20 @@ class Unit:
     def get_sprite(self):
         return self.__sprite
     
+    def get_name(self):
+        return self.__name
+    
     def get_location(self):
         return self.__location
     
     def set_player(self, player):
         self.__player = player
+
+    def make_name(self, names: list, titles: list) -> str:
+        name_index = randint(0, len(names)-1)
+        title_index = randint(0, len(titles)-1)
+        name = f"{names[name_index]} the {titles[title_index]}"
+        return name
 
     def move(self, space: Space):
         try:
@@ -156,6 +170,7 @@ class Unit:
     def choose_action(self):
         print("Choose Action!")
 
+
 class Peasant(Unit):
     def __init__(self, 
                  hp=9, 
@@ -165,9 +180,12 @@ class Peasant(Unit):
                  arm_type=ArmourType.PADDED, 
                  move=MoveSpeed.MED, 
                  move_type = MoveType.FOOT,
-                 sprite = SpriteType.PEASANT
+                 sprite = SpriteType.PEASANT,
+                 name_list = Names.COMMONER,
+                 title_list = Titles.PEASANT
                  ) -> None:
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite)
+        
+        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list)
 
 class Soldier(Unit):
     def __init__(self, 
@@ -178,9 +196,11 @@ class Soldier(Unit):
                  arm_type=ArmourType.CHAIN, 
                  move=MoveSpeed.MED, 
                  move_type = MoveType.FOOT,
-                 sprite = SpriteType.SOLDIER
+                 sprite = SpriteType.SOLDIER,
+                 name_list = Names.COMMONER,
+                 title_list = Titles.SOLDIER
                  ) -> None:
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite)
+        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list)
 
 class Sorcerer(Unit):
     def __init__(self, 
@@ -191,9 +211,11 @@ class Sorcerer(Unit):
                  arm_type=ArmourType.ROBES, 
                  move=MoveSpeed.MED, 
                  move_type = MoveType.FOOT,
-                 sprite = SpriteType.SORCERER
+                 sprite = SpriteType.SORCERER,
+                 name_list = Names.MAGE,
+                 title_list = Titles.SORCERER
                  ) -> None:
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite)
+        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list)
 
 class Healer(Unit):
     def __init__(self, 
@@ -204,9 +226,11 @@ class Healer(Unit):
                  arm_type=ArmourType.CHAIN, 
                  move=MoveSpeed.MED, 
                  move_type = MoveType.FOOT,
-                 sprite = SpriteType.PEASANT
+                 sprite = SpriteType.PEASANT,
+                 name_list = Names.MAGE,
+                 title_list = Titles.HEALER
                  ) -> None:
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite)
+        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list)
 
 class Archer(Unit):
     def __init__(self, 
@@ -217,9 +241,11 @@ class Archer(Unit):
                  arm_type=ArmourType.PADDED, 
                  move=MoveSpeed.MED, 
                  move_type = MoveType.FOOT,
-                 sprite = SpriteType.ARCHER
+                 sprite = SpriteType.ARCHER,
+                 name_list = Names.COMMONER,
+                 title_list = Titles.ARCHER
                  ) -> None:
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite)
+        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list)
 
 class Cavalry(Unit):
     def __init__(self, 
@@ -230,9 +256,11 @@ class Cavalry(Unit):
                  arm_type=ArmourType.PLATE, 
                  move=MoveSpeed.FAST, 
                  move_type = MoveType.HORSE,
-                 sprite = SpriteType.PEASANT
+                 sprite = SpriteType.PEASANT,
+                 name_list = Names.NOBLE,
+                 title_list = Titles.CAVALRY
                  ) -> None:
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite)
+        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list)
 
 class Archmage(Unit):
     def __init__(self, 
@@ -243,9 +271,11 @@ class Archmage(Unit):
                  arm_type=ArmourType.ROBES, 
                  move=MoveSpeed.MED, 
                  move_type = MoveType.FLY,
-                 sprite = SpriteType.PEASANT
+                 sprite = SpriteType.PEASANT,
+                 name_list = Names.MAGE,
+                 title_list = Titles.ARCHMAGE
                  ) -> None:
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite)
+        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list)
 
 class General(Unit):
     def __init__(self, 
@@ -256,9 +286,11 @@ class General(Unit):
                  arm_type=ArmourType.PLATE, 
                  move=MoveSpeed.SLOW, 
                  move_type = MoveType.FOOT,
-                 sprite = SpriteType.PEASANT
+                 sprite = SpriteType.PEASANT,
+                 name_list = Names.NOBLE,
+                 title_list = Titles.GENERAL
                  ) -> None:
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite)
+        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list)
 
 
 def weapon_matchup(weapon, armour):

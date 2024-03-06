@@ -3,7 +3,7 @@ from tkinter import Tk
 
 SPRITE_BUFFER = 8
 DEFAULT_SQUARE_SIZE = 64 + SPRITE_BUFFER
-SELECTION_BUFFER = 4
+SELECTION_BUFFER = 3
 SELECTION_SQUARE = DEFAULT_SQUARE_SIZE - SELECTION_BUFFER
 DEFAULT_BOARD_ROWS = 8
 DEFAULT_BOARD_COLS = 8
@@ -78,7 +78,7 @@ class GameBoard:
                     if self.selected_space == new_space:
                         self.selected_unit.choose_action()
                     else:
-                        if new_space.contains() is not None: # Another unit is already here
+                        if new_space.get_unit() is not None: # Another unit is already here
                             print("Can't Move Here! Space Occupied!")
                         else:  # The space is free
                             self.move_unit(self.selected_unit, new_space)
@@ -98,13 +98,16 @@ class GameBoard:
         if row > self.__num_rows or col > self.__num_cols:
             return "Outside Grid"
         else:
-            return self.__spaces[row][col].contains()
+            name = self.__spaces[row][col].get_unit().get_name()
+            if name is None:
+                name = ""
+            return name
         
     def get_space(self, row, col):
         return self.__spaces[row][col]
         
     def place_unit(self, unit, row: int, col: int) -> bool:
-        if self.__spaces[row][col].contains() != None:
+        if self.__spaces[row][col].get_unit() != None:
             return False
         self.__spaces[row][col].assign_unit(unit)
         return True
@@ -122,7 +125,7 @@ class GameBoard:
         self.erase(row, col)
         ###
 
-        unit = space.contains()
+        unit = space.get_unit()
         if unit is not None:
             unit_sprite = unit.get_sprite()
             self.window.draw_sprite(x, y, unit_sprite)
@@ -152,7 +155,7 @@ class GameBoard:
         new_space = self.__spaces[row][col]
         new_space.select()
         self.selected_space = new_space
-        self.selected_unit = new_space.contains()
+        self.selected_unit = new_space.get_unit()
         self.draw_space(new_space)
 
     def deselect_space(self) -> None:
@@ -193,7 +196,7 @@ class Space:
         self.__unit = unit
         self.__selected = False
 
-    def contains(self):
+    def get_unit(self):
         return self.__unit
     
     def assign_unit(self, unit):
