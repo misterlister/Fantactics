@@ -1,14 +1,16 @@
-from graphics import Window, Point, window_height, window_width
+from graphics import Window, Point, window_height, window_width, bg_col
 from tkinter import Tk
 
-sprite_buffer = 8
-default_square_size = 64 + sprite_buffer
-default_board_rows = 8
-default_board_cols = 8
-board_width = default_square_size * default_board_cols
-board_height = default_square_size * default_board_rows
-default_x_pos = (window_width - board_width) // 2
-default_y_pos = (window_height - board_height) // 2
+SPRITE_BUFFER = 8
+DEFAULT_SQUARE_SIZE = 64 + SPRITE_BUFFER
+SELECTION_BUFFER = 4
+SELECTION_SQUARE = DEFAULT_SQUARE_SIZE - SELECTION_BUFFER
+DEFAULT_BOARD_ROWS = 8
+DEFAULT_BOARD_COLS = 8
+BOARD_WIDTH = DEFAULT_SQUARE_SIZE * DEFAULT_BOARD_COLS
+BOARD_HEIGHT = DEFAULT_SQUARE_SIZE * DEFAULT_BOARD_ROWS
+DEFAULT_X_POS = (window_width - BOARD_WIDTH) // 2
+DEFAULT_Y_POS = (window_height - BOARD_HEIGHT) // 2
 
 
 class GameBoard:
@@ -16,11 +18,11 @@ class GameBoard:
             self,
             window: Window,
             root: Tk,
-            x_start: int = default_x_pos,
-            y_start: int = default_y_pos,
-            num_rows: int = default_board_rows,
-            num_cols: int = default_board_cols,
-            square_size: int = default_square_size
+            x_start: int = DEFAULT_X_POS,
+            y_start: int = DEFAULT_Y_POS,
+            num_rows: int = DEFAULT_BOARD_ROWS,
+            num_cols: int = DEFAULT_BOARD_COLS,
+            square_size: int = DEFAULT_SQUARE_SIZE
                  ) -> None:
         self.window = window
         self.root = root
@@ -34,6 +36,7 @@ class GameBoard:
         self.__spaces = [[Space(i, j) for j in range(self.__num_cols)] for i in range(self.__num_rows)]
         self.draw_board()
         self.window.canvas.bind('<Button-1>',self.click)
+        self.selected_space = None
 
     def get_num_rows(self):
         return self.__num_rows
@@ -61,39 +64,83 @@ class GameBoard:
                 col = (event.x-self.x_start) // self.square_size
                 contents = self.check_square(row, col)
                 print(f"Clicked square {row},{col}. Contents: {contents}")
+                self.select_space(row, col)
                 return
         print("Clicked Outside Grid")
 
-    def check_square(self, i: int, j: int):
-        if i > self.__num_rows or j > self.__num_cols:
+    def outline_space(self, row: int, col: int, colour: str) -> None:
+        x1 = self.x_start + (col * (self.square_size)) + SELECTION_BUFFER
+        y1 = self.y_start + (row * (self.square_size)) + SELECTION_BUFFER
+        x2 = self.x_start + ((col+1) * (self.square_size)) - SELECTION_BUFFER
+        y2 = self.y_start + ((row+1) * (self.square_size)) - SELECTION_BUFFER
+        self.window.canvas.create_rectangle(x1, y1, x2, y2, width=SPRITE_BUFFER/2, outline=colour)
+
+    def check_square(self, row: int, col: int):
+        if row > self.__num_rows or col > self.__num_cols:
             return "Outside Grid"
         else:
-            return self.__spaces[i][j].contains()
+            return self.__spaces[row][col].contains()
         
-    def get_space(self, i, j):
-        return self.__spaces[i][j]
+    def get_space(self, row, col):
+        return self.__spaces[row][col]
         
-    def place_unit(self, unit, i: int, j: int) -> bool:
-        if self.__spaces[i][j].contains() != None:
+    def place_unit(self, unit, row: int, col: int) -> bool:
+        if self.__spaces[row][col].contains() != None:
             return False
-        self.__spaces[i][j].assign_unit(unit)
+        self.__spaces[row][col].assign_unit(unit)
         return True
     
-    def draw_space(self, i: int, j: int) -> None:
-        x = self.x_start + sprite_buffer/2 + (j * self.square_size)
-        y = self.y_start + sprite_buffer/2 + (i * self.square_size)
+    def draw_space(self, row: int, col: int) -> None:
+        x = self.x_start + SPRITE_BUFFER/2 + (col * self.square_size)
+        y = self.y_start + SPRITE_BUFFER/2 + (row * self.square_size)
+        space = self.__spaces[row][col]
         #terrain = self.__spaces[i][j].get_terrain()
         #terrain_sprite = terrain.get_sprite()
         #self.window.draw_sprite(x, y, terrain_sprite)
-        unit = self.__spaces[i][j].contains()
+
+        ###
+        self.erase(row, col)
+        ###
+
+        unit = space.contains()
         if unit is not None:
             unit_sprite = unit.get_sprite()
             self.window.draw_sprite(x, y, unit_sprite)
+        if space.is_selected():
+            self.outline_space(row, col, 'blue')
 
     def draw_sprites(self):
         for i in range(self.__num_rows):
             for j in range(self.__num_cols):
                 self.draw_space(i, j)
+
+
+###### TEMPORARY
+    def erase(self, row, col):
+        x1 = self.x_start + (col * (self.square_size))
+        y1 = self.y_start + (row * (self.square_size))
+        x2 = self.x_start + ((col+1) * (self.square_size))
+        y2 = self.y_start + ((row+1) * (self.square_size))
+        self.window.canvas.create_rectangle(x1, y1, x2, y2, fill=bg_col, outline = 'black', width=2)
+######
+
+    def movement_spaces(i, j, range):
+        valid_spaces = set()
+        pass
+
+    def select_space(self, row: int, col: int) -> None:
+        new_space = self.__spaces[row][col]
+        old_space = self.selected_space
+        if new_space == old_space:
+            self.selected_space = None
+        else:
+            new_space.select()
+            self.selected_space = new_space
+            self.draw_space(row, col)
+        if old_space is not None:
+            old_space.deselect()
+            self.draw_space(old_space.get_row(), old_space.get_col())
+
 
 
 class Terrain:
@@ -113,6 +160,7 @@ class Space:
         self.__col = col
         self.__terrain = terrain
         self.__unit = unit
+        self.__selected = False
 
     def contains(self):
         return self.__unit
@@ -127,5 +175,22 @@ class Space:
         if self.__unit == None:
             return None
         return self.__unit.get_sprite()
+    
+    def get_terrain_sprite(self):
+        pass
+    
+    def get_row(self):
+        return self.__row
+    
+    def get_col(self):
+        return self.__col
+    
+    def select(self):
+        self.__selected = True
 
+    def deselect(self):
+        self.__selected = False
+
+    def is_selected(self):
+        return self.__selected
 
