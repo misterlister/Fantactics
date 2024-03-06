@@ -79,20 +79,37 @@ class Unit:
     def get_armour_type(self):
         return self.__armour_type
     
+    def get_movement(self):
+        return self.__movement
+    
+    def get_move_type(self):
+        return self.__move_type
+    
     def get_player(self):
         return self.__player
     
     def get_sprite(self):
         return self.__sprite
     
+    def get_location(self):
+        return self.__location
+    
     def set_player(self, player):
         self.__player = player
 
-    def move(self):
-        pass
-
+    def move(self, space: Space):
+        try:
+            if space.contains() is None:
+                self.__location.assign_unit(None)
+                self.__location = space
+                space.assign_unit(self)
+            else:
+                raise Exception("Error: Cannot move unit into another unit's space")
+        except Exception as e:
+            return e
+        
     def _place(self, space: Space):
-        self.location = space
+        self.__location = space
 
     def take_damage(self, damage):
         self.__curr_hp -= damage
@@ -135,8 +152,8 @@ class Unit:
     def die(self):
         self.__dead = True
 
-
-
+    def choose_action(self):
+        print("Choose Action!")
 
 class Peasant(Unit):
     def __init__(self, 

@@ -35,8 +35,9 @@ class GameBoard:
         self.square_size = square_size
         self.__spaces = [[Space(i, j) for j in range(self.__num_cols)] for i in range(self.__num_rows)]
         self.draw_board()
-        self.window.canvas.bind('<Button-1>',self.click)
+        self.window.canvas.bind('<Button-1>', self.click)
         self.selected_space = None
+        self.selected_unit = None
 
     def get_num_rows(self):
         return self.__num_rows
@@ -64,8 +65,26 @@ class GameBoard:
                 col = (event.x-self.x_start) // self.square_size
                 contents = self.check_square(row, col)
                 print(f"Clicked square {row},{col}. Contents: {contents}")
-                self.select_space(row, col)
-                return
+                new_space = self.__spaces[row][col]
+                if self.selected_unit is None: # No unit is currently selected
+                    if self.selected_space is not None:
+                        if self.selected_space == new_space:
+                            self.deselect_space()
+                            return
+                        self.deselect_space()
+                    self.select_space(row, col)
+                    return
+                else: # A unit is currently selected
+                    if self.selected_space == new_space:
+                        self.selected_unit.choose_action()
+                    else:
+                        if new_space.contains() is not None: # Another unit is already here
+                            print("Can't Move Here! Space Occupied!")
+                        else:  # The space is free
+                            self.move_unit(self.selected_unit, new_space)
+                    self.deselect_space()
+                    return
+                
         print("Clicked Outside Grid")
 
     def outline_space(self, row: int, col: int, colour: str) -> None:
@@ -90,10 +109,11 @@ class GameBoard:
         self.__spaces[row][col].assign_unit(unit)
         return True
     
-    def draw_space(self, row: int, col: int) -> None:
+    def draw_space(self, space) -> None:
+        col = space.get_col()
+        row = space.get_row()
         x = self.x_start + SPRITE_BUFFER/2 + (col * self.square_size)
         y = self.y_start + SPRITE_BUFFER/2 + (row * self.square_size)
-        space = self.__spaces[row][col]
         #terrain = self.__spaces[i][j].get_terrain()
         #terrain_sprite = terrain.get_sprite()
         #self.window.draw_sprite(x, y, terrain_sprite)
@@ -112,7 +132,7 @@ class GameBoard:
     def draw_sprites(self):
         for i in range(self.__num_rows):
             for j in range(self.__num_cols):
-                self.draw_space(i, j)
+                self.draw_space(self.__spaces[i][j])
 
 
 ###### TEMPORARY
@@ -130,16 +150,27 @@ class GameBoard:
 
     def select_space(self, row: int, col: int) -> None:
         new_space = self.__spaces[row][col]
-        old_space = self.selected_space
-        if new_space == old_space:
+        new_space.select()
+        self.selected_space = new_space
+        self.selected_unit = new_space.contains()
+        self.draw_space(new_space)
+
+    def deselect_space(self) -> None:
+        space = self.selected_space
+        if space is not None:
+            space.deselect()
             self.selected_space = None
-        else:
-            new_space.select()
-            self.selected_space = new_space
-            self.draw_space(row, col)
-        if old_space is not None:
-            old_space.deselect()
-            self.draw_space(old_space.get_row(), old_space.get_col())
+            self.selected_unit = None
+            self.draw_space(space)
+
+    def move_unit(self, unit, space):
+        old_space = unit.get_location()
+        try:  
+            unit.move(space)
+            self.draw_space(old_space)
+            self.draw_space(space)
+        except Exception as e:
+            print(e)
 
 
 
