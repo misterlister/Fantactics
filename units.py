@@ -131,7 +131,8 @@ class Unit:
         first_strike_attack = ceil(self.__damage * FIRST_STRIKE_BOOST)
         self.attack(target, first_strike_attack, self.__damage_type)
         if target.is_dead():
-            self.move()
+            #self.move()
+            pass
 
     def retaliate(self, target):
         self.attack(target, self.__damage, self.__damage_type)
