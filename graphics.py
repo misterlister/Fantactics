@@ -22,6 +22,7 @@ class Window:
         self.__root.title("Fantactics")
         self.__root.geometry(f"{width_val}x{height_val}")
         self.__root.configure(background=bg_col)
+        self.__root.resizable(False, False)
         self.canvas = Canvas(self.__root)
         self.canvas.pack(fill=BOTH, expand=1)
         self.canvas.configure(background=bg_col)
