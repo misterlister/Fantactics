@@ -1,4 +1,4 @@
-from graphics import Window, Point, window_height, window_width, bg_col
+from graphics import Window, Point, WINDOW_HEIGHT, WINDOW_WIDTH, BG_COL
 from tkinter import Tk
 
 SPRITE_BUFFER = 8
@@ -9,8 +9,8 @@ DEFAULT_BOARD_ROWS = 8
 DEFAULT_BOARD_COLS = 8
 BOARD_WIDTH = DEFAULT_SQUARE_SIZE * DEFAULT_BOARD_COLS
 BOARD_HEIGHT = DEFAULT_SQUARE_SIZE * DEFAULT_BOARD_ROWS
-DEFAULT_X_POS = (window_width - BOARD_WIDTH) // 2
-DEFAULT_Y_POS = (window_height - BOARD_HEIGHT) // 2
+DEFAULT_X_POS = (WINDOW_WIDTH - BOARD_WIDTH) // 2
+DEFAULT_Y_POS = (WINDOW_HEIGHT - BOARD_HEIGHT) // 2
 
 
 class GameBoard:
@@ -121,7 +121,7 @@ class GameBoard:
         y1 = self.y_start + (row * (self.square_size))
         x2 = self.x_start + ((col+1) * (self.square_size))
         y2 = self.y_start + ((row+1) * (self.square_size))
-        self.window.canvas.create_rectangle(x1, y1, x2, y2, fill=bg_col, outline = 'black', width=2)
+        self.window.canvas.create_rectangle(x1, y1, x2, y2, fill=BG_COL, outline = 'black', width=2)
 ######
 
     def movement_spaces(i, j, range):

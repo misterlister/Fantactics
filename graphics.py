@@ -1,9 +1,9 @@
 from tkinter import Tk, BOTH, Canvas, PhotoImage
 from PIL import ImageTk, Image
 
-bg_col = '#d9d9d9'
-window_width = 1280
-window_height = 720
+BG_COL = '#d9d9d9'
+WINDOW_WIDTH = 1280
+WINDOW_HEIGHT = 720
 
 class SpriteType:
     ARCHER = "Archer"
@@ -21,11 +21,11 @@ class Window:
         self.__root = root
         self.__root.title("Fantactics")
         self.__root.geometry(f"{width_val}x{height_val}")
-        self.__root.configure(background=bg_col)
+        self.__root.configure(background=BG_COL)
         self.__root.resizable(False, False)
         self.canvas = Canvas(self.__root)
         self.canvas.pack(fill=BOTH, expand=1)
-        self.canvas.configure(background=bg_col)
+        self.canvas.configure(background=BG_COL)
         self.sprites = self.__load_sprites()
 
     def draw_line(self, p1: Point, p2: Point, fill_colour = "black", width: int = 2) -> None:

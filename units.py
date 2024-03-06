@@ -3,9 +3,9 @@ from math import ceil
 from gameBoard import Space
 from graphics import SpriteType
 
-first_strike_boost = 1.2
-poor_effect_mod = 3/4
-strong_effect_mod = 4/3
+FIRST_STRIKE_BOOST = 1.2
+POOR_EFFECT_MOD = 3/4
+STRONG_EFFECT_MOD = 4/3
 
 class DamageType(IntEnum):
     SLASH = 1
@@ -111,7 +111,7 @@ class Unit:
         return False
 
     def basic_attack(self, target):
-        first_strike_attack = ceil(self.__damage * first_strike_boost)
+        first_strike_attack = ceil(self.__damage * FIRST_STRIKE_BOOST)
         self.attack(target, first_strike_attack, self.__damage_type)
         if target.is_dead():
             self.move()
@@ -123,10 +123,10 @@ class Unit:
         effectiveness = weapon_matchup(damage_type, target.get_armour_type())
         atk_damage = damage
         if effectiveness == Effect.STRONG:
-            atk_damage = ceil(atk_damage * strong_effect_mod)
+            atk_damage = ceil(atk_damage * STRONG_EFFECT_MOD)
         atk_damage -= target.get_armour_val()
         if effectiveness == Effect.POOR:
-            atk_damage = ceil(atk_damage * poor_effect_mod)
+            atk_damage = ceil(atk_damage * POOR_EFFECT_MOD)
         target.take_damage(atk_damage)
 
     def special_ability(self):

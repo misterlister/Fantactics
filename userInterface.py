@@ -1,4 +1,4 @@
-from tkinter import *
+from tkinter import Tk, LabelFrame, Canvas
 from graphics import Window
 from PIL import ImageTk, Image
 
