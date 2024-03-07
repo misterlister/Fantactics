@@ -98,10 +98,10 @@ class GameBoard:
         if row > self.__num_rows or col > self.__num_cols:
             return "Outside Grid"
         else:
-            name = self.__spaces[row][col].get_unit().get_name()
-            if name is None:
-                name = ""
-            return name
+            unit = self.__spaces[row][col].get_unit()
+            if unit is None:
+                return unit
+            return unit.get_name()
         
     def get_space(self, row, col):
         return self.__spaces[row][col]

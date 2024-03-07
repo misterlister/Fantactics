@@ -1,56 +1,170 @@
 class Names:
-    COMMONER = [
+    Commoner = [
         "Wilbur",
-        "Martha"
+        "Martha",
+        "Ernest",
+        "Mary",
+        "Bob",
+        "Betty",
+        "Jeremy",
+        "Maggie",
+        "Billy",
+        "Sara",
+        "Crispin",
+        "Lucy",
+        "Dudley",
+        "Annie",
+        "Gilbert",
+        "Maude",
+        "Hubert",
+        "Wilma",
+        "John",
+        "Jane",
+        "Tim"
     ]
 
-    NOBLE = [
+    Noble = [
         "Galahad",
-        "Sieglinde"
+        "Sieglinde",
+        "Hector",
+        "Isabella",
+        "Ephraim",
+        "Josephine",
+        "Alaric",
+        "Annora",
+        "Florian",
+        "Catherine",
+        "Godwin",
+        "Celestina",
+        "Leoric",
+        "Minerva",
+        "Arthur",
+        "Lucia",
+        "Osric"
     ]
 
-    MAGE = [
+    Mage = [
         "Algernon",
-        "Ophelia"
+        "Ophelia",
+        "Archibald",
+        "Euphemia",
+        "Merlin",
+        "Morrigan",
+        "Ozymandias",
+        "Persephone"
     ]
 
 class Titles:
-    PEASANT = [
+    Peasant = [
         "Baker",
-        "Miller"
+        "Miller",
+        "Meek",
+        "Farmer",
+        "Woodcutter",
+        "Tanner",
+        "Blacksmith",
+        "Frail",
+        "Beggar",
+        "Cobbler",
+        "Fisher",
+        "Haberdasher",
+        "Grocer",
+        "Unwashed",
+        "Overlooked",
+        "Carpenter",
+        "Weaver",
+        "Minstrel",
+        "Goatherd",
+        "Candlemaker",
+        "Stonemason"
     ]
 
-    SOLDIER = [
+    Soldier = [
         "Vigilant",
-        "Stout"
+        "Stout",
+        "Sturdy",
+        "Protector",
+        "Grim",
+        "One-Eyed",
+        "Ox",
+        "Brawny",
+        "Steadfast",
+        "Fierce",
+        "Tenacious",
+        "Veteran",
+        "Mercenary",
+        "Sellsword"
+
     ]
 
-    ARCHER = [
+    Archer = [
         "Swift",
-        "Unerring"
+        "Unerring",
+        "Nimble",
+        "Eagle-Eyed",
+        "Shrewd",
+        "Careful",
+        "Quick",
+        "Deadshot",
+        "Reliable",
+        "Scout",
+        "Ranger",
+        "Marksman",
+        "Hunter"
+        
     ]
 
-    CAVALRY = [
+    Cavalry = [
         "Brave",
-        "True"
+        "True",
+        "Bold",
+        "Just",
+        "Fierce",
+        "Unbroken",
+        "Lionhearted",
+        "Oathbound",
+        "Gallant",
+        "Bulwark"
     ]
 
-    SORCERER = [
+    Sorcerer = [
         "Enchanter",
-        "Warlock"
+        "Warlock",
+        "Seer",
+        "Conjurer",
+        "Mystical",
+        "Black",
+        "Magician",
+        "Evoker",
+        "Theurgist",
+        "Trickster",
+        "Sage"
+
     ]
 
-    HEALER = [
+    Healer = [
         "Gentle",
-        "Protector"
+        "Protector",
+        "Savior",
+        "Guardian",
+        "Lightbringer",
+        "Prophet",
+        "High Priest"
     ]
 
-    ARCHMAGE = [
+    Archmage = [
         "Wise",
-        "Destroyer"
+        "Destroyer",
+        "Unfathomable",
+        "Supreme",
+        "Fatetwister",
+        "Skybreaker",
+        "All-Seeing"
     ]
 
-    GENERAL = [
+    General = [
         "Conqueror",
-        "Valourous"
+        "Great",
+        "Glorious",
+        "Dragonslayer"
     ]

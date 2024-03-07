@@ -109,6 +109,8 @@ class Unit:
         name_index = randint(0, len(names)-1)
         title_index = randint(0, len(titles)-1)
         name = f"{names[name_index]} the {titles[title_index]}"
+        del names[name_index]
+        del titles[title_index]
         return name
 
     def move(self, space: Space):
@@ -181,8 +183,8 @@ class Peasant(Unit):
                  move=MoveSpeed.MED, 
                  move_type = MoveType.FOOT,
                  sprite = SpriteType.PEASANT,
-                 name_list = Names.COMMONER,
-                 title_list = Titles.PEASANT
+                 name_list = Names.Commoner,
+                 title_list = Titles.Peasant
                  ) -> None:
         
         super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list)
@@ -197,8 +199,8 @@ class Soldier(Unit):
                  move=MoveSpeed.MED, 
                  move_type = MoveType.FOOT,
                  sprite = SpriteType.SOLDIER,
-                 name_list = Names.COMMONER,
-                 title_list = Titles.SOLDIER
+                 name_list = Names.Commoner,
+                 title_list = Titles.Soldier
                  ) -> None:
         super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list)
 
@@ -212,8 +214,8 @@ class Sorcerer(Unit):
                  move=MoveSpeed.MED, 
                  move_type = MoveType.FOOT,
                  sprite = SpriteType.SORCERER,
-                 name_list = Names.MAGE,
-                 title_list = Titles.SORCERER
+                 name_list = Names.Mage,
+                 title_list = Titles.Sorcerer
                  ) -> None:
         super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list)
 
@@ -227,8 +229,8 @@ class Healer(Unit):
                  move=MoveSpeed.MED, 
                  move_type = MoveType.FOOT,
                  sprite = SpriteType.PEASANT,
-                 name_list = Names.MAGE,
-                 title_list = Titles.HEALER
+                 name_list = Names.Mage,
+                 title_list = Titles.Healer
                  ) -> None:
         super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list)
 
@@ -242,8 +244,8 @@ class Archer(Unit):
                  move=MoveSpeed.MED, 
                  move_type = MoveType.FOOT,
                  sprite = SpriteType.ARCHER,
-                 name_list = Names.COMMONER,
-                 title_list = Titles.ARCHER
+                 name_list = Names.Commoner,
+                 title_list = Titles.Archer
                  ) -> None:
         super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list)
 
@@ -257,8 +259,8 @@ class Cavalry(Unit):
                  move=MoveSpeed.FAST, 
                  move_type = MoveType.HORSE,
                  sprite = SpriteType.PEASANT,
-                 name_list = Names.NOBLE,
-                 title_list = Titles.CAVALRY
+                 name_list = Names.Noble,
+                 title_list = Titles.Cavalry
                  ) -> None:
         super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list)
 
@@ -272,8 +274,8 @@ class Archmage(Unit):
                  move=MoveSpeed.MED, 
                  move_type = MoveType.FLY,
                  sprite = SpriteType.PEASANT,
-                 name_list = Names.MAGE,
-                 title_list = Titles.ARCHMAGE
+                 name_list = Names.Mage,
+                 title_list = Titles.Archmage
                  ) -> None:
         super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list)
 
@@ -287,8 +289,8 @@ class General(Unit):
                  move=MoveSpeed.SLOW, 
                  move_type = MoveType.FOOT,
                  sprite = SpriteType.PEASANT,
-                 name_list = Names.NOBLE,
-                 title_list = Titles.GENERAL
+                 name_list = Names.Noble,
+                 title_list = Titles.General
                  ) -> None:
         super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list)
 
