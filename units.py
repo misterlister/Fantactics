@@ -6,8 +6,8 @@ from random import randint
 from names import Names, Titles
 
 FIRST_STRIKE_BOOST = 1.2
-POOR_EFFECT_MOD = 3/4
-STRONG_EFFECT_MOD = 4/3
+POOR_EFFECT_MOD = 4/5
+STRONG_EFFECT_MOD = 5/4
 
 class DamageType(IntEnum):
     SLASH = 1
@@ -127,21 +127,19 @@ class Unit:
     def _place(self, space: Space):
         self.__location = space
 
-    def take_damage(self, damage):
+    def take_damage(self, damage: int):
         self.__curr_hp -= damage
         if self.__curr_hp <= 0:
             self.die()
 
-    def heal(self, healing):
+    def heal(self, healing: int):
         if healing + self.__curr_hp > self.__max_hp:
             self.__curr_hp = self.__max_hp
         else:
             self.__curr_hp += healing
 
     def is_dead(self):
-        if self.__dead:
-            return True
-        return False
+        return self.__dead
 
     def basic_attack(self, target):
         first_strike_attack = ceil(self.__damage * FIRST_STRIKE_BOOST)
@@ -168,6 +166,11 @@ class Unit:
 
     def die(self):
         self.__dead = True
+        if self.__location is not None:
+            self.__location.assign_unit(None)
+
+    def revive(self):
+        self.__dead = False
 
     def choose_action(self):
         print("Choose Action!")
@@ -201,8 +204,8 @@ class Unit:
 
 class Peasant(Unit):
     def __init__(self, 
-                 hp=9, 
-                 dam_val=5, 
+                 hp=11, 
+                 dam_val=6, 
                  dam_type=DamageType.BLUDGEON, 
                  arm_val=2, 
                  arm_type=ArmourType.PADDED, 
@@ -217,8 +220,8 @@ class Peasant(Unit):
 
 class Soldier(Unit):
     def __init__(self, 
-                 hp=15, 
-                 dam_val=7, 
+                 hp=16, 
+                 dam_val=8, 
                  dam_type=DamageType.PIERCE, 
                  arm_val=3, 
                  arm_type=ArmourType.CHAIN, 
@@ -232,8 +235,8 @@ class Soldier(Unit):
 
 class Sorcerer(Unit):
     def __init__(self, 
-                 hp=12, 
-                 dam_val=5, 
+                 hp=14, 
+                 dam_val=6, 
                  dam_type=DamageType.PIERCE, 
                  arm_val=1, 
                  arm_type=ArmourType.ROBES, 
@@ -247,8 +250,8 @@ class Sorcerer(Unit):
 
 class Healer(Unit):
     def __init__(self, 
-                 hp=14, 
-                 dam_val=7, 
+                 hp=15, 
+                 dam_val=8, 
                  dam_type=DamageType.BLUDGEON, 
                  arm_val=3, 
                  arm_type=ArmourType.CHAIN, 
@@ -262,7 +265,7 @@ class Healer(Unit):
 
 class Archer(Unit):
     def __init__(self, 
-                 hp=14, 
+                 hp=15, 
                  dam_val=6, 
                  dam_type=DamageType.PIERCE, 
                  arm_val=2, 
@@ -277,8 +280,8 @@ class Archer(Unit):
 
 class Cavalry(Unit):
     def __init__(self, 
-                 hp=18, 
-                 dam_val=8, 
+                 hp=20, 
+                 dam_val=9, 
                  dam_type=DamageType.SLASH, 
                  arm_val=4, 
                  arm_type=ArmourType.PLATE, 
@@ -305,7 +308,7 @@ class Cavalry(Unit):
 
 class Archmage(Unit):
     def __init__(self, 
-                 hp=20, 
+                 hp=22, 
                  dam_val=7, 
                  dam_type=DamageType.BLUDGEON, 
                  arm_val=1, 
@@ -320,7 +323,7 @@ class Archmage(Unit):
 
 class General(Unit):
     def __init__(self, 
-                 hp=22, 
+                 hp=24, 
                  dam_val=10, 
                  dam_type=DamageType.SLASH, 
                  arm_val=4, 
