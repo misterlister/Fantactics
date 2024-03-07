@@ -38,6 +38,7 @@ class GameBoard:
         self.window.canvas.bind('<Button-1>', self.click)
         self.selected_space = None
         self.selected_unit = None
+        self.__valid_moves = None
 
     def get_num_rows(self):
         return self.__num_rows
@@ -75,13 +76,10 @@ class GameBoard:
                     self.select_space(row, col)
                     return
                 else: # A unit is currently selected
-                    if self.selected_space == new_space:
-                        self.selected_unit.choose_action()
+                    if new_space in self.__valid_moves:
+                        self.move_unit(self.selected_unit, new_space)
                     else:
-                        if new_space.get_unit() is not None: # Another unit is already here
-                            print("Can't Move Here! Space Occupied!")
-                        else:  # The space is free
-                            self.move_unit(self.selected_unit, new_space)
+                        print("Invalid Move.")
                     self.deselect_space()
                     return
                 
@@ -147,9 +145,43 @@ class GameBoard:
         self.window.canvas.create_rectangle(x1, y1, x2, y2, fill=BG_COL, outline = 'black', width=2)
 ######
 
-    def movement_spaces(i, j, range):
-        valid_spaces = set()
-        pass
+    def movement_spaces(self, i: int, j: int, range: int, move_type) -> set:
+        valid_coords = self.movement_spaces_r(i, j, range, move_type)
+        valid_spaces = []
+        for tuple in valid_coords:
+            self.outline_space(tuple[0], tuple[1], 'green')
+            valid_spaces.append(self.__spaces[tuple[0]][tuple[1]])
+        return valid_spaces
+
+    def movement_spaces_r(self, i: int, j: int, range: int, move_type) -> set:
+        spaces = {(i,j)}
+        if range <= 0:
+            return spaces
+        if i-1 >= 0:
+            if self.__spaces[i-1][j].get_unit() == None:
+                spaces = spaces.union(self.movement_spaces_r(i-1, j, range-1, move_type))
+        if i-1 >= 0 and j-1 >= 0:
+            if self.__spaces[i-1][j-1].get_unit() == None:
+                spaces = spaces.union(self.movement_spaces_r(i-1, j-1, range-1, move_type))
+        if j-1 >= 0:
+            if self.__spaces[i][j-1].get_unit() == None:
+                spaces = spaces.union(self.movement_spaces_r(i, j-1, range-1, move_type))
+        if i+1 < self.__num_rows and j-1 >= 0:
+            if self.__spaces[i+1][j-1].get_unit() == None:
+                spaces = spaces.union(self.movement_spaces_r(i+1, j-1, range-1, move_type))
+        if i+1 < self.__num_rows:
+            if self.__spaces[i+1][j].get_unit() == None:
+                spaces = spaces.union(self.movement_spaces_r(i+1, j, range-1, move_type))
+        if i+1 < self.__num_rows and j+1 < self.__num_cols:
+            if self.__spaces[i+1][j+1].get_unit() == None:
+                spaces = spaces.union(self.movement_spaces_r(i+1, j+1, range-1, move_type))
+        if j+1 < self.__num_cols:
+            if self.__spaces[i][j+1].get_unit() == None:
+                spaces = spaces.union(self.movement_spaces_r(i, j+1, range-1, move_type))
+        if i-1 >= 0 and j+1 < self.__num_cols:
+            if self.__spaces[i-1][j+1].get_unit() == None:
+                spaces = spaces.union(self.movement_spaces_r(i-1, j+1, range-1, move_type))
+        return spaces
 
     def select_space(self, row: int, col: int) -> None:
         new_space = self.__spaces[row][col]
@@ -157,6 +189,8 @@ class GameBoard:
         self.selected_space = new_space
         self.selected_unit = new_space.get_unit()
         self.draw_space(new_space)
+        if self.selected_unit is not None:
+            self.__valid_moves = self.movement_spaces(row, col, self.selected_unit.get_movement(), self.selected_unit.get_move_type())
 
     def deselect_space(self) -> None:
         space = self.selected_space
@@ -165,6 +199,8 @@ class GameBoard:
             self.selected_space = None
             self.selected_unit = None
             self.draw_space(space)
+            for sp in self.__valid_moves:
+                self.draw_space(sp)
 
     def move_unit(self, unit, space):
         old_space = unit.get_location()
@@ -227,4 +263,3 @@ class Space:
 
     def is_selected(self):
         return self.__selected
-

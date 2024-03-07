@@ -118,7 +118,6 @@ class Titles:
         "Mercenary",
         "Sellsword",
         "Gruff"
-
     ]
 
     Archer = [
@@ -135,7 +134,6 @@ class Titles:
         "Ranger",
         "Marksman",
         "Hunter"
-        
     ]
 
     Cavalry = [
