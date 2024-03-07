@@ -24,7 +24,7 @@ class Names:
         "Pam",
         "Jim",
         "Angela",
-        "Dwight",
+        "Ted",
         "Bella",
         "Andy",
         "Karen",
@@ -32,7 +32,11 @@ class Names:
         "Kathy",
         "George",
         "Emma",
-        "Trent"
+        "Trent",
+        "Pat",
+        "Ralph"
+        
+        
     ]
 
     Noble = [
@@ -117,7 +121,16 @@ class Titles:
         "Veteran",
         "Mercenary",
         "Sellsword",
-        "Gruff"
+        "Gruff",
+        "Stoic",
+        "Unwavering",
+        "Loyal",
+        "Dependable",
+        "Stalwart",
+        "Unflinching",
+        "Surly",
+        "Churlish",
+        "Taciturn"
     ]
 
     Archer = [
@@ -193,5 +206,6 @@ class Titles:
         "Great",
         "Glorious",
         "Dragonslayer",
-        "Unstoppable"
+        "Unstoppable",
+        "Unifier"
     ]

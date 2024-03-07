@@ -82,8 +82,6 @@ class GameBoard:
                         print("Invalid Move.")
                     self.deselect_space()
                     return
-                
-        print("Clicked Outside Grid")
 
     def outline_space(self, row: int, col: int, colour: str) -> None:
         x1 = self.x_start + (col * (self.square_size)) + SELECTION_BUFFER
@@ -119,7 +117,7 @@ class GameBoard:
         #terrain_sprite = terrain.get_sprite()
         #self.window.draw_sprite(x, y, terrain_sprite)
 
-        ###
+        ### TEMPORARY
         self.erase(row, col)
         ###
 
@@ -201,6 +199,7 @@ class GameBoard:
             self.draw_space(space)
             for sp in self.__valid_moves:
                 self.draw_space(sp)
+            self.__valid_moves = None
 
     def move_unit(self, unit, space):
         old_space = unit.get_location()
@@ -210,8 +209,6 @@ class GameBoard:
             self.draw_space(space)
         except Exception as e:
             print(e)
-
-
 
 class Terrain:
     def __init__(self) -> None:
