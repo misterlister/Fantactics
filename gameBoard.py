@@ -135,7 +135,7 @@ class GameBoard:
 
     def movement_spaces(self, i: int, j: int) -> set:
         range = self.selected_unit.get_movement()
-        valid_coords = self.selected_unit.movement_spaces_r(i, j, range, self.__spaces)
+        valid_coords = self.selected_unit.find_move_spaces(i, j, range, self.__spaces)
         valid_spaces = []
         for tuple in valid_coords:
             self.outline_space(tuple[0], tuple[1], 'green')

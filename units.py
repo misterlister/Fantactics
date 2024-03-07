@@ -172,34 +172,30 @@ class Unit:
     def choose_action(self):
         print("Choose Action!")
 
-    def movement_spaces_r(self, i: int, j: int, range: int, space_list: list) -> set:
-        valid_spaces = {(i,j)}
+    def find_move_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
+        valid_spaces = set()
+        # Only add this space if there is no unit already here
+        if space_list[i][j].get_unit() == None:
+            valid_spaces = {(i,j)}
         if range <= 0:
             return valid_spaces
-        if i-1 >= 0:
-            if space_list[i-1][j].get_unit() == None:
-                valid_spaces = valid_spaces.union(self.movement_spaces_r(i-1, j, range-1, space_list))
-        if i-1 >= 0 and j-1 >= 0:
-            if space_list[i-1][j-1].get_unit() == None:
-                valid_spaces = valid_spaces.union(self.movement_spaces_r(i-1, j-1, range-1, space_list))
-        if j-1 >= 0:
-            if space_list[i][j-1].get_unit() == None:
-                valid_spaces = valid_spaces.union(self.movement_spaces_r(i, j-1, range-1, space_list))
-        if i+1 < BOARD_ROWS and j-1 >= 0:
-            if space_list[i+1][j-1].get_unit() == None:
-                valid_spaces = valid_spaces.union(self.movement_spaces_r(i+1, j-1, range-1, space_list))
-        if i+1 < BOARD_ROWS:
-            if space_list[i+1][j].get_unit() == None:
-                valid_spaces = valid_spaces.union(self.movement_spaces_r(i+1, j, range-1, space_list))
-        if i+1 < BOARD_ROWS and j+1 < BOARD_COLS:
-            if space_list[i+1][j+1].get_unit() == None:
-                valid_spaces = valid_spaces.union(self.movement_spaces_r(i+1, j+1, range-1, space_list))
-        if j+1 < BOARD_COLS:
-            if space_list[i][j+1].get_unit() == None:
-                valid_spaces = valid_spaces.union(self.movement_spaces_r(i, j+1, range-1, space_list))
-        if i-1 >= 0 and j+1 < BOARD_COLS:
-            if space_list[i-1][j+1].get_unit() == None:
-                valid_spaces = valid_spaces.union(self.movement_spaces_r(i-1, j+1, range-1, space_list))
+        valid_spaces = valid_spaces.union(self.check_move_spaces(i-1, j, range, space_list))
+        valid_spaces = valid_spaces.union(self.check_move_spaces(i-1, j-1, range, space_list))
+        valid_spaces = valid_spaces.union(self.check_move_spaces(i, j-1, range, space_list))
+        valid_spaces = valid_spaces.union(self.check_move_spaces(i+1, j-1, range, space_list))
+        valid_spaces = valid_spaces.union(self.check_move_spaces(i+1, j, range, space_list))
+        valid_spaces = valid_spaces.union(self.check_move_spaces(i+1, j+1, range, space_list))
+        valid_spaces = valid_spaces.union(self.check_move_spaces(i, j+1, range, space_list))
+        valid_spaces = valid_spaces.union(self.check_move_spaces(i-1, j+1, range, space_list))
+        return valid_spaces
+
+    def check_move_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
+        valid_spaces = set()
+        if i >= 0 and i < BOARD_ROWS and j >= 0 and j < BOARD_COLS:
+            if space_list[i][j].get_unit() != None:
+                if self.__move_type != MoveType.FLY:
+                    return valid_spaces
+            valid_spaces = valid_spaces.union(self.find_move_spaces(i, j, range-1, space_list))
         return valid_spaces
 
 
@@ -293,6 +289,19 @@ class Cavalry(Unit):
                  title_list = Titles.Cavalry
                  ) -> None:
         super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list)
+    
+    def check_move_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
+        valid_spaces = set()
+        if i >= 0 and i < BOARD_ROWS and j >= 0 and j < BOARD_COLS:
+            # If there is a solder in the space which doesn't belong to this player, return
+            if isinstance(space_list[i][j].get_unit(), Soldier): 
+                    if space_list[i][j].get_unit().get_player() != self.get_player():
+                        return valid_spaces 
+            # Otherwise proceed
+            valid_spaces = valid_spaces.union(self.find_move_spaces(i, j, range-1, space_list))
+        return valid_spaces
+    
+
 
 class Archmage(Unit):
     def __init__(self, 
