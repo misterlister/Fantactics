@@ -20,7 +20,19 @@ class Names:
         "Wilma",
         "John",
         "Jane",
-        "Tim"
+        "Tim",
+        "Pam",
+        "Jim",
+        "Angela",
+        "Dwight",
+        "Bella",
+        "Andy",
+        "Karen",
+        "Mike",
+        "Kathy",
+        "George",
+        "Emma",
+        "Trent"
     ]
 
     Noble = [
@@ -40,7 +52,11 @@ class Names:
         "Minerva",
         "Arthur",
         "Lucia",
-        "Osric"
+        "Osric",
+        "Liliana",
+        "Thorin",
+        "Cleopatra",
+        "Geraldus"
     ]
 
     Mage = [
@@ -51,7 +67,13 @@ class Names:
         "Merlin",
         "Morrigan",
         "Ozymandias",
-        "Persephone"
+        "Persephone",
+        "Arcturus",
+        "Freya",
+        "Artemis",
+        "Beatrix",
+        "Tiberius",
+        "Zara"
     ]
 
 class Titles:
@@ -94,7 +116,8 @@ class Titles:
         "Tenacious",
         "Veteran",
         "Mercenary",
-        "Sellsword"
+        "Sellsword",
+        "Gruff"
 
     ]
 
@@ -142,7 +165,6 @@ class Titles:
         "Theurgist",
         "Trickster",
         "Sage"
-
     ]
 
     Healer = [
