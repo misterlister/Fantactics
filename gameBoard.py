@@ -5,10 +5,10 @@ SPRITE_BUFFER = 8
 DEFAULT_SQUARE_SIZE = 64 + SPRITE_BUFFER
 SELECTION_BUFFER = 3
 SELECTION_SQUARE = DEFAULT_SQUARE_SIZE - SELECTION_BUFFER
-DEFAULT_BOARD_ROWS = 8
-DEFAULT_BOARD_COLS = 8
-BOARD_WIDTH = DEFAULT_SQUARE_SIZE * DEFAULT_BOARD_COLS
-BOARD_HEIGHT = DEFAULT_SQUARE_SIZE * DEFAULT_BOARD_ROWS
+BOARD_ROWS = 8
+BOARD_COLS = 8
+BOARD_WIDTH = DEFAULT_SQUARE_SIZE * BOARD_COLS
+BOARD_HEIGHT = DEFAULT_SQUARE_SIZE * BOARD_ROWS
 DEFAULT_X_POS = (WINDOW_WIDTH - BOARD_WIDTH) // 2
 DEFAULT_Y_POS = (WINDOW_HEIGHT - BOARD_HEIGHT) // 2
 
@@ -20,40 +20,30 @@ class GameBoard:
             root: Tk,
             x_start: int = DEFAULT_X_POS,
             y_start: int = DEFAULT_Y_POS,
-            num_rows: int = DEFAULT_BOARD_ROWS,
-            num_cols: int = DEFAULT_BOARD_COLS,
             square_size: int = DEFAULT_SQUARE_SIZE
                  ) -> None:
         self.window = window
         self.root = root
         self.x_start = x_start
         self.y_start = y_start
-        self.x_end = x_start + (num_cols * square_size) 
-        self.y_end = y_start + (num_rows * square_size)
-        self.__num_rows = num_rows
-        self.__num_cols = num_cols
+        self.x_end = x_start + (BOARD_COLS * square_size) 
+        self.y_end = y_start + (BOARD_ROWS * square_size)
         self.square_size = square_size
-        self.__spaces = [[Space(i, j) for j in range(self.__num_cols)] for i in range(self.__num_rows)]
+        self.__spaces = [[Space(i, j) for j in range(BOARD_COLS)] for i in range(BOARD_ROWS)]
         self.draw_board()
         self.window.canvas.bind('<Button-1>', self.click)
         self.selected_space = None
         self.selected_unit = None
         self.__valid_moves = None
-
-    def get_num_rows(self):
-        return self.__num_rows
-
-    def get_num_cols(self):
-        return self.__num_cols
     
     def draw_board(self) -> None:
-        for i in range (self.__num_rows + 1):
+        for i in range (BOARD_ROWS + 1):
             y_position = (self.y_start + i * self.square_size)
             p1 = Point(self.x_start, y_position)
             p2 = Point(self.x_end, y_position)
             self.window.draw_line(p1, p2)
 
-        for j in range (self.__num_cols + 1):
+        for j in range (BOARD_COLS + 1):
             x_position = (self.x_start + j * self.square_size)
             p1 = Point(x_position, self.y_start)
             p2 = Point(x_position, self.y_end)
@@ -91,7 +81,7 @@ class GameBoard:
         self.window.canvas.create_rectangle(x1, y1, x2, y2, width=SPRITE_BUFFER/2, outline=colour)
 
     def check_square(self, row: int, col: int):
-        if row > self.__num_rows or col > self.__num_cols:
+        if row > BOARD_ROWS or col > BOARD_COLS:
             return "Outside Grid"
         else:
             unit = self.__spaces[row][col].get_unit()
@@ -129,8 +119,8 @@ class GameBoard:
             self.outline_space(row, col, 'blue')
 
     def draw_sprites(self):
-        for i in range(self.__num_rows):
-            for j in range(self.__num_cols):
+        for i in range(BOARD_ROWS):
+            for j in range(BOARD_COLS):
                 self.draw_space(self.__spaces[i][j])
 
 
@@ -143,43 +133,14 @@ class GameBoard:
         self.window.canvas.create_rectangle(x1, y1, x2, y2, fill=BG_COL, outline = 'black', width=2)
 ######
 
-    def movement_spaces(self, i: int, j: int, range: int, move_type) -> set:
-        valid_coords = self.movement_spaces_r(i, j, range, move_type)
+    def movement_spaces(self, i: int, j: int) -> set:
+        range = self.selected_unit.get_movement()
+        valid_coords = self.selected_unit.movement_spaces_r(i, j, range, self.__spaces)
         valid_spaces = []
         for tuple in valid_coords:
             self.outline_space(tuple[0], tuple[1], 'green')
             valid_spaces.append(self.__spaces[tuple[0]][tuple[1]])
         return valid_spaces
-
-    def movement_spaces_r(self, i: int, j: int, range: int, move_type) -> set:
-        spaces = {(i,j)}
-        if range <= 0:
-            return spaces
-        if i-1 >= 0:
-            if self.__spaces[i-1][j].get_unit() == None:
-                spaces = spaces.union(self.movement_spaces_r(i-1, j, range-1, move_type))
-        if i-1 >= 0 and j-1 >= 0:
-            if self.__spaces[i-1][j-1].get_unit() == None:
-                spaces = spaces.union(self.movement_spaces_r(i-1, j-1, range-1, move_type))
-        if j-1 >= 0:
-            if self.__spaces[i][j-1].get_unit() == None:
-                spaces = spaces.union(self.movement_spaces_r(i, j-1, range-1, move_type))
-        if i+1 < self.__num_rows and j-1 >= 0:
-            if self.__spaces[i+1][j-1].get_unit() == None:
-                spaces = spaces.union(self.movement_spaces_r(i+1, j-1, range-1, move_type))
-        if i+1 < self.__num_rows:
-            if self.__spaces[i+1][j].get_unit() == None:
-                spaces = spaces.union(self.movement_spaces_r(i+1, j, range-1, move_type))
-        if i+1 < self.__num_rows and j+1 < self.__num_cols:
-            if self.__spaces[i+1][j+1].get_unit() == None:
-                spaces = spaces.union(self.movement_spaces_r(i+1, j+1, range-1, move_type))
-        if j+1 < self.__num_cols:
-            if self.__spaces[i][j+1].get_unit() == None:
-                spaces = spaces.union(self.movement_spaces_r(i, j+1, range-1, move_type))
-        if i-1 >= 0 and j+1 < self.__num_cols:
-            if self.__spaces[i-1][j+1].get_unit() == None:
-                spaces = spaces.union(self.movement_spaces_r(i-1, j+1, range-1, move_type))
-        return spaces
 
     def select_space(self, row: int, col: int) -> None:
         new_space = self.__spaces[row][col]
@@ -188,7 +149,7 @@ class GameBoard:
         self.selected_unit = new_space.get_unit()
         self.draw_space(new_space)
         if self.selected_unit is not None:
-            self.__valid_moves = self.movement_spaces(row, col, self.selected_unit.get_movement(), self.selected_unit.get_move_type())
+            self.__valid_moves = self.movement_spaces(row, col)
 
     def deselect_space(self) -> None:
         space = self.selected_space

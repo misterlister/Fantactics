@@ -1,6 +1,6 @@
 from enum import IntEnum
 from math import ceil
-from gameBoard import Space
+from gameBoard import Space, BOARD_ROWS, BOARD_COLS
 from graphics import SpriteType
 from random import randint
 from names import Names, Titles
@@ -171,6 +171,36 @@ class Unit:
 
     def choose_action(self):
         print("Choose Action!")
+
+    def movement_spaces_r(self, i: int, j: int, range: int, space_list: list) -> set:
+        valid_spaces = {(i,j)}
+        if range <= 0:
+            return valid_spaces
+        if i-1 >= 0:
+            if space_list[i-1][j].get_unit() == None:
+                valid_spaces = valid_spaces.union(self.movement_spaces_r(i-1, j, range-1, space_list))
+        if i-1 >= 0 and j-1 >= 0:
+            if space_list[i-1][j-1].get_unit() == None:
+                valid_spaces = valid_spaces.union(self.movement_spaces_r(i-1, j-1, range-1, space_list))
+        if j-1 >= 0:
+            if space_list[i][j-1].get_unit() == None:
+                valid_spaces = valid_spaces.union(self.movement_spaces_r(i, j-1, range-1, space_list))
+        if i+1 < BOARD_ROWS and j-1 >= 0:
+            if space_list[i+1][j-1].get_unit() == None:
+                valid_spaces = valid_spaces.union(self.movement_spaces_r(i+1, j-1, range-1, space_list))
+        if i+1 < BOARD_ROWS:
+            if space_list[i+1][j].get_unit() == None:
+                valid_spaces = valid_spaces.union(self.movement_spaces_r(i+1, j, range-1, space_list))
+        if i+1 < BOARD_ROWS and j+1 < BOARD_COLS:
+            if space_list[i+1][j+1].get_unit() == None:
+                valid_spaces = valid_spaces.union(self.movement_spaces_r(i+1, j+1, range-1, space_list))
+        if j+1 < BOARD_COLS:
+            if space_list[i][j+1].get_unit() == None:
+                valid_spaces = valid_spaces.union(self.movement_spaces_r(i, j+1, range-1, space_list))
+        if i-1 >= 0 and j+1 < BOARD_COLS:
+            if space_list[i-1][j+1].get_unit() == None:
+                valid_spaces = valid_spaces.union(self.movement_spaces_r(i-1, j+1, range-1, space_list))
+        return valid_spaces
 
 
 class Peasant(Unit):
