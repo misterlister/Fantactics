@@ -115,7 +115,7 @@ class Unit:
 
     def move(self, space: Space):
         try:
-            if space.contains() is None:
+            if space.get_unit() is None:
                 self.__location.assign_unit(None)
                 self.__location = space
                 space.assign_unit(self)

@@ -76,7 +76,8 @@ class Titles:
         "Minstrel",
         "Goatherd",
         "Candlemaker",
-        "Stonemason"
+        "Stonemason",
+        "Unreliable"
     ]
 
     Soldier = [
@@ -124,7 +125,9 @@ class Titles:
         "Lionhearted",
         "Oathbound",
         "Gallant",
-        "Bulwark"
+        "Bulwark",
+        "Mighty",
+        "Resolute"
     ]
 
     Sorcerer = [
@@ -149,7 +152,8 @@ class Titles:
         "Guardian",
         "Lightbringer",
         "Prophet",
-        "High Priest"
+        "High Priest",
+        "Dawnlight"
     ]
 
     Archmage = [
@@ -159,12 +163,15 @@ class Titles:
         "Supreme",
         "Fatetwister",
         "Skybreaker",
-        "All-Seeing"
+        "All-Seeing",
+        "Eternal",
+        "Void-Bringer"
     ]
 
     General = [
         "Conqueror",
         "Great",
         "Glorious",
-        "Dragonslayer"
+        "Dragonslayer",
+        "Unstoppable"
     ]
