@@ -1,6 +1,6 @@
 from graphics import Window, Point, WINDOW_HEIGHT, WINDOW_WIDTH, BG_COL
 from tkinter import Tk
-from userInterface import UserInterface
+from userInterface import UserInterface, ActionMenu
 
 SPRITE_BUFFER = 8
 DEFAULT_SQUARE_SIZE = 64 + SPRITE_BUFFER
@@ -38,16 +38,17 @@ class GameBoard:
         self.selected_space = None
         self.selected_unit = None
         self.__valid_moves = None
+        self.action_menu = None
     
     def draw_board(self) -> None:
         for i in range (BOARD_ROWS + 1):
-            y_position = (self.y_start + i * self.square_size)
+            y_position = self.get_row_y(i)
             p1 = Point(self.x_start, y_position)
             p2 = Point(self.x_end, y_position)
             self.window.draw_line(p1, p2)
 
         for j in range (BOARD_COLS + 1):
-            x_position = (self.x_start + j * self.square_size)
+            x_position = self.get_col_x(j)
             p1 = Point(x_position, self.y_start)
             p2 = Point(x_position, self.y_end)
             self.window.draw_line(p1, p2)
@@ -88,10 +89,10 @@ class GameBoard:
         self.ui.statsPanel[panel].updateText('movement', f"Movement: {self.selected_unit.get_movement()}")
 
     def outline_space(self, row: int, col: int, colour: str) -> None:
-        x1 = self.x_start + (col * (self.square_size)) + SELECTION_BUFFER
-        y1 = self.y_start + (row * (self.square_size)) + SELECTION_BUFFER
-        x2 = self.x_start + ((col+1) * (self.square_size)) - SELECTION_BUFFER
-        y2 = self.y_start + ((row+1) * (self.square_size)) - SELECTION_BUFFER
+        x1 = self.get_col_x(col) + SELECTION_BUFFER
+        y1 = self.get_row_y(row) + SELECTION_BUFFER
+        x2 = self.get_col_x(col+1) - SELECTION_BUFFER
+        y2 = self.get_row_y(row+1) - SELECTION_BUFFER
         self.window.canvas.create_rectangle(x1, y1, x2, y2, width=SPRITE_BUFFER/2, outline=colour)
 
     def check_square(self, row: int, col: int):
@@ -115,8 +116,8 @@ class GameBoard:
     def draw_space(self, space) -> None:
         col = space.get_col()
         row = space.get_row()
-        x = self.x_start + SPRITE_BUFFER/2 + (col * self.square_size)
-        y = self.y_start + SPRITE_BUFFER/2 + (row * self.square_size)
+        x = self.get_col_x(col) + SPRITE_BUFFER/2
+        y = self.get_row_y(row) + SPRITE_BUFFER/2
         #terrain = self.__spaces[i][j].get_terrain()
         #terrain_sprite = terrain.get_sprite()
         #self.window.draw_sprite(x, y, terrain_sprite)
@@ -140,10 +141,10 @@ class GameBoard:
 
 ###### TEMPORARY
     def erase(self, row, col):
-        x1 = self.x_start + (col * (self.square_size))
-        y1 = self.y_start + (row * (self.square_size))
-        x2 = self.x_start + ((col+1) * (self.square_size))
-        y2 = self.y_start + ((row+1) * (self.square_size))
+        x1 = self.get_col_x(col)
+        y1 = self.get_row_y(row)
+        x2 = self.get_col_x(col+1)
+        y2 = self.get_row_y(row+1)
         self.window.canvas.create_rectangle(x1, y1, x2, y2, fill=BG_COL, outline = 'black', width=2)
 ######
 
@@ -184,6 +185,24 @@ class GameBoard:
             self.draw_space(space)
         except Exception as e:
             print(e)
+
+    def make_action_menu(self, row, col, unit):
+        menu_x = self.get_col_x(col)
+        menu_y = self.get_row_y(row)
+        self.action_menu = ActionMenu(menu_x, menu_y, unit, self)
+
+    def cancel_action(self):
+        self.action_menu = None
+        self.draw_sprites()
+
+    def get_col_x(self, col):
+        x = self.x_start + (col * (self.square_size))
+        return x
+        
+    def get_row_y(self, row):
+        y = self.y_start + (row * (self.square_size))
+        return y
+
 
 class Terrain:
     def __init__(self) -> None:

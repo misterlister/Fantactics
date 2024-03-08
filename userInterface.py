@@ -166,7 +166,12 @@ class CombatLog():
         self.text.see('end')
         self.index += 1
 
-    
-    
-        
+
+class ActionMenu:
+    def __init__(self, x_pos: int, y_pos: int, unit, board) -> None:
+        #create a window to fit all three buttons, based on the x and y coordinates
+        #get the title of the special ability by calling the unit.special_ability_name() method
+        #place the 3 buttons in the window
+        #bind the unit.get_targets(), unit.special_abiity(), and board.cancel_action() methods to them
+        pass
     
