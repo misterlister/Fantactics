@@ -1,5 +1,6 @@
 from graphics import Window, Point, WINDOW_HEIGHT, WINDOW_WIDTH, BG_COL
 from tkinter import Tk
+from userInterface import UserInterface
 
 SPRITE_BUFFER = 8
 DEFAULT_SQUARE_SIZE = 64 + SPRITE_BUFFER
@@ -18,12 +19,14 @@ class GameBoard:
             self,
             window: Window,
             root: Tk,
+            ui: UserInterface,
             x_start: int = DEFAULT_X_POS,
             y_start: int = DEFAULT_Y_POS,
             square_size: int = DEFAULT_SQUARE_SIZE
                  ) -> None:
         self.window = window
         self.root = root
+        self.ui = ui
         self.x_start = x_start
         self.y_start = y_start
         self.x_end = x_start + (BOARD_COLS * square_size) 
@@ -64,14 +67,25 @@ class GameBoard:
                             return
                         self.deselect_space()
                     self.select_space(row, col)
+                    self.update_stats_panel('friendlyUnitPanel') 
                     return
                 else: # A unit is currently selected
                     if new_space in self.__valid_moves:
+                        self.ui.logItems['text'].add_text(f"{self.selected_unit.get_name()} -> {row},{col}. \n") # Send movement to combat log
                         self.move_unit(self.selected_unit, new_space)
                     else:
                         print("Invalid Move.")
                     self.deselect_space()
                     return
+                
+    # Update the stats panel items
+    # Should be called on selection of a unit
+    def update_stats_panel(self, panel: str):
+        self.ui.statsPanel[panel].updateText('health', f"Health: {self.selected_unit.get_curr_hp()}")
+        self.ui.statsPanel[panel].updateText('name', f"Name: {self.selected_unit.get_name()}")
+        self.ui.statsPanel[panel].updateText('damage', f"Damage: {self.selected_unit.get_damage_val()}")
+        self.ui.statsPanel[panel].updateText('armour', f"Armour: {self.selected_unit.get_armour_val()}")
+        self.ui.statsPanel[panel].updateText('movement', f"Movement: {self.selected_unit.get_movement()}")
 
     def outline_space(self, row: int, col: int, colour: str) -> None:
         x1 = self.x_start + (col * (self.square_size)) + SELECTION_BUFFER
