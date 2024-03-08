@@ -71,8 +71,11 @@ class GameBoard:
                     self.update_stats_panel('friendlyUnitPanel') 
                     return
                 else: # A unit is currently selected
-                    if new_space in self.__valid_moves:
+                    if self.action_menu is not None:
+                        self.cancel_action()
+                    elif new_space in self.__valid_moves:
                         self.ui.logItems['text'].add_text(f"{self.selected_unit.get_name()} -> {row},{col}. \n") # Send movement to combat log
+                        self.action_menu = self.make_action_menu(row, col, self.selected_unit)
                         self.move_unit(self.selected_unit, new_space)
                     else:
                         print("Invalid Move.")
@@ -82,11 +85,18 @@ class GameBoard:
     # Update the stats panel items
     # Should be called on selection of a unit
     def update_stats_panel(self, panel: str):
-        self.ui.statsPanel[panel].updateText('health', f"Health: {self.selected_unit.get_curr_hp()}")
-        self.ui.statsPanel[panel].updateText('name', f"Name: {self.selected_unit.get_name()}")
-        self.ui.statsPanel[panel].updateText('damage', f"Damage: {self.selected_unit.get_damage_val()}")
-        self.ui.statsPanel[panel].updateText('armour', f"Armour: {self.selected_unit.get_armour_val()}")
-        self.ui.statsPanel[panel].updateText('movement', f"Movement: {self.selected_unit.get_movement()}")
+        if self.selected_unit is not None:
+            self.ui.statsPanel[panel].updateText('name', f"Name: {self.selected_unit.get_name()}")
+            self.ui.statsPanel[panel].updateText('health', f"Health: {self.selected_unit.get_curr_hp()}")
+            self.ui.statsPanel[panel].updateText('damage', f"Damage: {self.selected_unit.get_damage_val()}")
+            self.ui.statsPanel[panel].updateText('armour', f"Armour: {self.selected_unit.get_armour_val()}")
+            self.ui.statsPanel[panel].updateText('movement', f"Movement: {self.selected_unit.get_movement()}")
+        else:
+            self.ui.statsPanel[panel].updateText('name', f"Name:")
+            self.ui.statsPanel[panel].updateText('health', f"Health:")
+            self.ui.statsPanel[panel].updateText('damage', f"Damage:")
+            self.ui.statsPanel[panel].updateText('armour', f"Armour:")
+            self.ui.statsPanel[panel].updateText('movement', f"Movement:")
 
     def outline_space(self, row: int, col: int, colour: str) -> None:
         x1 = self.get_col_x(col) + SELECTION_BUFFER
@@ -173,8 +183,9 @@ class GameBoard:
             self.selected_space = None
             self.selected_unit = None
             self.draw_space(space)
-            for sp in self.__valid_moves:
-                self.draw_space(sp)
+            if self.__valid_moves is not None:
+                for sp in self.__valid_moves:
+                    self.draw_space(sp)
             self.__valid_moves = None
 
     def move_unit(self, unit, space):
