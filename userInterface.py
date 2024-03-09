@@ -2,12 +2,21 @@ from tkinter import Tk, LabelFrame, Canvas, Text, Label, Scrollbar
 from PIL import ImageTk, Image
 from graphics import WINDOW_WIDTH, WINDOW_HEIGHT
 
+SPRITE_BUFFER = 8
+STATS_IMAGE_SIZE = (2 * 64) + SPRITE_BUFFER
+ERROR_UNPRESSED = "Assets/Text/error_unpressed.png"
+ERROR_PRESSED = "Assets/Text/error_pressed.png"
+EMPTY_SPRITE = "Assets/Text/empty.png"
 FONT = 'placeholder'
 BGCOLOUR = '#5d4037'
-BORDER_WIDTH = 2
+BORDER_WIDTH = 4
 PANEL_WIDTH = 320
 PANEL_HEIGHT = 720 
 
+# It does nothing
+def do_nothing(): 
+    pass
+    
 class UserInterface():
     def __init__(self, root: Tk):
         self.stats = Panel(root)
@@ -24,7 +33,7 @@ class UserInterface():
 
         self.statsPanelsItems = {
             ### Temp
-            'playButton' : PlayButton(self.statsPanel['enemyUnitPanel'].getFrame(), 50, 50, textbox=self.log)
+            'playButton' : CanvasButton(self.statsPanel['enemyUnitPanel'].getFrame(), 50, 50)
             ###
         }
 
@@ -50,90 +59,120 @@ class Panel():
         return self.frame
     
 class StatsPanel(Panel):
-    def __init__(self, 
-                 root: Tk, 
-                 xPos: int = 0, 
-                 yPos: int = 0, 
-                 width: int = PANEL_WIDTH, 
-                 height: int = PANEL_HEIGHT, 
-                 colour: str = BGCOLOUR,
-                 ) -> None:
+    def __init__(
+            self, 
+            root: Tk, 
+            xPos: int = 0, 
+            yPos: int = 0, 
+            width: int = PANEL_WIDTH, 
+            height: int = PANEL_HEIGHT, 
+            colour: str = BGCOLOUR,
+            ) -> None:
         super().__init__(root, xPos, yPos, width, height, colour)
+
+        self.spriteCanvas = Canvas(self.frame, width=STATS_IMAGE_SIZE, height=STATS_IMAGE_SIZE, bg='#757eff', highlightthickness=0, borderwidth=BORDER_WIDTH, relief='solid')
+        self.spriteCanvas.pack_propagate(0)
+        self.spriteCanvas.pack(expand=1, fill=None)
+        self.spriteCanvas.place(x=0, y=0)
+        self.empty = ImageTk.PhotoImage(Image.open(EMPTY_SPRITE))
+        self.selectedSprite = self.spriteCanvas.create_image(SPRITE_BUFFER, SPRITE_BUFFER, anchor = 'nw', image=self.empty)
 
         self.labels = {
             'name' : Label(self.frame, text='Name:'),
+            'class' : Label(self.frame, text='Class:'),
             'health' : Label(self.frame, text='Health:'),
             'damage' : Label(self.frame, text='Damage:'),
             'armour' : Label(self.frame, text='Armour:'),
             'movement' : Label(self.frame, text='Movement:')
-            
         }
         
         index = 20
         for item in self.labels:
             self.labels[item].pack()
-            self.labels[item].place(x=120, y=index)
+            self.labels[item].place(x=STATS_IMAGE_SIZE + (2 * BORDER_WIDTH) + 1, y=index)
             index += 20
 
+    def clear(self):
+        self.update_name()
+        self.update_class()
+        self.update_health()
+        self.update_damage()
+        self.update_armour()
+        self.update_movement()   
+        self.update_image(self.empty)
 
-        #self.labels['name'].place(x=120, y=20)
-        #self.labels['health'].place(x=120, y=40)
-        #self.labels['damage'].place(x=120, y=60)
+    def update_name(self, new: str = ''):
+        self.labels['name'].config(text= f"Name: {new}")
+        
+    def update_class(self, new: str = ''):
+        self.labels['class'].config(text= f"Class: {new}")
 
-    def updateText(self, index, new):
-        self.labels[index].config(text=new)
+    def update_health(self, new: str = ''):
+        self.labels['health'].config(text= f"Health: {new}")
 
-    def update(self):
-        pass
+    def update_damage(self, new: str = ''):
+        self.labels['damage'].config(text= f"Damage: {new}")
+    
+    def update_armour(self, new: str = ''):
+        self.labels['armour'].config(text= f"Armour: {new}")
 
+    def update_movement(self, new: str = ''):
+        self.labels['movement'].config(text= f"Movement: {new}")
+    
+    def update_image(self, image: ImageTk):
+        #image = image.resize((2 * image.width(), 2 * image.height()))
+        self.spriteCanvas.itemconfig(self.selectedSprite, image=image)
         
 # Base class for buttons with a sprite
-# Child classes should override click() and unclick()
 class CanvasButton():
     def __init__(
             self, 
             frame: LabelFrame, 
             xPos: int = 0, 
-            yPos: int = 0
+            yPos: int = 0,
+            unpressed: str = ERROR_UNPRESSED,
+            pressed: str = ERROR_PRESSED,
+            clickFunc = do_nothing,
+            unclickFunc = do_nothing
             ) -> None:
         
         self.button = Canvas(frame, bg=BGCOLOUR, bd=0, highlightthickness=0) # Create the button object
         self.button.pack_propagate(0) # Prevent the Canvas from shrinking
         self.button.pack(expand=1, fill=None)
         self.button.place(x=xPos, y=yPos)
-        self.button.bind('<Button-1>', self.click)
-        self.button.bind('<ButtonRelease-1>', self.unclick)
+        
+        self.__create_image(unpressed, pressed)
+        self.currentImage = self.button.create_image(0, 0, anchor = 'nw', image=self.unpressed)
 
-    def click(self, event):
-        pass
+        self.__clickFunc = clickFunc
+        self.__unclickFunc = unclickFunc
+        self.button.bind('<Button-1>', self.__click)
+        self.button.bind('<ButtonRelease-1>', self.__unclick)
 
-    def unclick(self, event):
-        pass
-       
-class PlayButton(CanvasButton):
-    def __init__(self, frame, xPos, yPos, textbox) -> None:
-        super().__init__(frame, xPos, yPos)
-        self.assets = self.__load_assets()
-        width, height = self.assets['play_unpressed'].width(), self.assets['play_unpressed'].height()
+    def change_image(
+            self, 
+            unpressed: str = ERROR_UNPRESSED, 
+            pressed: str = ERROR_PRESSED):
+
+        self.__create_image(unpressed, pressed)
+        self.button.itemconfig(self.currentImage, image=self.unpressed)
+
+    def __create_image(self, unpressed, pressed):
+        self.unpressed = ImageTk.PhotoImage(Image.open(unpressed))
+        self.pressed = ImageTk.PhotoImage(Image.open(pressed))
+        width, height = self.unpressed.width(), self.unpressed.height()
         self.button.config(self.button, width=width, height=height)
-        self.play_image = self.button.create_image(0, 0, anchor = 'nw', image = self.assets['play_unpressed'])
-        self.textbox = textbox
-        self.textboxEnabled = True
-        
-    def click(self, event):
-        print(event)
-        self.button.itemconfig(self.play_image, image=self.assets['play_pressed'])
-        
 
-    def unclick(self, event):
-        print(event)
-        self.button.itemconfig(self.play_image, image=self.assets['play_unpressed'])
+    def __click(self, event):
+        self.button.itemconfig(self.currentImage, image=self.pressed)
+        self.__clickFunc()
 
-    def __load_assets(self):
-        assets = {}
-        assets['play_unpressed'] = ImageTk.PhotoImage(Image.open("Assets/Text/play_unpressed.png"))
-        assets['play_pressed'] = ImageTk.PhotoImage(Image.open("Assets/Text/play_pressed.png"))
-        return assets
+    def __unclick(self, event):
+        self.button.itemconfig(self.currentImage, image=self.unpressed)
+        self.__unclickFunc()
+
+    def default_func(self):
+        pass
     
 class ControlBar(Panel):
     def __init__(
@@ -165,7 +204,6 @@ class CombatLog():
         self.text.config(state='disabled')
         self.text.see('end')
         self.index += 1
-
 
 class ActionMenu:
     def __init__(self, x_pos: int, y_pos: int, unit, board) -> None:

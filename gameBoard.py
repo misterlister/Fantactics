@@ -1,8 +1,7 @@
 from graphics import Window, Point, WINDOW_HEIGHT, WINDOW_WIDTH, BG_COL
 from tkinter import Tk
-from userInterface import UserInterface, ActionMenu
+from userInterface import UserInterface, ActionMenu, SPRITE_BUFFER
 
-SPRITE_BUFFER = 8
 DEFAULT_SQUARE_SIZE = 64 + SPRITE_BUFFER
 SELECTION_BUFFER = 3
 SELECTION_SQUARE = DEFAULT_SQUARE_SIZE - SELECTION_BUFFER
@@ -86,17 +85,15 @@ class GameBoard:
     # Should be called on selection of a unit
     def update_stats_panel(self, panel: str):
         if self.selected_unit is not None:
-            self.ui.statsPanel[panel].updateText('name', f"Name: {self.selected_unit.get_name()}")
-            self.ui.statsPanel[panel].updateText('health', f"Health: {self.selected_unit.get_curr_hp()}")
-            self.ui.statsPanel[panel].updateText('damage', f"Damage: {self.selected_unit.get_damage_val()}")
-            self.ui.statsPanel[panel].updateText('armour', f"Armour: {self.selected_unit.get_armour_val()}")
-            self.ui.statsPanel[panel].updateText('movement', f"Movement: {self.selected_unit.get_movement()}")
+            sprite = self.selected_unit.get_sprite()
+            self.ui.statsPanel[panel].update_image(self.window.get_sprite(sprite))
+            self.ui.statsPanel[panel].update_name(self.selected_unit.get_name())
+            self.ui.statsPanel[panel].update_health(self.selected_unit.get_curr_hp())
+            self.ui.statsPanel[panel].update_damage(self.selected_unit.get_damage_val())
+            self.ui.statsPanel[panel].update_armour(self.selected_unit.get_armour_val())
+            self.ui.statsPanel[panel].update_movement(self.selected_unit.get_movement())
         else:
-            self.ui.statsPanel[panel].updateText('name', f"Name:")
-            self.ui.statsPanel[panel].updateText('health', f"Health:")
-            self.ui.statsPanel[panel].updateText('damage', f"Damage:")
-            self.ui.statsPanel[panel].updateText('armour', f"Armour:")
-            self.ui.statsPanel[panel].updateText('movement', f"Movement:")
+            self.ui.statsPanel[panel].clear()
 
     def outline_space(self, row: int, col: int, colour: str) -> None:
         x1 = self.get_col_x(col) + SELECTION_BUFFER

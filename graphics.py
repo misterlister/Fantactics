@@ -43,6 +43,9 @@ class Window:
         sprite_image = self.sprites[sprite]
         self.canvas.create_image(x, y, anchor='nw', image=sprite_image)
 
+    def get_sprite(self, index):
+        return self.sprites[index]
+
     def __load_sprites(self):
         sprites = {}
         sprites[SpriteType.ARCHER] = ImageTk.PhotoImage(Image.open("Assets/Units/archer.png"))
