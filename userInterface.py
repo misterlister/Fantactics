@@ -19,13 +19,16 @@ def do_nothing():
     
 class UserInterface():
     def __init__(self, root: Tk):
+
+        # Create Stats Panel (left side panel)
         self.stats = Panel(root)
-        self.statsPanel = {
+        self.statsPanel = { # Stats panel is divided into 3 seperate subPanels
             'friendlyUnitPanel' : StatsPanel(self.stats.getFrame(), height=PANEL_HEIGHT / 3, colour='blue'),
             'enemyUnitPanel' : Panel(self.stats.getFrame(), yPos=PANEL_HEIGHT / 3, height=PANEL_HEIGHT / 3, colour='white'),
             'terrainPanel' : Panel(self.stats.getFrame(), yPos=(PANEL_HEIGHT / 3) * 2, height=PANEL_HEIGHT / 3, colour='black')
         }
         
+        ### Create Log Panel (right side panel)
         self.log = Panel(root, WINDOW_WIDTH-PANEL_WIDTH, 0)
         self.logItems = {
             'text' : CombatLog(self.log.getFrame())
@@ -37,7 +40,7 @@ class UserInterface():
             ###
         }
 
-        self.controlBar = Panel(root, PANEL_WIDTH, PANEL_HEIGHT - 64, width=WINDOW_WIDTH - (2 * PANEL_WIDTH))
+        self.controlBar = ControlBar(root, PANEL_WIDTH, PANEL_HEIGHT - 80, width=WINDOW_WIDTH - (2 * PANEL_WIDTH))
         
 class Panel():
     def __init__(
@@ -70,13 +73,17 @@ class StatsPanel(Panel):
             ) -> None:
         super().__init__(root, xPos, yPos, width, height, colour)
 
+        ### Create the area for sprite to be displayed on click
         self.spriteCanvas = Canvas(self.frame, width=STATS_IMAGE_SIZE, height=STATS_IMAGE_SIZE, bg='#757eff', highlightthickness=0, borderwidth=BORDER_WIDTH, relief='solid')
         self.spriteCanvas.pack_propagate(0)
         self.spriteCanvas.pack(expand=1, fill=None)
         self.spriteCanvas.place(x=0, y=20)
+
+        # Empty default sprite for no unit selected
         self.empty = ImageTk.PhotoImage(Image.open(EMPTY_SPRITE))
         self.selectedSprite = self.spriteCanvas.create_image(SPRITE_BUFFER, SPRITE_BUFFER, anchor = 'nw', image=self.empty)
 
+        # Label fields for stats to be displayed
         self.labels = {
             'name' : Label(self.frame, text='Name:'),
             'class' : Label(self.frame, text='Class:'),
@@ -124,6 +131,20 @@ class StatsPanel(Panel):
     def update_image(self, image: ImageTk) -> None:
         #image = image.resize((2 * image.width(), 2 * image.height()))
         self.spriteCanvas.itemconfig(self.selectedSprite, image=image)
+
+# Attack, special ability, wait, cancel
+# Class for bottom side control bar
+class ControlBar(Panel):
+    def __init__(
+            self,
+            root: Tk, 
+            xPos: int = 0, 
+            yPos: int = 0, 
+            width: int = PANEL_WIDTH, 
+            height: int = PANEL_HEIGHT, 
+            colour: str = BGCOLOUR
+            ) -> None:
+        super().__init__(root, xPos, yPos, width, height, colour)
         
 # Base class for buttons with a sprite
 class CanvasButton():
@@ -135,7 +156,8 @@ class CanvasButton():
             unpressed: str = ERROR_UNPRESSED,
             pressed: str = ERROR_PRESSED,
             clickFunc = do_nothing,
-            unclickFunc = do_nothing
+            unclickFunc = do_nothing,
+            enabled: bool = True,
             ) -> None:
         
         self.button = Canvas(frame, bg=BGCOLOUR, bd=0, highlightthickness=0) # Create the button object
@@ -166,6 +188,12 @@ class CanvasButton():
         width, height = self.unpressed.width(), self.unpressed.height()
         self.button.config(self.button, width=width, height=height)
 
+    def change_click_func(self):
+        pass
+
+    def change_unclick_func(self):
+        pass
+
     def __click(self, event) -> None:
         self.button.itemconfig(self.currentImage, image=self.pressed)
         self.__clickFunc()
@@ -173,13 +201,6 @@ class CanvasButton():
     def __unclick(self, event) -> None:
         self.button.itemconfig(self.currentImage, image=self.unpressed)
         self.__unclickFunc()
-    
-class ControlBar(Panel):
-    def __init__(
-            self,
-            
-            ) -> None:
-        pass
 
 class CombatLog():
     def __init__(
