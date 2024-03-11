@@ -222,6 +222,7 @@ class Peasant(Unit):
         title_list = Titles.Peasant
         ability_name = "Surge of Bravery"
         super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name)
+        self.ability_used = False
 
 class Soldier(Unit):
     def __init__(self) -> None:
@@ -310,7 +311,6 @@ class Cavalry(Unit):
         return valid_spaces
     
 
-
 class Archmage(Unit):
     def __init__(self) -> None:
         hp=22
@@ -340,6 +340,7 @@ class General(Unit):
         title_list = Titles.General
         ability_name = "Inspirational Rally"
         super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name)
+        self.ability_used = False
 
 
 def weapon_matchup(weapon, armour):
