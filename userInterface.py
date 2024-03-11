@@ -73,7 +73,7 @@ class StatsPanel(Panel):
         self.spriteCanvas = Canvas(self.frame, width=STATS_IMAGE_SIZE, height=STATS_IMAGE_SIZE, bg='#757eff', highlightthickness=0, borderwidth=BORDER_WIDTH, relief='solid')
         self.spriteCanvas.pack_propagate(0)
         self.spriteCanvas.pack(expand=1, fill=None)
-        self.spriteCanvas.place(x=0, y=0)
+        self.spriteCanvas.place(x=0, y=20)
         self.empty = ImageTk.PhotoImage(Image.open(EMPTY_SPRITE))
         self.selectedSprite = self.spriteCanvas.create_image(SPRITE_BUFFER, SPRITE_BUFFER, anchor = 'nw', image=self.empty)
 
@@ -92,7 +92,9 @@ class StatsPanel(Panel):
             self.labels[item].place(x=STATS_IMAGE_SIZE + (2 * BORDER_WIDTH) + 1, y=index)
             index += 20
 
-    def clear(self):
+        self.labels['name'].place(x=0, y=0)
+
+    def clear(self) -> None:
         self.update_name()
         self.update_class()
         self.update_health()
@@ -101,25 +103,25 @@ class StatsPanel(Panel):
         self.update_movement()   
         self.update_image(self.empty)
 
-    def update_name(self, new: str = ''):
+    def update_name(self, new: str = '') -> None:
         self.labels['name'].config(text= f"Name: {new}")
         
-    def update_class(self, new: str = ''):
+    def update_class(self, new: str = '') -> None:
         self.labels['class'].config(text= f"Class: {new}")
 
-    def update_health(self, new: str = ''):
+    def update_health(self, new: str = '') -> None:
         self.labels['health'].config(text= f"Health: {new}")
 
-    def update_damage(self, new: str = ''):
+    def update_damage(self, new: str = '') -> None:
         self.labels['damage'].config(text= f"Damage: {new}")
     
-    def update_armour(self, new: str = ''):
+    def update_armour(self, new: str = '') -> None:
         self.labels['armour'].config(text= f"Armour: {new}")
 
-    def update_movement(self, new: str = ''):
+    def update_movement(self, new: str = '') -> None:
         self.labels['movement'].config(text= f"Movement: {new}")
     
-    def update_image(self, image: ImageTk):
+    def update_image(self, image: ImageTk) -> None:
         #image = image.resize((2 * image.width(), 2 * image.height()))
         self.spriteCanvas.itemconfig(self.selectedSprite, image=image)
         
@@ -152,27 +154,25 @@ class CanvasButton():
     def change_image(
             self, 
             unpressed: str = ERROR_UNPRESSED, 
-            pressed: str = ERROR_PRESSED):
+            pressed: str = ERROR_PRESSED
+            ) -> None:
 
         self.__create_image(unpressed, pressed)
         self.button.itemconfig(self.currentImage, image=self.unpressed)
 
-    def __create_image(self, unpressed, pressed):
+    def __create_image(self, unpressed, pressed) -> None:
         self.unpressed = ImageTk.PhotoImage(Image.open(unpressed))
         self.pressed = ImageTk.PhotoImage(Image.open(pressed))
         width, height = self.unpressed.width(), self.unpressed.height()
         self.button.config(self.button, width=width, height=height)
 
-    def __click(self, event):
+    def __click(self, event) -> None:
         self.button.itemconfig(self.currentImage, image=self.pressed)
         self.__clickFunc()
 
-    def __unclick(self, event):
+    def __unclick(self, event) -> None:
         self.button.itemconfig(self.currentImage, image=self.unpressed)
         self.__unclickFunc()
-
-    def default_func(self):
-        pass
     
 class ControlBar(Panel):
     def __init__(

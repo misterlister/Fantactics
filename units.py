@@ -262,7 +262,7 @@ class Healer(Unit):
         arm_type=ArmourType.CHAIN
         move=MoveSpeed.MED
         move_type = MoveType.FOOT
-        sprite = SpriteType.PEASANT
+        sprite = SpriteType.HEALER
         name_list = Names.Mage
         title_list = Titles.Healer
         ability_name = "Healing Radiance"
@@ -320,7 +320,7 @@ class Archmage(Unit):
         arm_type=ArmourType.ROBES
         move=MoveSpeed.MED
         move_type = MoveType.FLY
-        sprite = SpriteType.PEASANT
+        sprite = SpriteType.ARCHMAGE
         name_list = Names.Mage
         title_list = Titles.Archmage
         ability_name = "Arcane Vortex"
