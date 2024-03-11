@@ -37,6 +37,7 @@ class GameBoard:
         self.selected_space = None
         self.selected_unit = None
         self.__valid_moves = None
+        self.__target_spaces = None
         self.action_menu = None
     
     def draw_board(self) -> None:
