@@ -190,8 +190,7 @@ class GameBoard:
             self.selected_space = None
             self.selected_unit = None
             self.action_space = None
-            self.reset_spaces(self.__attack_spaces)
-            self.reset_spaces(self.__ability_spaces)
+            self.reset_target_spaces()
             self.draw_space(space)
             if self.__valid_moves is not None:
                 for sp in self.__valid_moves:
@@ -225,20 +224,19 @@ class GameBoard:
     def set_action_space(self, unit, space):
         if self.action_space is not None:
             self.outline_space(self.action_space.get_row(), self.action_space.get_col(), 'green')
-        self.reset_spaces(self.__attack_spaces)
-        self.reset_spaces(self.__ability_spaces)
+        self.reset_target_spaces()
         self.set_unit_buttons(unit, space)
         self.outline_space(space.get_row(), space.get_col(), 'yellow')
         self.action_space = space
 
     def set_attack_spaces(self, unit, space):
-        self.reset_spaces(self.__attack_spaces)
+        self.reset_target_spaces()
         row = space.get_row()
         col = space.get_col()
         self.__attack_spaces = self.get_target_spaces(row, col, 1, 'red')
 
     def set_ability_spaces(self, unit, space):
-        self.reset_spaces(self.__ability_spaces)
+        self.reset_target_spaces()
         row = space.get_row()
         col = space.get_col()
         self.__ability_spaces = self.get_target_spaces(row, col, unit.get_ability_range(), 'yellow')
@@ -256,11 +254,16 @@ class GameBoard:
         self.ui.controlBar.buttons['green'].change_unclick_func(do_nothing)
         self.ui.controlBar.buttons['grey'].change_unclick_func(do_nothing)
 
-    def reset_spaces(self, spacelist):
-        if spacelist is not None:
-            for space in spacelist:
+    def reset_target_spaces(self):
+        if self.__ability_spaces is not None:
+            for space in self.__ability_spaces:
                 self.draw_space(space)
-        spacelist = None
+        self.__ability_spaces = None
+
+        if self.__attack_spaces is not None:
+            for space in self.__attack_spaces:
+                self.draw_space(space)
+        self.__attack_spaces = None
 
 
 
