@@ -39,7 +39,7 @@ class GameBoard:
         self.action_space = None
         self.__valid_moves = None
         self.__attack_spaces = None
-        self.__special_spaces = None
+        self.__ability_spaces = None
     
     def draw_board(self) -> None:
         for i in range (BOARD_ROWS + 1):
@@ -190,6 +190,8 @@ class GameBoard:
             self.selected_space = None
             self.selected_unit = None
             self.action_space = None
+            self.reset_spaces(self.__attack_spaces)
+            self.reset_spaces(self.__ability_spaces)
             self.draw_space(space)
             if self.__valid_moves is not None:
                 for sp in self.__valid_moves:
@@ -223,21 +225,42 @@ class GameBoard:
     def set_action_space(self, unit, space):
         if self.action_space is not None:
             self.outline_space(self.action_space.get_row(), self.action_space.get_col(), 'green')
+        self.reset_spaces(self.__attack_spaces)
+        self.reset_spaces(self.__ability_spaces)
         self.set_unit_buttons(unit, space)
+        self.outline_space(space.get_row(), space.get_col(), 'yellow')
         self.action_space = space
+
+    def set_attack_spaces(self, unit, space):
+        self.reset_spaces(self.__attack_spaces)
+        row = space.get_row()
+        col = space.get_col()
+        self.__attack_spaces = self.get_target_spaces(row, col, 1, 'red')
+
+    def set_ability_spaces(self, unit, space):
+        self.reset_spaces(self.__ability_spaces)
+        row = space.get_row()
+        col = space.get_col()
+        self.__ability_spaces = self.get_target_spaces(row, col, unit.get_ability_range(), 'yellow')
     
     def set_unit_buttons(self, unit, space):
-        #self.ui.controlBar.buttons['red'].change_unclick_func(lambda: function))
-        #self.ui.controlBar.buttons['yellow'].change_unclick_func(lambda: function))
+        self.ui.controlBar.buttons['red'].change_unclick_func(lambda: self.set_attack_spaces(unit, space))
+        self.ui.controlBar.buttons['yellow'].change_unclick_func(lambda: self.set_ability_spaces(unit, space))
         self.ui.controlBar.buttons['green'].change_unclick_func(lambda: self.move_unit(unit, space))
         self.ui.controlBar.buttons['grey'].change_unclick_func(self.cancel_action)
-        self.outline_space(space.get_row(), space.get_col(), 'yellow')
+
 
     def unset_unit_buttons(self):
         self.ui.controlBar.buttons['red'].change_unclick_func(do_nothing)
         self.ui.controlBar.buttons['yellow'].change_unclick_func(do_nothing)
         self.ui.controlBar.buttons['green'].change_unclick_func(do_nothing)
         self.ui.controlBar.buttons['grey'].change_unclick_func(do_nothing)
+
+    def reset_spaces(self, spacelist):
+        if spacelist is not None:
+            for space in spacelist:
+                self.draw_space(space)
+        spacelist = None
 
 
 

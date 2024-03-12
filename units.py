@@ -188,8 +188,8 @@ class Unit:
 
     def find_move_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
         valid_spaces = set()
-        # Only add this space if there is no unit already here
-        if space_list[i][j].get_unit() == None:
+        # Add this space if its empty, or it is this units current location
+        if space_list[i][j].get_unit() == None or space_list[i][j].get_unit() == self:
             valid_spaces = {(i,j)}
         if range <= 0:
             return valid_spaces
@@ -216,7 +216,7 @@ class Unit:
         target_spaces = set()
         # Only add this space if there is an enemy here
         if space_list[i][j].get_unit() != None:
-            if space_list[i][j].get_unit().get_player != self.get_player():
+            if space_list[i][j].get_unit().get_player() != self.get_player():
                 target_spaces = {(i,j)}
         if range <= 0:
             return target_spaces
