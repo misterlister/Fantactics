@@ -13,6 +13,7 @@ BORDER_WIDTH = 4
 PANEL_WIDTH, PANEL_HEIGHT = 320, 720 
 CONTROL_PANEL_HEIGHT = 80
 
+
 # It does nothing
 def do_nothing(): 
     pass
@@ -149,9 +150,9 @@ class ControlBar(Panel):
         super().__init__(root, xPos, yPos, width, height, colour)
 
         self.buttons = {
-            'green' : CanvasButton(self.frame, unpressed='Assets/Buttons/green_unpressed.png', pressed='Assets/Buttons/green_pressed.png'),
-            'yellow' : CanvasButton(self.frame, unpressed='Assets/Buttons/yellow_unpressed.png', pressed='Assets/Buttons/yellow_pressed.png'),
             'red' : CanvasButton(self.frame, unpressed='Assets/Buttons/red_unpressed.png', pressed='Assets/Buttons/red_pressed.png'),
+            'yellow' : CanvasButton(self.frame, unpressed='Assets/Buttons/yellow_unpressed.png', pressed='Assets/Buttons/yellow_pressed.png'),
+            'green' : CanvasButton(self.frame, unpressed='Assets/Buttons/green_unpressed.png', pressed='Assets/Buttons/green_pressed.png'),
             'grey' : CanvasButton(self.frame, unpressed='Assets/Buttons/grey_unpressed.png', pressed='Assets/Buttons/grey_pressed.png')
         }
 
@@ -256,11 +257,4 @@ class CombatLog():
         self.text.see('end')
         self.index += 1
 
-class ActionMenu:
-    def __init__(self, x_pos: int, y_pos: int, unit, board) -> None:
-        #create a window to fit all three buttons, based on the x and y coordinates
-        #get the title of the special ability by calling the unit.special_ability_name() method
-        #place the 3 buttons in the window
-        #bind the unit.get_targets(), unit.special_abiity(), and board.cancel_action() methods to them
-        pass
     
