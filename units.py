@@ -50,7 +50,8 @@ class Unit:
             sprite,
             name_list,
             title_list,
-            ability_name
+            ability_name,
+            ability_range
             ) -> None:
         
         self.__max_hp = hp
@@ -64,6 +65,7 @@ class Unit:
         self.__sprite = sprite
         self.__name = self.make_name(name_list, title_list)
         self.__ability_name = ability_name
+        self.__ability_range = ability_range
         self.__location = None
         self.__dead = False
         self.__player = None
@@ -107,6 +109,9 @@ class Unit:
     
     def get_ability_name(self):
         return self.__ability_name
+    
+    def get_ability_range(self):
+        return self.__ability_range
     
     def set_player(self, player):
         self.__player = player
@@ -221,7 +226,8 @@ class Peasant(Unit):
         name_list = Names.Commoner
         title_list = Titles.Peasant
         ability_name = "Surge of Bravery"
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name)
+        ability_range = 0
+        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range)
         self.ability_used = False
 
 class Soldier(Unit):
@@ -236,8 +242,9 @@ class Soldier(Unit):
         sprite = SpriteType.SOLDIER
         name_list = Names.Commoner
         title_list = Titles.Soldier
-        ability_name = "Guarded Advance"         
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name)
+        ability_name = "Guarded Advance" 
+        ability_range = 1        
+        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range)
 
 class Sorcerer(Unit):
     def __init__(self) -> None:
@@ -251,8 +258,9 @@ class Sorcerer(Unit):
         sprite = SpriteType.SORCERER
         name_list = Names.Mage
         title_list = Titles.Sorcerer
-        ability_name = "Sorcerous Assault"        
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name)
+        ability_name = "Sorcerous Assault"    
+        ability_range = 4    
+        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range)
 
 class Healer(Unit):
     def __init__(self) -> None:
@@ -267,7 +275,8 @@ class Healer(Unit):
         name_list = Names.Mage
         title_list = Titles.Healer
         ability_name = "Healing Radiance"
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name)
+        ability_range = 1
+        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range)
 
 class Archer(Unit):
     def __init__(self) -> None:
@@ -282,7 +291,8 @@ class Archer(Unit):
         name_list = Names.Commoner
         title_list = Titles.Archer
         ability_name = "Ranged Attack"
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name)
+        ability_range = 5
+        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range)
 
 class Cavalry(Unit):
     def __init__(self) -> None:
@@ -297,7 +307,8 @@ class Cavalry(Unit):
         name_list = Names.Noble
         title_list = Titles.Cavalry
         ability_name = "Harrying Strike"
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name)
+        ability_range = 1
+        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range)
     
     def check_move_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
         valid_spaces = set()
@@ -324,7 +335,8 @@ class Archmage(Unit):
         name_list = Names.Mage
         title_list = Titles.Archmage
         ability_name = "Arcane Vortex"
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name)
+        ability_range = 3
+        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range)
 
 class General(Unit):
     def __init__(self) -> None:
@@ -339,7 +351,8 @@ class General(Unit):
         name_list = Names.Noble
         title_list = Titles.General
         ability_name = "Inspirational Rally"
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name)
+        ability_range = 0
+        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range)
         self.ability_used = False
 
 
