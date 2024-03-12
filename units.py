@@ -212,6 +212,29 @@ class Unit:
             valid_spaces = valid_spaces.union(self.find_move_spaces(i, j, range-1, space_list))
         return valid_spaces
 
+    def find_target_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
+        target_spaces = set()
+        # Only add this space if there is an enemy here
+        if space_list[i][j].get_unit() != None:
+            if space_list[i][j].get_unit().get_player != self.get_player():
+                target_spaces = {(i,j)}
+        if range <= 0:
+            return target_spaces
+        target_spaces = target_spaces.union(self.check_target_spaces(i-1, j, range, space_list))
+        target_spaces = target_spaces.union(self.check_target_spaces(i-1, j-1, range, space_list))
+        target_spaces = target_spaces.union(self.check_target_spaces(i, j-1, range, space_list))
+        target_spaces = target_spaces.union(self.check_target_spaces(i+1, j-1, range, space_list))
+        target_spaces = target_spaces.union(self.check_target_spaces(i+1, j, range, space_list))
+        target_spaces = target_spaces.union(self.check_target_spaces(i+1, j+1, range, space_list))
+        target_spaces = target_spaces.union(self.check_target_spaces(i, j+1, range, space_list))
+        target_spaces = target_spaces.union(self.check_target_spaces(i-1, j+1, range, space_list))
+        return target_spaces
+
+    def check_target_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
+        valid_spaces = set()
+        if i >= 0 and i < BOARD_ROWS and j >= 0 and j < BOARD_COLS:
+            valid_spaces = valid_spaces.union(self.find_target_spaces(i, j, range-1, space_list))
+        return valid_spaces
 
 class Peasant(Unit):
     def __init__(self) -> None:
@@ -310,7 +333,7 @@ class Cavalry(Unit):
         ability_range = 1
         super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range)
     
-    def check_move_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
+    def check_target_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
         valid_spaces = set()
         if i >= 0 and i < BOARD_ROWS and j >= 0 and j < BOARD_COLS:
             # If there is a solder in the space which doesn't belong to this player, return
