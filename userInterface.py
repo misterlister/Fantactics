@@ -46,12 +46,14 @@ class Panel():
             yPos: int = 0, 
             width: int = PANEL_WIDTH,
             height: int = PANEL_HEIGHT,
-            colour: str = BGCOLOUR
+            colour: str = BGCOLOUR,
+            bd: int = 0,
+            relief: str = 'solid'
             ) -> None:
         
-        self.frame = LabelFrame(root, width = width, height = height, bg=colour, bd=0)
+        self.frame = LabelFrame(root, width = width, height = height, bg=colour, bd=bd, relief=relief)
         self.frame.pack_propagate(0) # Prevent the LabelFrame from shrinking
-        self.frame.pack(side = 'left', expand = 'True', anchor='nw', fill='both')
+        #self.frame.pack(side = 'left', expand = 'True', anchor='nw', fill='both')
         self.frame.place(x=xPos, y=yPos)
 
     def getFrame(self):
@@ -66,15 +68,17 @@ class StatsPanel(Panel):
             width: int = PANEL_WIDTH, 
             height: int = PANEL_HEIGHT, 
             bgColour: str = BGCOLOUR,
+            bd: int = 0,
+            relief: str = 'solid',
             textColour: str = 'white',
             spriteBgColour: str = '#757eff'
             ) -> None:
-        super().__init__(root, xPos, yPos, width, height, bgColour)
+        super().__init__(root, xPos, yPos, width, height, bgColour, bd, relief)
 
         ### Create the area for sprite to be displayed on click
         self.spriteCanvas = Canvas(self.frame, width=STATS_IMAGE_SIZE, height=STATS_IMAGE_SIZE, bg=spriteBgColour, highlightthickness=0, borderwidth=BORDER_WIDTH, relief='solid')
         self.spriteCanvas.pack_propagate(0)
-        self.spriteCanvas.pack(expand=1, fill=None)
+        #self.spriteCanvas.pack(expand=1, fill=None)
         self.spriteCanvas.place(x=0, y=25)
 
         # Empty default sprite for no unit selected
@@ -99,7 +103,7 @@ class StatsPanel(Panel):
         index = 0
         for item in self.labels:
             self.labels[item].config(bg=bgColour, fg=textColour, font=(FONT, DEFAULT_FONT_SIZE))
-            self.labels[item].pack()
+            #self.labels[item].pack()
             self.labels[item].place(x=STATS_IMAGE_SIZE + (2 * BORDER_WIDTH) + 1, y=index)
             index += 30
 
@@ -146,9 +150,11 @@ class ControlBar(Panel):
             yPos: int = 0, 
             width: int = PANEL_WIDTH, 
             height: int = PANEL_HEIGHT, 
-            colour: str = BGCOLOUR
+            colour: str = BGCOLOUR,
+            bd: int = 0,
+            relief: str = 'solid'
             ) -> None:
-        super().__init__(root, xPos, yPos, width, height, colour)
+        super().__init__(root, xPos, yPos, width, height, colour, bd, relief)
 
         self.buttons = {
             'red' : CanvasButton(self.frame, toggleable=False, unpressed='Assets/Buttons/red_unpressed.png', pressed='Assets/Buttons/red_pressed.png'),
@@ -168,8 +174,11 @@ class ControlBar(Panel):
         index = 0
         for item in self.buttons:
             self.buttons[item].get_button().place(x=(48 * 3 * index) + (spacing / 2) + (index * spacing), y=8)
-            self.labels[item].config(bg=colour, fg='white', justify='center', font=(FONT, DEFAULT_FONT_SIZE))
-            self.labels[item].place(x=(48 * 3 * index) + (spacing / 2) + (index * spacing) + ((48 * 3) / 2), y=56, anchor='n')
+            try:
+                self.labels[item].config(bg=colour, fg='white', justify='center', font=(FONT, DEFAULT_FONT_SIZE))
+                self.labels[item].place(x=(48 * 3 * index) + (spacing / 2) + (index * spacing) + ((48 * 3) / 2), y=56, anchor='n')
+            except Exception as e:
+                print(e)
             index += 1
                    
 # Base class for buttons with a sprite
