@@ -101,7 +101,7 @@ class GameBoard:
             sprite = self.selected_unit.get_sprite()
             self.ui.statsPanel[panel].update_image(self.window.get_sprite(sprite))
             self.ui.statsPanel[panel].update_name(self.selected_unit.get_name())
-            self.ui.statsPanel[panel].update_health(self.selected_unit.get_curr_hp())
+            self.ui.statsPanel[panel].update_health(self.selected_unit.get_curr_hp(), self.selected_unit.get_max_hp())
             self.ui.statsPanel[panel].update_damage(self.selected_unit.get_damage_val())
             self.ui.statsPanel[panel].update_armour(self.selected_unit.get_armour_val())
             self.ui.statsPanel[panel].update_movement(self.selected_unit.get_movement())
