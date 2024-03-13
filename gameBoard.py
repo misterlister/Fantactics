@@ -72,24 +72,22 @@ class GameBoard:
                     self.update_stats_panel('friendlyUnitPanel') 
                     return
                 else: # A unit is currently selected
+                    unit = self.selected_unit
                     if self.__attack_spaces != None: # Attack range is active
                         if new_space in self.__attack_spaces: # A valid target is selected
-                            self.combat(self.selected_unit, new_space.get_unit())
-                            if new_space.get_unit() == None: # If the target died, take their space
-                                self.move_unit(self.selected_unit, new_space)
-                            else: # Otherwise, move in front of them
-                                self.move_unit(self.selected_unit, self.action_space)
+                            self.move_unit(unit, self.action_space)
+                            self.combat(unit, new_space.get_unit())
                             return
                     if self.__ability_spaces != None: # Ability range is active
                         if new_space in self.__ability_spaces: # A valid target is selected
-                            self.selected_unit.special_ability()
-                            self.move_unit(self.selected_unit, self.action_space)
+                            self.unit.special_ability()
+                            self.move_unit(unit, self.action_space)
                             return
                     if self.action_space == new_space: # Movement to a new space is confirmed
-                        self.move_unit(self.selected_unit, new_space)
+                        self.move_unit(unit, new_space)
                         return
                     elif new_space in self.__valid_moves: # A new action space is selected
-                        self.set_action_space(self.selected_unit, new_space)
+                        self.set_action_space(unit, new_space)
                         return
 
                     print("Cancelled Action.")
@@ -229,7 +227,8 @@ class GameBoard:
             self.deselect_space()
             self.draw_space(old_space)
             self.draw_space(space)
-            self.ui.logItems['text'].add_text(f"{unit.get_name()} -> {space.get_row()},{space.get_col()}. \n") # Send movement to combat log
+            if old_space != space:
+                self.ui.logItems['text'].add_text(f"{unit.get_name()} -> {space.get_row()},{space.get_col()}. \n") # Send movement to combat log
         except Exception as e:
             print(e)
 
@@ -303,13 +302,24 @@ class GameBoard:
     def combat(self, unit, target):
         unit_name = unit.get_name()
         target_name = target.get_name()
+        unit_loc = unit.get_location()
+        target_loc = target.get_location()
         atk_dmg = unit.basic_attack(target)
         # Send attack details to combat log
-        self.ui.logItems['text'].add_text(f"{unit_name} attacks {target_name}, dealing {atk_dmg} damage!. \n") 
-        if not target.is_dead():
+        self.ui.logItems['text'].add_text(f"{unit_name} attacks {target_name}, dealing {atk_dmg} damage!\n") 
+        if target.is_dead(): # If the target is dead, remove them and take their place
+            self.ui.logItems['text'].add_text(f"{unit_name} has slain {target_name}!\n")
+            target_loc.assign_unit(None)
+            self.move_unit(unit, target_loc)
+        else: # Otherwise, they will retaliate
             ret_dmg = target.retaliate(unit)
             # Send retaliation details to combat log
-            self.ui.logItems['text'].add_text(f"{target_name} retaliates against {unit_name}, dealing {ret_dmg} damage!. \n") 
+            self.ui.logItems['text'].add_text(f"{target_name} retaliates against {unit_name}, dealing {ret_dmg} damage!\n") 
+            if unit.is_dead(): # If the unit died, remove them
+                self.ui.logItems['text'].add_text(f"{unit_name} has been slain by {target_name}!\n")
+                unit_loc.assign_unit(None)
+                self.cancel_action()
+            
 
 
 class Terrain:

@@ -182,8 +182,6 @@ class Unit:
 
     def die(self):
         self.__dead = True
-        if self.__location is not None:
-            self.__location.assign_unit(None)
 
     def revive(self):
         self.__dead = False
