@@ -162,7 +162,12 @@ class GameBoard:
         return valid_spaces
     
     def get_target_spaces(self, i: int, j: int, range, colour) -> set:
-        valid_coords = self.selected_unit.find_target_spaces(i, j, range, self.__spaces)
+        if range > 0:
+            valid_coords = self.selected_unit.find_target_spaces(i, j, range, self.__spaces)
+        elif range == 0: # An ability with range 0 can only target itself
+            valid_coords = {(i,j)}
+        else:
+            raise Exception("Error: Target range less than zero")
         valid_spaces = self.set_spaces(valid_coords, colour)
         return valid_spaces
     
@@ -226,20 +231,26 @@ class GameBoard:
             self.outline_space(self.action_space.get_row(), self.action_space.get_col(), 'green')
         self.reset_target_spaces()
         self.set_unit_buttons(unit, space)
-        self.outline_space(space.get_row(), space.get_col(), 'yellow')
+        self.outline_space(space.get_row(), space.get_col(), 'purple')
         self.action_space = space
 
     def set_attack_spaces(self, unit, space):
         self.reset_target_spaces()
         row = space.get_row()
         col = space.get_col()
-        self.__attack_spaces = self.get_target_spaces(row, col, 1, 'red')
+        try:
+            self.__attack_spaces = self.get_target_spaces(row, col, 1, 'red')
+        except Exception as e:
+            print(e)
 
     def set_ability_spaces(self, unit, space):
         self.reset_target_spaces()
         row = space.get_row()
         col = space.get_col()
-        self.__ability_spaces = self.get_target_spaces(row, col, unit.get_ability_range(), 'yellow')
+        try:
+            self.__ability_spaces = self.get_target_spaces(row, col, unit.get_ability_range(), 'yellow')
+        except Exception as e:
+            print(e)
     
     def set_unit_buttons(self, unit, space):
         self.ui.controlBar.buttons['red'].change_unclick_func(lambda: self.set_attack_spaces(unit, space))
