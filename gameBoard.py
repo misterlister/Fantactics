@@ -88,6 +88,7 @@ class GameBoard:
                         return
                     elif new_space in self.__valid_moves: # A new action space is selected
                         self.set_action_space(unit, new_space)
+                        self.set_attack_spaces(new_space)
                         return
 
                     print("Cancelled Action.")
@@ -204,6 +205,7 @@ class GameBoard:
         if self.selected_unit is not None:
             self.__valid_moves = self.get_movement_spaces(row, col)
             self.set_action_space(self.selected_unit, new_space)
+            self.set_attack_spaces(new_space)
 
     def deselect_space(self) -> None:
         space = self.selected_space
