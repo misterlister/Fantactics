@@ -154,13 +154,17 @@ class Unit:
 
     def basic_attack(self, target):
         first_strike_attack = ceil(self.__damage * FIRST_STRIKE_BOOST)
+        target_hp = target.get_curr_hp()
         self.attack(target, first_strike_attack, self.__damage_type)
-        if target.is_dead():
-            #self.move()
-            pass
+        damage_dealt = target_hp - target.get_curr_hp()
+        return damage_dealt
+
 
     def retaliate(self, target):
+        target_hp = target.get_curr_hp()
         self.attack(target, self.__damage, self.__damage_type)
+        damage_dealt = target_hp - target.get_curr_hp()
+        return damage_dealt
 
     def attack(self, target, damage: int, damage_type):
         effectiveness = weapon_matchup(damage_type, target.get_armour_type())
