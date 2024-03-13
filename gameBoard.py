@@ -80,7 +80,7 @@ class GameBoard:
                             return
                     if self.__ability_spaces != None: # Ability range is active
                         if new_space in self.__ability_spaces: # A valid target is selected
-                            self.unit.special_ability()
+                            unit.special_ability()
                             self.move_unit(unit, self.action_space)
                             return
                     if self.action_space == new_space: # Movement to a new space is confirmed
