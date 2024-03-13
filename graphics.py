@@ -10,6 +10,8 @@ class SpriteType:
     PEASANT = "Peasant"
     SOLDIER = "Soldier"
     SORCERER = "Sorcerer"
+    HEALER = "Healer"
+    ARCHMAGE = "Archmage"
 
 class Point:
     def __init__(self, x:int, y:int) -> None:
@@ -43,11 +45,16 @@ class Window:
         sprite_image = self.sprites[sprite]
         self.canvas.create_image(x, y, anchor='nw', image=sprite_image)
 
+    def get_sprite(self, index):
+        return self.sprites[index]
+
     def __load_sprites(self):
         sprites = {}
         sprites[SpriteType.ARCHER] = ImageTk.PhotoImage(Image.open("Assets/Units/archer.png"))
         sprites[SpriteType.PEASANT] = ImageTk.PhotoImage(Image.open("Assets/Units/peasant.png"))
         sprites[SpriteType.SOLDIER] = ImageTk.PhotoImage(Image.open("Assets/Units/soldier.png"))
         sprites[SpriteType.SORCERER] = ImageTk.PhotoImage(Image.open("Assets/Units/sorcerer.png"))
+        sprites[SpriteType.HEALER] = ImageTk.PhotoImage(Image.open("Assets/Units/healer.png"))
+        sprites[SpriteType.ARCHMAGE] = ImageTk.PhotoImage(Image.open("Assets/Units/archmage.png"))
         return sprites
     

@@ -8,7 +8,8 @@ if __name__ == "__main__":
     root = Tk()
     window = Window(WINDOW_WIDTH, WINDOW_HEIGHT, root)
     userInterface = UserInterface(root)
-    board = GameBoard(window, root)
+    board = GameBoard(window, root, userInterface)
+    
 
     
     player1 = Player()

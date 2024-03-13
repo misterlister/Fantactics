@@ -49,7 +49,9 @@ class Unit:
             move_type: MoveType,
             sprite,
             name_list,
-            title_list
+            title_list,
+            ability_name,
+            ability_range
             ) -> None:
         
         self.__max_hp = hp
@@ -62,9 +64,12 @@ class Unit:
         self.__move_type = move_type
         self.__sprite = sprite
         self.__name = self.make_name(name_list, title_list)
+        self.__ability_name = ability_name
+        self.__ability_range = ability_range
         self.__location = None
         self.__dead = False
         self.__player = None
+        
         
     def get_max_hp(self):
         return self.__max_hp
@@ -101,6 +106,12 @@ class Unit:
     
     def get_location(self):
         return self.__location
+    
+    def get_ability_name(self):
+        return self.__ability_name
+    
+    def get_ability_range(self):
+        return self.__ability_range
     
     def set_player(self, player):
         self.__player = player
@@ -177,8 +188,8 @@ class Unit:
 
     def find_move_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
         valid_spaces = set()
-        # Only add this space if there is no unit already here
-        if space_list[i][j].get_unit() == None:
+        # Add this space if its empty, or it is this units current location
+        if space_list[i][j].get_unit() == None or space_list[i][j].get_unit() == self:
             valid_spaces = {(i,j)}
         if range <= 0:
             return valid_spaces
@@ -201,97 +212,126 @@ class Unit:
             valid_spaces = valid_spaces.union(self.find_move_spaces(i, j, range-1, space_list))
         return valid_spaces
 
+    def find_target_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
+        target_spaces = set()
+        # Only add this space if there is an enemy here
+        if space_list[i][j].get_unit() != None:
+            if space_list[i][j].get_unit().get_player() != self.get_player():
+                target_spaces = {(i,j)}
+        if range <= 0:
+            return target_spaces
+        target_spaces = target_spaces.union(self.check_target_spaces(i-1, j, range, space_list))
+        target_spaces = target_spaces.union(self.check_target_spaces(i-1, j-1, range, space_list))
+        target_spaces = target_spaces.union(self.check_target_spaces(i, j-1, range, space_list))
+        target_spaces = target_spaces.union(self.check_target_spaces(i+1, j-1, range, space_list))
+        target_spaces = target_spaces.union(self.check_target_spaces(i+1, j, range, space_list))
+        target_spaces = target_spaces.union(self.check_target_spaces(i+1, j+1, range, space_list))
+        target_spaces = target_spaces.union(self.check_target_spaces(i, j+1, range, space_list))
+        target_spaces = target_spaces.union(self.check_target_spaces(i-1, j+1, range, space_list))
+        return target_spaces
+
+    def check_target_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
+        valid_spaces = set()
+        if i >= 0 and i < BOARD_ROWS and j >= 0 and j < BOARD_COLS:
+            valid_spaces = valid_spaces.union(self.find_target_spaces(i, j, range-1, space_list))
+        return valid_spaces
 
 class Peasant(Unit):
-    def __init__(self, 
-                 hp=11, 
-                 dam_val=6, 
-                 dam_type=DamageType.BLUDGEON, 
-                 arm_val=2, 
-                 arm_type=ArmourType.PADDED, 
-                 move=MoveSpeed.MED, 
-                 move_type = MoveType.FOOT,
-                 sprite = SpriteType.PEASANT,
-                 name_list = Names.Commoner,
-                 title_list = Titles.Peasant
-                 ) -> None:
-        
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list)
+    def __init__(self) -> None:
+        hp=11
+        dam_val=6
+        dam_type=DamageType.BLUDGEON
+        arm_val=2
+        arm_type=ArmourType.PADDED
+        move=MoveSpeed.MED
+        move_type = MoveType.FOOT
+        sprite = SpriteType.PEASANT
+        name_list = Names.Commoner
+        title_list = Titles.Peasant
+        ability_name = "Surge of Bravery"
+        ability_range = 0
+        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range)
+        self.ability_used = False
 
 class Soldier(Unit):
-    def __init__(self, 
-                 hp=16, 
-                 dam_val=8, 
-                 dam_type=DamageType.PIERCE, 
-                 arm_val=3, 
-                 arm_type=ArmourType.CHAIN, 
-                 move=MoveSpeed.MED, 
-                 move_type = MoveType.FOOT,
-                 sprite = SpriteType.SOLDIER,
-                 name_list = Names.Commoner,
-                 title_list = Titles.Soldier
-                 ) -> None:
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list)
+    def __init__(self) -> None:
+        hp=16
+        dam_val=8
+        dam_type=DamageType.PIERCE
+        arm_val=3
+        arm_type=ArmourType.CHAIN
+        move=MoveSpeed.MED
+        move_type = MoveType.FOOT
+        sprite = SpriteType.SOLDIER
+        name_list = Names.Commoner
+        title_list = Titles.Soldier
+        ability_name = "Guarded Advance" 
+        ability_range = 1        
+        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range)
 
 class Sorcerer(Unit):
-    def __init__(self, 
-                 hp=14, 
-                 dam_val=6, 
-                 dam_type=DamageType.PIERCE, 
-                 arm_val=1, 
-                 arm_type=ArmourType.ROBES, 
-                 move=MoveSpeed.MED, 
-                 move_type = MoveType.FOOT,
-                 sprite = SpriteType.SORCERER,
-                 name_list = Names.Mage,
-                 title_list = Titles.Sorcerer
-                 ) -> None:
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list)
+    def __init__(self) -> None:
+        hp=14
+        dam_val=6
+        dam_type=DamageType.PIERCE
+        arm_val=1
+        arm_type=ArmourType.ROBES
+        move=MoveSpeed.MED
+        move_type = MoveType.FOOT
+        sprite = SpriteType.SORCERER
+        name_list = Names.Mage
+        title_list = Titles.Sorcerer
+        ability_name = "Sorcerous Assault"    
+        ability_range = 4    
+        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range)
 
 class Healer(Unit):
-    def __init__(self, 
-                 hp=15, 
-                 dam_val=8, 
-                 dam_type=DamageType.BLUDGEON, 
-                 arm_val=3, 
-                 arm_type=ArmourType.CHAIN, 
-                 move=MoveSpeed.MED, 
-                 move_type = MoveType.FOOT,
-                 sprite = SpriteType.PEASANT,
-                 name_list = Names.Mage,
-                 title_list = Titles.Healer
-                 ) -> None:
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list)
+    def __init__(self) -> None:
+        hp=15
+        dam_val=8
+        dam_type=DamageType.BLUDGEON
+        arm_val=3
+        arm_type=ArmourType.CHAIN
+        move=MoveSpeed.MED
+        move_type = MoveType.FOOT
+        sprite = SpriteType.HEALER
+        name_list = Names.Mage
+        title_list = Titles.Healer
+        ability_name = "Healing Radiance"
+        ability_range = 1
+        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range)
 
 class Archer(Unit):
-    def __init__(self, 
-                 hp=15, 
-                 dam_val=6, 
-                 dam_type=DamageType.PIERCE, 
-                 arm_val=2, 
-                 arm_type=ArmourType.PADDED, 
-                 move=MoveSpeed.MED, 
-                 move_type = MoveType.FOOT,
-                 sprite = SpriteType.ARCHER,
-                 name_list = Names.Commoner,
-                 title_list = Titles.Archer
-                 ) -> None:
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list)
+    def __init__(self) -> None:
+        hp=15
+        dam_val=6
+        dam_type=DamageType.PIERCE
+        arm_val=2
+        arm_type=ArmourType.PADDED
+        move=MoveSpeed.MED
+        move_type = MoveType.FOOT
+        sprite = SpriteType.ARCHER
+        name_list = Names.Commoner
+        title_list = Titles.Archer
+        ability_name = "Ranged Attack"
+        ability_range = 5
+        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range)
 
 class Cavalry(Unit):
-    def __init__(self, 
-                 hp=20, 
-                 dam_val=9, 
-                 dam_type=DamageType.SLASH, 
-                 arm_val=4, 
-                 arm_type=ArmourType.PLATE, 
-                 move=MoveSpeed.FAST, 
-                 move_type = MoveType.HORSE,
-                 sprite = SpriteType.PEASANT,
-                 name_list = Names.Noble,
-                 title_list = Titles.Cavalry
-                 ) -> None:
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list)
+    def __init__(self) -> None:
+        hp=20
+        dam_val=9
+        dam_type=DamageType.SLASH
+        arm_val=4
+        arm_type=ArmourType.PLATE
+        move=MoveSpeed.FAST
+        move_type = MoveType.HORSE
+        sprite = SpriteType.PEASANT
+        name_list = Names.Noble
+        title_list = Titles.Cavalry
+        ability_name = "Harrying Strike"
+        ability_range = 1
+        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range)
     
     def check_move_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
         valid_spaces = set()
@@ -305,36 +345,38 @@ class Cavalry(Unit):
         return valid_spaces
     
 
-
 class Archmage(Unit):
-    def __init__(self, 
-                 hp=22, 
-                 dam_val=7, 
-                 dam_type=DamageType.BLUDGEON, 
-                 arm_val=1, 
-                 arm_type=ArmourType.ROBES, 
-                 move=MoveSpeed.MED, 
-                 move_type = MoveType.FLY,
-                 sprite = SpriteType.PEASANT,
-                 name_list = Names.Mage,
-                 title_list = Titles.Archmage
-                 ) -> None:
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list)
+    def __init__(self) -> None:
+        hp=22
+        dam_val=7
+        dam_type=DamageType.BLUDGEON
+        arm_val=1
+        arm_type=ArmourType.ROBES
+        move=MoveSpeed.MED
+        move_type = MoveType.FLY
+        sprite = SpriteType.ARCHMAGE
+        name_list = Names.Mage
+        title_list = Titles.Archmage
+        ability_name = "Arcane Vortex"
+        ability_range = 3
+        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range)
 
 class General(Unit):
-    def __init__(self, 
-                 hp=24, 
-                 dam_val=10, 
-                 dam_type=DamageType.SLASH, 
-                 arm_val=4, 
-                 arm_type=ArmourType.PLATE, 
-                 move=MoveSpeed.SLOW, 
-                 move_type = MoveType.FOOT,
-                 sprite = SpriteType.PEASANT,
-                 name_list = Names.Noble,
-                 title_list = Titles.General
-                 ) -> None:
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list)
+    def __init__(self) -> None:
+        hp=24
+        dam_val=10
+        dam_type=DamageType.SLASH
+        arm_val=4
+        arm_type=ArmourType.PLATE
+        move=MoveSpeed.SLOW
+        move_type = MoveType.FOOT
+        sprite = SpriteType.PEASANT
+        name_list = Names.Noble
+        title_list = Titles.General
+        ability_name = "Inspirational Rally"
+        ability_range = 0
+        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range)
+        self.ability_used = False
 
 
 def weapon_matchup(weapon, armour):

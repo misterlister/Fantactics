@@ -1,7 +1,7 @@
 from graphics import Window, Point, WINDOW_HEIGHT, WINDOW_WIDTH, BG_COL
 from tkinter import Tk
+from userInterface import UserInterface, SPRITE_BUFFER, do_nothing
 
-SPRITE_BUFFER = 8
 DEFAULT_SQUARE_SIZE = 64 + SPRITE_BUFFER
 SELECTION_BUFFER = 3
 SELECTION_SQUARE = DEFAULT_SQUARE_SIZE - SELECTION_BUFFER
@@ -10,7 +10,7 @@ BOARD_COLS = 8
 BOARD_WIDTH = DEFAULT_SQUARE_SIZE * BOARD_COLS
 BOARD_HEIGHT = DEFAULT_SQUARE_SIZE * BOARD_ROWS
 DEFAULT_X_POS = (WINDOW_WIDTH - BOARD_WIDTH) // 2
-DEFAULT_Y_POS = (WINDOW_HEIGHT - BOARD_HEIGHT) // 2
+DEFAULT_Y_POS = (WINDOW_HEIGHT - BOARD_HEIGHT) // 4
 
 
 class GameBoard:
@@ -18,12 +18,14 @@ class GameBoard:
             self,
             window: Window,
             root: Tk,
+            ui: UserInterface,
             x_start: int = DEFAULT_X_POS,
             y_start: int = DEFAULT_Y_POS,
             square_size: int = DEFAULT_SQUARE_SIZE
                  ) -> None:
         self.window = window
         self.root = root
+        self.ui = ui
         self.x_start = x_start
         self.y_start = y_start
         self.x_end = x_start + (BOARD_COLS * square_size) 
@@ -34,17 +36,20 @@ class GameBoard:
         self.window.canvas.bind('<Button-1>', self.click)
         self.selected_space = None
         self.selected_unit = None
+        self.action_space = None
         self.__valid_moves = None
+        self.__attack_spaces = None
+        self.__ability_spaces = None
     
     def draw_board(self) -> None:
         for i in range (BOARD_ROWS + 1):
-            y_position = (self.y_start + i * self.square_size)
+            y_position = self.get_row_y(i)
             p1 = Point(self.x_start, y_position)
             p2 = Point(self.x_end, y_position)
             self.window.draw_line(p1, p2)
 
         for j in range (BOARD_COLS + 1):
-            x_position = (self.x_start + j * self.square_size)
+            x_position = self.get_col_x(j)
             p1 = Point(x_position, self.y_start)
             p2 = Point(x_position, self.y_end)
             self.window.draw_line(p1, p2)
@@ -64,20 +69,37 @@ class GameBoard:
                             return
                         self.deselect_space()
                     self.select_space(row, col)
+                    self.update_stats_panel('friendlyUnitPanel') 
                     return
                 else: # A unit is currently selected
-                    if new_space in self.__valid_moves:
+                    if self.action_space == new_space:
                         self.move_unit(self.selected_unit, new_space)
+                    elif new_space in self.__valid_moves:
+                        self.set_action_space(self.selected_unit, new_space)
                     else:
                         print("Invalid Move.")
-                    self.deselect_space()
+                        self.cancel_action()
                     return
+                
+    # Update the stats panel items
+    # Should be called on selection of a unit
+    def update_stats_panel(self, panel: str):
+        if self.selected_unit is not None:
+            sprite = self.selected_unit.get_sprite()
+            self.ui.statsPanel[panel].update_image(self.window.get_sprite(sprite))
+            self.ui.statsPanel[panel].update_name(self.selected_unit.get_name())
+            self.ui.statsPanel[panel].update_health(self.selected_unit.get_curr_hp())
+            self.ui.statsPanel[panel].update_damage(self.selected_unit.get_damage_val())
+            self.ui.statsPanel[panel].update_armour(self.selected_unit.get_armour_val())
+            self.ui.statsPanel[panel].update_movement(self.selected_unit.get_movement())
+        else:
+            self.ui.statsPanel[panel].clear()
 
     def outline_space(self, row: int, col: int, colour: str) -> None:
-        x1 = self.x_start + (col * (self.square_size)) + SELECTION_BUFFER
-        y1 = self.y_start + (row * (self.square_size)) + SELECTION_BUFFER
-        x2 = self.x_start + ((col+1) * (self.square_size)) - SELECTION_BUFFER
-        y2 = self.y_start + ((row+1) * (self.square_size)) - SELECTION_BUFFER
+        x1 = self.get_col_x(col) + SELECTION_BUFFER
+        y1 = self.get_row_y(row) + SELECTION_BUFFER
+        x2 = self.get_col_x(col+1) - SELECTION_BUFFER
+        y2 = self.get_row_y(row+1) - SELECTION_BUFFER
         self.window.canvas.create_rectangle(x1, y1, x2, y2, width=SPRITE_BUFFER/2, outline=colour)
 
     def check_square(self, row: int, col: int):
@@ -101,8 +123,8 @@ class GameBoard:
     def draw_space(self, space) -> None:
         col = space.get_col()
         row = space.get_row()
-        x = self.x_start + SPRITE_BUFFER/2 + (col * self.square_size)
-        y = self.y_start + SPRITE_BUFFER/2 + (row * self.square_size)
+        x = self.get_col_x(col) + SPRITE_BUFFER/2
+        y = self.get_row_y(row) + SPRITE_BUFFER/2
         #terrain = self.__spaces[i][j].get_terrain()
         #terrain_sprite = terrain.get_sprite()
         #self.window.draw_sprite(x, y, terrain_sprite)
@@ -126,19 +148,33 @@ class GameBoard:
 
 ###### TEMPORARY
     def erase(self, row, col):
-        x1 = self.x_start + (col * (self.square_size))
-        y1 = self.y_start + (row * (self.square_size))
-        x2 = self.x_start + ((col+1) * (self.square_size))
-        y2 = self.y_start + ((row+1) * (self.square_size))
+        x1 = self.get_col_x(col)
+        y1 = self.get_row_y(row)
+        x2 = self.get_col_x(col+1)
+        y2 = self.get_row_y(row+1)
         self.window.canvas.create_rectangle(x1, y1, x2, y2, fill=BG_COL, outline = 'black', width=2)
 ######
 
-    def movement_spaces(self, i: int, j: int) -> set:
+    def get_movement_spaces(self, i: int, j: int) -> set:
         range = self.selected_unit.get_movement()
         valid_coords = self.selected_unit.find_move_spaces(i, j, range, self.__spaces)
+        valid_spaces = self.set_spaces(valid_coords, 'green')
+        return valid_spaces
+    
+    def get_target_spaces(self, i: int, j: int, range, colour) -> set:
+        if range > 0:
+            valid_coords = self.selected_unit.find_target_spaces(i, j, range, self.__spaces)
+        elif range == 0: # An ability with range 0 can only target itself
+            valid_coords = {(i,j)}
+        else:
+            raise Exception("Error: Target range less than zero")
+        valid_spaces = self.set_spaces(valid_coords, colour)
+        return valid_spaces
+    
+    def set_spaces(self, coords, colour):
         valid_spaces = []
-        for tuple in valid_coords:
-            self.outline_space(tuple[0], tuple[1], 'green')
+        for tuple in coords:
+            self.outline_space(tuple[0], tuple[1], colour)
             valid_spaces.append(self.__spaces[tuple[0]][tuple[1]])
         return valid_spaces
 
@@ -149,27 +185,98 @@ class GameBoard:
         self.selected_unit = new_space.get_unit()
         self.draw_space(new_space)
         if self.selected_unit is not None:
-            self.__valid_moves = self.movement_spaces(row, col)
+            self.__valid_moves = self.get_movement_spaces(row, col)
 
     def deselect_space(self) -> None:
         space = self.selected_space
         if space is not None:
             space.deselect()
+            self.unset_unit_buttons()
             self.selected_space = None
             self.selected_unit = None
+            self.action_space = None
+            self.reset_target_spaces()
             self.draw_space(space)
-            for sp in self.__valid_moves:
-                self.draw_space(sp)
+            if self.__valid_moves is not None:
+                for sp in self.__valid_moves:
+                    self.draw_space(sp)
             self.__valid_moves = None
 
     def move_unit(self, unit, space):
         old_space = unit.get_location()
         try:  
             unit.move(space)
+            self.deselect_space()
             self.draw_space(old_space)
             self.draw_space(space)
+            self.ui.logItems['text'].add_text(f"{unit.get_name()} -> {space.get_row()},{space.get_col()}. \n") # Send movement to combat log
         except Exception as e:
             print(e)
+
+    def cancel_action(self):
+        self.action_space = None
+        self.draw_sprites()
+        self.deselect_space()
+
+    def get_col_x(self, col):
+        x = self.x_start + (col * (self.square_size))
+        return x
+        
+    def get_row_y(self, row):
+        y = self.y_start + (row * (self.square_size))
+        return y
+    
+    def set_action_space(self, unit, space):
+        if self.action_space is not None:
+            self.outline_space(self.action_space.get_row(), self.action_space.get_col(), 'green')
+        self.reset_target_spaces()
+        self.set_unit_buttons(unit, space)
+        self.outline_space(space.get_row(), space.get_col(), 'purple')
+        self.action_space = space
+
+    def set_attack_spaces(self, unit, space):
+        self.reset_target_spaces()
+        row = space.get_row()
+        col = space.get_col()
+        try:
+            self.__attack_spaces = self.get_target_spaces(row, col, 1, 'red')
+        except Exception as e:
+            print(e)
+
+    def set_ability_spaces(self, unit, space):
+        self.reset_target_spaces()
+        row = space.get_row()
+        col = space.get_col()
+        try:
+            self.__ability_spaces = self.get_target_spaces(row, col, unit.get_ability_range(), 'yellow')
+        except Exception as e:
+            print(e)
+    
+    def set_unit_buttons(self, unit, space):
+        self.ui.controlBar.buttons['red'].change_unclick_func(lambda: self.set_attack_spaces(unit, space))
+        self.ui.controlBar.buttons['yellow'].change_unclick_func(lambda: self.set_ability_spaces(unit, space))
+        self.ui.controlBar.buttons['green'].change_unclick_func(lambda: self.move_unit(unit, space))
+        self.ui.controlBar.buttons['grey'].change_unclick_func(self.cancel_action)
+
+
+    def unset_unit_buttons(self):
+        self.ui.controlBar.buttons['red'].change_unclick_func(do_nothing)
+        self.ui.controlBar.buttons['yellow'].change_unclick_func(do_nothing)
+        self.ui.controlBar.buttons['green'].change_unclick_func(do_nothing)
+        self.ui.controlBar.buttons['grey'].change_unclick_func(do_nothing)
+
+    def reset_target_spaces(self):
+        if self.__ability_spaces is not None:
+            for space in self.__ability_spaces:
+                self.draw_space(space)
+        self.__ability_spaces = None
+
+        if self.__attack_spaces is not None:
+            for space in self.__attack_spaces:
+                self.draw_space(space)
+        self.__attack_spaces = None
+
+
 
 class Terrain:
     def __init__(self) -> None:
