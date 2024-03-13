@@ -173,7 +173,9 @@ class Unit:
         target.take_damage(atk_damage)
 
     def special_ability(self):
-        pass
+        # TEMP
+        print(self.__ability_name)
+        #
 
     def die(self):
         self.__dead = True
