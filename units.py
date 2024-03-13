@@ -159,7 +159,6 @@ class Unit:
         damage_dealt = target_hp - target.get_curr_hp()
         return damage_dealt
 
-
     def retaliate(self, target):
         target_hp = target.get_curr_hp()
         self.attack(target, self.__damage, self.__damage_type)
@@ -275,6 +274,25 @@ class Soldier(Unit):
         ability_range = 1        
         super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range)
 
+    def find_target_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
+        target_spaces = set()
+        # Only add this space if there an ally here
+        if space_list[i][j].get_unit() != None:
+            if space_list[i][j].get_unit().get_player() == self.get_player():
+                if space_list[i][j].get_unit() != self:
+                    target_spaces = {(i,j)}
+        if range <= 0:
+            return target_spaces
+        target_spaces = target_spaces.union(self.check_target_spaces(i-1, j, range, space_list))
+        target_spaces = target_spaces.union(self.check_target_spaces(i-1, j-1, range, space_list))
+        target_spaces = target_spaces.union(self.check_target_spaces(i, j-1, range, space_list))
+        target_spaces = target_spaces.union(self.check_target_spaces(i+1, j-1, range, space_list))
+        target_spaces = target_spaces.union(self.check_target_spaces(i+1, j, range, space_list))
+        target_spaces = target_spaces.union(self.check_target_spaces(i+1, j+1, range, space_list))
+        target_spaces = target_spaces.union(self.check_target_spaces(i, j+1, range, space_list))
+        target_spaces = target_spaces.union(self.check_target_spaces(i-1, j+1, range, space_list))
+        return target_spaces
+
 class Sorcerer(Unit):
     def __init__(self) -> None:
         hp=14
@@ -306,6 +324,25 @@ class Healer(Unit):
         ability_name = "Healing Radiance"
         ability_range = 1
         super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range)
+
+    def find_target_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
+        target_spaces = set()
+        # Only add this space if there an ally here
+        if space_list[i][j].get_unit() != None:
+            if space_list[i][j].get_unit().get_player() == self.get_player():
+                if space_list[i][j].get_unit() != self:
+                    target_spaces = {(i,j)}
+        if range <= 0:
+            return target_spaces
+        target_spaces = target_spaces.union(self.check_target_spaces(i-1, j, range, space_list))
+        target_spaces = target_spaces.union(self.check_target_spaces(i-1, j-1, range, space_list))
+        target_spaces = target_spaces.union(self.check_target_spaces(i, j-1, range, space_list))
+        target_spaces = target_spaces.union(self.check_target_spaces(i+1, j-1, range, space_list))
+        target_spaces = target_spaces.union(self.check_target_spaces(i+1, j, range, space_list))
+        target_spaces = target_spaces.union(self.check_target_spaces(i+1, j+1, range, space_list))
+        target_spaces = target_spaces.union(self.check_target_spaces(i, j+1, range, space_list))
+        target_spaces = target_spaces.union(self.check_target_spaces(i-1, j+1, range, space_list))
+        return target_spaces
 
 class Archer(Unit):
     def __init__(self) -> None:
