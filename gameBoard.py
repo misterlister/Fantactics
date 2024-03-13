@@ -72,14 +72,27 @@ class GameBoard:
                     self.update_stats_panel('friendlyUnitPanel') 
                     return
                 else: # A unit is currently selected
-                    if self.action_space == new_space:
+                    if self.__attack_spaces != None: # Attack range is active
+                        if new_space in self.__attack_spaces: # A valid target is selected
+                            self.combat(self.selected_unit, new_space.get_unit())
+                            self.move_unit(self.selected_unit, self.action_space)
+                            if new_space.get_unit().is_dead():
+                                self.move_unit(self.selected_unit, new_space)
+                            return
+                    if self.__ability_spaces != None: # Ability range is active
+                        if new_space in self.__ability_spaces: # A valid target is selected
+                            self.selected_unit.special_ability()
+                            self.move_unit(self.selected_unit, self.action_space)
+                            return
+                    if self.action_space == new_space: # Movement to a new space is confirmed
                         self.move_unit(self.selected_unit, new_space)
-                    elif new_space in self.__valid_moves:
+                        return
+                    elif new_space in self.__valid_moves: # A new action space is selected
                         self.set_action_space(self.selected_unit, new_space)
-                    else:
-                        print("Invalid Move.")
-                        self.cancel_action()
-                    return
+                        return
+
+                    print("Cancelled Action.")
+                    self.cancel_action()
                 
     # Update the stats panel items
     # Should be called on selection of a unit
@@ -280,6 +293,17 @@ class GameBoard:
                 self.draw_space(space)
         self.__attack_spaces = None
 
+
+    def combat(self, unit, target):
+        unit_name = unit.get_name()
+        target_name = target.get_name()
+        atk_dmg = unit.basic_attack(target)
+        # Send attack details to combat log
+        self.ui.logItems['text'].add_text(f"{unit_name} attacks {target_name}, dealing {atk_dmg} damage!. \n") 
+        if not target.is_dead():
+            ret_dmg = target.retaliate(unit)
+            # Send retaliation details to combat log
+            self.ui.logItems['text'].add_text(f"{target_name} retaliates against {unit_name}, dealing {ret_dmg} damage!. \n") 
 
 
 class Terrain:
