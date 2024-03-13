@@ -1,5 +1,6 @@
-from graphics import Window, Point, WINDOW_HEIGHT, WINDOW_WIDTH, BG_COL
+from graphics import Window, Point, WINDOW_HEIGHT, WINDOW_WIDTH, BG_COL, LINE_WIDTH
 from tkinter import Tk
+from PIL import ImageTk, Image
 from userInterface import UserInterface, SPRITE_BUFFER, do_nothing
 
 DEFAULT_SQUARE_SIZE = 64 + SPRITE_BUFFER
@@ -40,6 +41,7 @@ class GameBoard:
         self.__valid_moves = None
         self.__attack_spaces = None
         self.__ability_spaces = None
+        self.__transparent_square = self.set_transparency()
     
     def draw_board(self) -> None:
         for i in range (BOARD_ROWS + 1):
@@ -109,11 +111,11 @@ class GameBoard:
             self.ui.statsPanel[panel].clear()
 
     def outline_space(self, row: int, col: int, colour: str) -> None:
-        x1 = self.get_col_x(col) + SELECTION_BUFFER
-        y1 = self.get_row_y(row) + SELECTION_BUFFER
-        x2 = self.get_col_x(col+1) - SELECTION_BUFFER
-        y2 = self.get_row_y(row+1) - SELECTION_BUFFER
-        self.window.canvas.create_rectangle(x1, y1, x2, y2, width=SPRITE_BUFFER/2, outline=colour)
+        x1 = self.get_col_x(col) + LINE_WIDTH
+        y1 = self.get_row_y(row) + LINE_WIDTH
+        x2 = self.get_col_x(col+1) - LINE_WIDTH
+        y2 = self.get_row_y(row+1) - LINE_WIDTH
+        self.window.canvas.create_rectangle(x1, y1, x2, y2, width=SELECTION_BUFFER, outline=colour)
 
     def check_square(self, row: int, col: int):
         if row > BOARD_ROWS or col > BOARD_COLS:
@@ -249,13 +251,16 @@ class GameBoard:
     
     def set_action_space(self, unit, space):
         if self.action_space is not None: # If a new action space is being selected, overriding another
+            self.draw_space(self.selected_space)
             if self.action_space == self.selected_unit.get_location(): # If the old space was the current unit's space
                 self.outline_space(self.action_space.get_row(), self.action_space.get_col(), 'blue')
             else: # Otherwise, this is another space in the current unit's range
+                self.draw_space(self.action_space)
                 self.outline_space(self.action_space.get_row(), self.action_space.get_col(), 'green')
         self.reset_target_spaces()
         self.set_unit_buttons(unit, space)
         self.outline_space(space.get_row(), space.get_col(), 'purple')
+        self.preview_sprite(unit, space)
         self.action_space = space
 
     def set_attack_spaces(self, space):
@@ -294,7 +299,6 @@ class GameBoard:
             for space in self.__ability_spaces:
                 self.draw_space(space)
         self.__ability_spaces = None
-
         if self.__attack_spaces is not None:
             for space in self.__attack_spaces:
                 self.draw_space(space)
@@ -323,7 +327,26 @@ class GameBoard:
                 self.cancel_action()
         self.update_stats_panel('friendlyUnitPanel') 
             
+    def preview_sprite(self, unit, space):
+        preview = unit.get_sprite()
+        x = self.get_col_x(space.get_col())
+        y = self.get_row_y(space.get_row())
+        sprite_x = x + SPRITE_BUFFER//2
+        sprite_y = y + SPRITE_BUFFER//2
+        self.window.draw_sprite(sprite_x, sprite_y, preview)
+        box_x = x + LINE_WIDTH + SELECTION_BUFFER
+        box_y = y + LINE_WIDTH + SELECTION_BUFFER
+        self.window.canvas.create_image(box_x, box_y, image=self.__transparent_square, anchor='nw')
 
+    def set_transparency(self):
+        width = DEFAULT_SQUARE_SIZE - LINE_WIDTH - SELECTION_BUFFER*2
+        height = DEFAULT_SQUARE_SIZE - LINE_WIDTH - SELECTION_BUFFER*2
+        alpha = 126
+        # Use the fill variable to fill the shape with transparent color
+        fill_col = self.root.winfo_rgb(BG_COL) + (alpha,)
+        cover = Image.new('RGBA', size=(width, height), color=fill_col)
+        transparent_square = ImageTk.PhotoImage(image=cover)
+        return transparent_square
 
 class Terrain:
     def __init__(self) -> None:
