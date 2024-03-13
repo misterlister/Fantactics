@@ -75,9 +75,10 @@ class GameBoard:
                     if self.__attack_spaces != None: # Attack range is active
                         if new_space in self.__attack_spaces: # A valid target is selected
                             self.combat(self.selected_unit, new_space.get_unit())
-                            self.move_unit(self.selected_unit, self.action_space)
-                            if new_space.get_unit().is_dead():
+                            if new_space.get_unit() == None: # If the target died, take their space
                                 self.move_unit(self.selected_unit, new_space)
+                            else: # Otherwise, move in front of them
+                                self.move_unit(self.selected_unit, self.action_space)
                             return
                     if self.__ability_spaces != None: # Ability range is active
                         if new_space in self.__ability_spaces: # A valid target is selected
@@ -184,6 +185,11 @@ class GameBoard:
         valid_spaces = self.set_spaces(valid_coords, colour)
         return valid_spaces
     
+    def get_attack_spaces(self, i: int, j: int) -> set:
+        valid_coords = self.selected_unit.find_attack_spaces(i, j, 1, self.__spaces)
+        valid_spaces = self.set_spaces(valid_coords, 'red')
+        return valid_spaces
+    
     def set_spaces(self, coords, colour):
         valid_spaces = []
         for tuple in coords:
@@ -251,12 +257,12 @@ class GameBoard:
         self.outline_space(space.get_row(), space.get_col(), 'purple')
         self.action_space = space
 
-    def set_attack_spaces(self, unit, space):
+    def set_attack_spaces(self, space):
         self.reset_target_spaces()
         row = space.get_row()
         col = space.get_col()
         try:
-            self.__attack_spaces = self.get_target_spaces(row, col, 1, 'red')
+            self.__attack_spaces = self.get_attack_spaces(row, col)
         except Exception as e:
             print(e)
 
@@ -270,7 +276,7 @@ class GameBoard:
             print(e)
     
     def set_unit_buttons(self, unit, space):
-        self.ui.controlBar.buttons['red'].change_unclick_func(lambda: self.set_attack_spaces(unit, space))
+        self.ui.controlBar.buttons['red'].change_unclick_func(lambda: self.set_attack_spaces(space))
         self.ui.controlBar.buttons['yellow'].change_unclick_func(lambda: self.set_ability_spaces(unit, space))
         self.ui.controlBar.buttons['green'].change_unclick_func(lambda: self.move_unit(unit, space))
         self.ui.controlBar.buttons['grey'].change_unclick_func(self.cancel_action)
