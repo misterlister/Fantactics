@@ -80,12 +80,12 @@ class StatsPanel(Panel):
         self.empty = ImageTk.PhotoImage(Image.open(EMPTY_SPRITE))
         self.selectedSprite = self.spriteCanvas.create_image(SPRITE_BUFFER, SPRITE_BUFFER, anchor = 'nw', image=self.empty)
 
-        # Label fields for stats to be displayed
-        
+        # Icons to be displayed alongside labels
         self.icons = {
             'health' : ImageTk.PhotoImage(Image.open('Assets/Icons/health.png')),
             'damage' : ImageTk.PhotoImage(Image.open('Assets/Icons/damage.png'))
         }
+        # Label fields for stats to be displayed
         self.labels = {
             'name' : Label(self.frame, text='Name:'),
             'class' : Label(self.frame, text='Class:'),
@@ -119,17 +119,17 @@ class StatsPanel(Panel):
     def update_class(self, new: str = '') -> None:
         self.labels['class'].config(text= f"Class: {new}")
 
-    def update_health(self, new: str = '') -> None:
-        self.labels['health'].config(text= f" {new}")
+    def update_health(self, new: str = '', max: int = None) -> None:
+        self.labels['health'].config(text= f" {new} / {max}")
 
-    def update_damage(self, new: str = '') -> None:
-        self.labels['damage'].config(text= f" {new}")
+    def update_damage(self, new: str = '', type: int = None) -> None:
+        self.labels['damage'].config(text= f" {new} {type}")
     
-    def update_armour(self, new: str = '') -> None:
-        self.labels['armour'].config(text= f"Armour: {new}")
+    def update_armour(self, new: str = '', type: int = None) -> None:
+        self.labels['armour'].config(text= f"Armour: {new} {type}")
 
-    def update_movement(self, new: str = '') -> None:
-        self.labels['movement'].config(text= f"Movement: {new}")
+    def update_movement(self, new: str = '', type: int = None) -> None:
+        self.labels['movement'].config(text= f"Movement: {new} {type}")
     
     def update_image(self, image: ImageTk) -> None:
         #image = image.resize((2 * image.width(), 2 * image.height()))
