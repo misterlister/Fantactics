@@ -333,7 +333,7 @@ class Cavalry(Unit):
         ability_range = 1
         super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range)
     
-    def check_target_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
+    def check_move_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
         valid_spaces = set()
         if i >= 0 and i < BOARD_ROWS and j >= 0 and j < BOARD_COLS:
             # If there is a solder in the space which doesn't belong to this player, return
