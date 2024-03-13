@@ -157,13 +157,15 @@ class Unit:
         target_hp = target.get_curr_hp()
         self.attack(target, first_strike_attack, self.__damage_type)
         damage_dealt = target_hp - target.get_curr_hp()
-        return damage_dealt
+        attack_log = f"{self.__name} attacks {target.get_name()}, dealing {damage_dealt} damage!\n"
+        return attack_log
 
     def retaliate(self, target):
         target_hp = target.get_curr_hp()
         self.attack(target, self.__damage, self.__damage_type)
         damage_dealt = target_hp - target.get_curr_hp()
-        return damage_dealt
+        retaliation_log = f"{target.get_name()} retaliates against {self.__name}, dealing {damage_dealt} damage!\n"
+        return retaliation_log
 
     def attack(self, target, damage: int, damage_type):
         effectiveness = weapon_matchup(damage_type, target.get_armour_type())
@@ -175,9 +177,12 @@ class Unit:
             atk_damage = ceil(atk_damage * POOR_EFFECT_MOD)
         target.take_damage(atk_damage)
 
-    def special_ability(self):
+    def special_ability(self, target):
         # TEMP
-        print(self.__ability_name)
+        if target == None or target == self:
+            print(f"{self.__name} used {self.__ability_name} on themself")
+        else:
+            print(f"{self.__name} used {self.__ability_name} on {target.get_name()}")
         #
 
     def die(self):
@@ -381,6 +386,16 @@ class Archer(Unit):
         ability_name = "Ranged Attack"
         ability_range = 5
         super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range)
+        self.__special_damage = 7
+        self.__special_damage_type = DamageType.PIERCE
+
+    def special_ability(self, target):
+        first_strike_attack = ceil(self.__special_damage * FIRST_STRIKE_BOOST)
+        target_hp = target.get_curr_hp()
+        self.attack(target, first_strike_attack, self.__special_damage_type)
+        damage_dealt = target_hp - target.get_curr_hp()
+        attack_log = f"{self.get_name()} fires an arrow at {target.get_name()}, dealing {damage_dealt} damage!\n"
+        return attack_log
 
 class Cavalry(Unit):
     def __init__(self) -> None:

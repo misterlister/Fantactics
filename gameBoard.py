@@ -82,8 +82,8 @@ class GameBoard:
                             return
                     if self.__ability_spaces != None: # Ability range is active
                         if new_space in self.__ability_spaces: # A valid target is selected
-                            unit.special_ability()
                             self.move_unit(unit, self.action_space)
+                            self.activate_ability(unit, new_space)
                             return
                     if self.action_space == new_space: # Movement to a new space is confirmed
                         self.move_unit(unit, new_space)
@@ -310,17 +310,17 @@ class GameBoard:
         target_name = target.get_name()
         unit_loc = unit.get_location()
         target_loc = target.get_location()
-        atk_dmg = unit.basic_attack(target)
+        attack_log = unit.basic_attack(target)
         # Send attack details to combat log
-        self.ui.logItems['text'].add_text(f"{unit_name} attacks {target_name}, dealing {atk_dmg} damage!\n") 
+        self.ui.logItems['text'].add_text(attack_log) 
         if target.is_dead(): # If the target is dead, remove them and take their place
             self.ui.logItems['text'].add_text(f"{unit_name} has slain {target_name}!\n")
             target_loc.assign_unit(None)
             self.move_unit(unit, target_loc)
         else: # Otherwise, they will retaliate
-            ret_dmg = target.retaliate(unit)
+            retaliation_log = target.retaliate(unit)
             # Send retaliation details to combat log
-            self.ui.logItems['text'].add_text(f"{target_name} retaliates against {unit_name}, dealing {ret_dmg} damage!\n") 
+            self.ui.logItems['text'].add_text(retaliation_log) 
             if unit.is_dead(): # If the unit died, remove them
                 self.ui.logItems['text'].add_text(f"{unit_name} has been slain by {target_name}!\n")
                 unit_loc.assign_unit(None)
@@ -347,6 +347,11 @@ class GameBoard:
         cover = Image.new('RGBA', size=(width, height), color=fill_col)
         transparent_square = ImageTk.PhotoImage(image=cover)
         return transparent_square
+    
+    def activate_ability(self, unit, space):
+        special_log = unit.special_ability(space.get_unit())
+        self.ui.logItems['text'].add_text(special_log) 
+
 
 class Terrain:
     def __init__(self) -> None:
