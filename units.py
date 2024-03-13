@@ -27,9 +27,9 @@ class Effect(IntEnum):
     STRONG = 3
 
 class MoveSpeed(IntEnum):
-    SLOW = 1
-    MED = 2
-    FAST = 3
+    SLOW = 2
+    MED = 3
+    FAST = 4
 
 class MoveType(IntEnum):
     FOOT = 1
@@ -197,13 +197,13 @@ class Unit:
         if range <= 0:
             return valid_spaces
         valid_spaces = valid_spaces.union(self.check_move_spaces(i-1, j, range, space_list))
-        valid_spaces = valid_spaces.union(self.check_move_spaces(i-1, j-1, range, space_list))
+        #valid_spaces = valid_spaces.union(self.check_move_spaces(i-1, j-1, range, space_list))
         valid_spaces = valid_spaces.union(self.check_move_spaces(i, j-1, range, space_list))
-        valid_spaces = valid_spaces.union(self.check_move_spaces(i+1, j-1, range, space_list))
+        #valid_spaces = valid_spaces.union(self.check_move_spaces(i+1, j-1, range, space_list))
         valid_spaces = valid_spaces.union(self.check_move_spaces(i+1, j, range, space_list))
-        valid_spaces = valid_spaces.union(self.check_move_spaces(i+1, j+1, range, space_list))
+        #valid_spaces = valid_spaces.union(self.check_move_spaces(i+1, j+1, range, space_list))
         valid_spaces = valid_spaces.union(self.check_move_spaces(i, j+1, range, space_list))
-        valid_spaces = valid_spaces.union(self.check_move_spaces(i-1, j+1, range, space_list))
+        #valid_spaces = valid_spaces.union(self.check_move_spaces(i-1, j+1, range, space_list))
         return valid_spaces
 
     def check_move_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
@@ -224,13 +224,13 @@ class Unit:
         if range <= 0:
             return target_spaces
         target_spaces = target_spaces.union(self.check_attack_spaces(i-1, j, range, space_list))
-        target_spaces = target_spaces.union(self.check_attack_spaces(i-1, j-1, range, space_list))
+        #target_spaces = target_spaces.union(self.check_attack_spaces(i-1, j-1, range, space_list))
         target_spaces = target_spaces.union(self.check_attack_spaces(i, j-1, range, space_list))
-        target_spaces = target_spaces.union(self.check_attack_spaces(i+1, j-1, range, space_list))
+        #target_spaces = target_spaces.union(self.check_attack_spaces(i+1, j-1, range, space_list))
         target_spaces = target_spaces.union(self.check_attack_spaces(i+1, j, range, space_list))
-        target_spaces = target_spaces.union(self.check_attack_spaces(i+1, j+1, range, space_list))
+        #target_spaces = target_spaces.union(self.check_attack_spaces(i+1, j+1, range, space_list))
         target_spaces = target_spaces.union(self.check_attack_spaces(i, j+1, range, space_list))
-        target_spaces = target_spaces.union(self.check_attack_spaces(i-1, j+1, range, space_list))
+        #target_spaces = target_spaces.union(self.check_attack_spaces(i-1, j+1, range, space_list))
         return target_spaces
 
     def check_attack_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
@@ -248,13 +248,13 @@ class Unit:
         if range <= 0:
             return target_spaces
         target_spaces = target_spaces.union(self.check_target_spaces(i-1, j, range, space_list))
-        target_spaces = target_spaces.union(self.check_target_spaces(i-1, j-1, range, space_list))
+        #target_spaces = target_spaces.union(self.check_target_spaces(i-1, j-1, range, space_list))
         target_spaces = target_spaces.union(self.check_target_spaces(i, j-1, range, space_list))
-        target_spaces = target_spaces.union(self.check_target_spaces(i+1, j-1, range, space_list))
+        #target_spaces = target_spaces.union(self.check_target_spaces(i+1, j-1, range, space_list))
         target_spaces = target_spaces.union(self.check_target_spaces(i+1, j, range, space_list))
-        target_spaces = target_spaces.union(self.check_target_spaces(i+1, j+1, range, space_list))
+        #target_spaces = target_spaces.union(self.check_target_spaces(i+1, j+1, range, space_list))
         target_spaces = target_spaces.union(self.check_target_spaces(i, j+1, range, space_list))
-        target_spaces = target_spaces.union(self.check_target_spaces(i-1, j+1, range, space_list))
+        #target_spaces = target_spaces.union(self.check_target_spaces(i-1, j+1, range, space_list))
         return target_spaces
 
     def check_target_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
@@ -306,13 +306,13 @@ class Soldier(Unit):
         if range <= 0:
             return target_spaces
         target_spaces = target_spaces.union(self.check_target_spaces(i-1, j, range, space_list))
-        target_spaces = target_spaces.union(self.check_target_spaces(i-1, j-1, range, space_list))
+        #target_spaces = target_spaces.union(self.check_target_spaces(i-1, j-1, range, space_list))
         target_spaces = target_spaces.union(self.check_target_spaces(i, j-1, range, space_list))
-        target_spaces = target_spaces.union(self.check_target_spaces(i+1, j-1, range, space_list))
+        #target_spaces = target_spaces.union(self.check_target_spaces(i+1, j-1, range, space_list))
         target_spaces = target_spaces.union(self.check_target_spaces(i+1, j, range, space_list))
-        target_spaces = target_spaces.union(self.check_target_spaces(i+1, j+1, range, space_list))
+        #target_spaces = target_spaces.union(self.check_target_spaces(i+1, j+1, range, space_list))
         target_spaces = target_spaces.union(self.check_target_spaces(i, j+1, range, space_list))
-        target_spaces = target_spaces.union(self.check_target_spaces(i-1, j+1, range, space_list))
+        #target_spaces = target_spaces.union(self.check_target_spaces(i-1, j+1, range, space_list))
         return target_spaces
 
 class Sorcerer(Unit):
@@ -357,13 +357,13 @@ class Healer(Unit):
         if range <= 0:
             return target_spaces
         target_spaces = target_spaces.union(self.check_target_spaces(i-1, j, range, space_list))
-        target_spaces = target_spaces.union(self.check_target_spaces(i-1, j-1, range, space_list))
+        #target_spaces = target_spaces.union(self.check_target_spaces(i-1, j-1, range, space_list))
         target_spaces = target_spaces.union(self.check_target_spaces(i, j-1, range, space_list))
-        target_spaces = target_spaces.union(self.check_target_spaces(i+1, j-1, range, space_list))
+        #target_spaces = target_spaces.union(self.check_target_spaces(i+1, j-1, range, space_list))
         target_spaces = target_spaces.union(self.check_target_spaces(i+1, j, range, space_list))
-        target_spaces = target_spaces.union(self.check_target_spaces(i+1, j+1, range, space_list))
+        #target_spaces = target_spaces.union(self.check_target_spaces(i+1, j+1, range, space_list))
         target_spaces = target_spaces.union(self.check_target_spaces(i, j+1, range, space_list))
-        target_spaces = target_spaces.union(self.check_target_spaces(i-1, j+1, range, space_list))
+        #target_spaces = target_spaces.union(self.check_target_spaces(i-1, j+1, range, space_list))
         return target_spaces
 
 class Archer(Unit):
