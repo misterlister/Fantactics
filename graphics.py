@@ -4,6 +4,7 @@ from PIL import ImageTk, Image
 BG_COL = '#d9d9d9'
 WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
+LINE_WIDTH = 2
 
 class SpriteType:
     ARCHER = "Archer"
@@ -30,7 +31,7 @@ class Window:
         self.canvas.configure(background=BG_COL)
         self.sprites = self.__load_sprites()
 
-    def draw_line(self, p1: Point, p2: Point, fill_colour = "black", width: int = 2) -> None:
+    def draw_line(self, p1: Point, p2: Point, fill_colour = "black", width: int = LINE_WIDTH) -> None:
         self.canvas.create_line(
             p1.x, 
             p1.y, 
