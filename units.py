@@ -157,14 +157,14 @@ class Unit:
         target_hp = target.get_curr_hp()
         self.attack(target, first_strike_attack, self.__damage_type)
         damage_dealt = target_hp - target.get_curr_hp()
-        attack_log = f"{self.__name} attacks {target.get_name()}, dealing {damage_dealt} damage!\n"
+        attack_log = f"{self.get_name()} attacks {target.get_name()}, dealing {damage_dealt} damage!\n"
         return attack_log
 
     def retaliate(self, target):
         target_hp = target.get_curr_hp()
         self.attack(target, self.__damage, self.__damage_type)
         damage_dealt = target_hp - target.get_curr_hp()
-        retaliation_log = f"{target.get_name()} retaliates against {self.__name}, dealing {damage_dealt} damage!\n"
+        retaliation_log = f"{self.get_name()} retaliates against {target.get_name()}, dealing {damage_dealt} damage!\n"
         return retaliation_log
 
     def attack(self, target, damage: int, damage_type):
