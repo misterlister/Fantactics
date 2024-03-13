@@ -186,6 +186,7 @@ class GameBoard:
         self.draw_space(new_space)
         if self.selected_unit is not None:
             self.__valid_moves = self.get_movement_spaces(row, col)
+            self.set_action_space(self.selected_unit, new_space)
 
     def deselect_space(self) -> None:
         space = self.selected_space
@@ -227,8 +228,11 @@ class GameBoard:
         return y
     
     def set_action_space(self, unit, space):
-        if self.action_space is not None:
-            self.outline_space(self.action_space.get_row(), self.action_space.get_col(), 'green')
+        if self.action_space is not None: # If a new action space is being selected, overriding another
+            if self.action_space == self.selected_unit.get_location(): # If the old space was the current unit's space
+                self.outline_space(self.action_space.get_row(), self.action_space.get_col(), 'blue')
+            else: # Otherwise, this is another space in the current unit's range
+                self.outline_space(self.action_space.get_row(), self.action_space.get_col(), 'green')
         self.reset_target_spaces()
         self.set_unit_buttons(unit, space)
         self.outline_space(space.get_row(), space.get_col(), 'purple')
