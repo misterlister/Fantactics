@@ -347,12 +347,12 @@ class Sorcerer(Unit):
         if target_col - 1 >= 0:
             left_target = spaces[target_row][target_col - 1].get_unit()
             if left_target != None:
-                attack_log.append(self.magic_attack(left_target))
-        attack_log.append(self.magic_attack(target))
+                attack_log += (self.magic_attack(left_target))
+        attack_log += (self.magic_attack(target))
         if target_col + 1 < BOARD_COLS:
             right_target = spaces[target_row][target_col + 1].get_unit()
             if right_target != None:
-                attack_log.append(self.magic_attack(right_target))
+                attack_log += (self.magic_attack(right_target))
         return attack_log
         
     def magic_attack(self, target):
@@ -489,20 +489,20 @@ class Archmage(Unit):
         if target_row - 1 >= 0:
             top_target = spaces[target_row - 1][target_col].get_unit()
             if top_target != None:
-                attack_log.append(self.magic_attack(top_target))
+                attack_log += (self.magic_attack(top_target))
         if target_col - 1 >= 0:
             left_target = spaces[target_row][target_col - 1].get_unit()
             if left_target != None:
-                attack_log.append(self.magic_attack(left_target))
-        attack_log.append(self.magic_attack(target))
+                attack_log += (self.magic_attack(left_target))
+        attack_log += (self.magic_attack(target))
         if target_col + 1 < BOARD_COLS:
             right_target = spaces[target_row][target_col + 1].get_unit()
             if right_target != None:
-                attack_log.append(self.magic_attack(right_target))
+                attack_log += (self.magic_attack(right_target))
         if target_row + 1 < BOARD_ROWS:
             bottom_target = spaces[target_row + 1][target_col].get_unit()
             if bottom_target != None:
-                attack_log.append(self.magic_attack(bottom_target))
+                attack_log += (self.magic_attack(bottom_target))
         return attack_log
         
     def magic_attack(self, target):
