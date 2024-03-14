@@ -84,14 +84,17 @@ class GameBoard:
                         if new_space in self.__attack_spaces: # A valid target is selected
                             self.move_unit(unit, self.action_space)
                             self.combat(unit, new_space.get_unit())
+                            self.end_turn()
                             return
                     if self.__ability_spaces != None: # Ability range is active
                         if new_space in self.__ability_spaces: # A valid target is selected
                             self.move_unit(unit, self.action_space)
                             self.activate_ability(unit, new_space)
+                            self.end_turn()
                             return
                     if self.action_space == new_space: # Movement to a new space is confirmed
                         self.move_unit(unit, new_space)
+                        self.end_turn()
                         return
                     elif new_space in self.__valid_moves: # A new action space is selected
                         self.set_action_space(unit, new_space)
@@ -361,6 +364,10 @@ class GameBoard:
         for message in special_log:
             self.ui.logItems['text'].add_text(message)
         self.draw_sprites()
+
+    def end_turn(self):
+        self.__game_state.next_turn()
+
 
 class Terrain:
     def __init__(self) -> None:

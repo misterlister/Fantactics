@@ -4,7 +4,7 @@ from units import *
 class Player:
     def __init__(self) -> None:
         self.__units = []
-        self.__game = None
+        self.__game_state = None
         self.__turn = False
         self.__extra_turn = False
 
@@ -13,8 +13,8 @@ class Player:
         for unit in unit_list:
             unit.set_player(self)
 
-    def join_game(self, game: GameState):
-        self.__game = game
+    def join_game(self, game):
+        self.__game_state = game
 
     def start_turn(self):
         self.__turn = True
@@ -34,13 +34,15 @@ class GameState:
             player1: Player,
             player2: Player,
             board: GameBoard,
+            ui
             ) -> None:
         self.player1 = player1
         self.player2 = player2
         self.board = board
-        self.setup_board()
+        self.ui = ui
         self.__turn_count = 0
         self.__current_player = None
+        self.setup_board()
 
 
     def setup_board(self):
@@ -61,6 +63,7 @@ class GameState:
             self.board.draw_sprites()
 
             self.board.link_to_state(self)
+            self.ui.link_to_state(self)
             self.next_turn()
 
         except Exception as e:
@@ -86,8 +89,22 @@ class GameState:
         return False
     
     def set_turn(self, player):
-        self.__current_player = self.player
+        self.__current_player = player
         player.start_turn()
+
+    def get_turn(self):
+        return self.__turn_count
+    
+    def get_current_player(self):
+        return self.__current_player
+    
+    def get_current_player_num(self):
+        if self.__current_player == self.player1:
+            return 1
+        if self.__current_player == self.player2:
+            return 2
+        else:
+            return "No Current Player"
     
     def next_turn(self):
         self.__turn_count += 1
@@ -96,10 +113,11 @@ class GameState:
         else:
             # If the current player has an extra turn, don't change turns
             if self.__current_player.has_extra_turn(): 
-                return
+                pass
             elif self.__current_player == self.player1:
                 self.player1.end_turn()
                 self.set_turn(self.player2)
             else:
                 self.player2.end_turn()
                 self.set_turn(self.player1)
+        self.ui.logItems['text'].update_label()

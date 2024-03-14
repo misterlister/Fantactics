@@ -37,6 +37,11 @@ class UserInterface():
         }
 
         self.controlBar = ControlBar(root, PANEL_WIDTH, PANEL_HEIGHT - CONTROL_PANEL_HEIGHT, width=WINDOW_WIDTH - (2 * PANEL_WIDTH), height=CONTROL_PANEL_HEIGHT)
+        self.__game_state = None
+
+    def link_to_state(self, state):
+        self.__game_state = state
+        self.logItems['text'].link_to_state(state)
         
 class Panel():
     def __init__(
@@ -292,20 +297,28 @@ class CombatLog():
         self.text.pack(side='left', expand='True', anchor='nw', fill='both')
         self.text.place(x=xPos, y=yPos, height=height - xPos, width=width)
         self.text.insert('end', 'meow')
-        self.index = 0
-
-        self.label = Label(root, text='Turn 0: Player 1', bg=BGCOLOUR, fg='white', font=(FONT, DEFAULT_FONT_SIZE))
+        self.__game_state = None
+        self.label = Label(root, text='', bg=BGCOLOUR, fg='white', font=(FONT, DEFAULT_FONT_SIZE))
         self.label.place(x=0, y=0)
 
-    def update_label(self, player: int = 1) -> None:
-        self.label.config(text=f"Turn {self.index}: Player {player}")
+    def update_label(self) -> None:
+        self.label.config(text=f"Turn {self.get_turn()}: Player {self.get_player()}")
         
     def add_text(self, text: str) -> None:
         self.text.config(state='normal')
-        self.text.insert('end', f"-----[Turn {self.index}]-----\n")
+        self.text.insert('end', f"-----[Turn {self.get_turn()}]-----\n")
         self.text.insert('end', f"{text}\n")
         self.text.see('end')
-        self.index += 1
         self.text.config(state='disabled')  
+
+    def link_to_state(self, state):
+        self.__game_state = state
+
+    def get_turn(self):
+        return self.__game_state.get_turn()
+    
+    def get_player(self):
+        return self.__game_state.get_current_player_num()
+
 
     

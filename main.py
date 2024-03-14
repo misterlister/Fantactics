@@ -12,5 +12,5 @@ if __name__ == "__main__":
     
     player1 = Player()
     player2 = Player()
-    gameState = GameState(player1, player2, board)
+    gameState = GameState(player1, player2, board, userInterface)
     root.mainloop()
