@@ -306,10 +306,10 @@ class CombatLog():
 
     def update_label(self) -> None:
         self.label.config(text=f"Turn {self.get_turn()}: Player {self.get_player()}")
+        self.add_text(f"-----[Turn {self.get_turn()}]-----\n")
         
     def add_text(self, text: str) -> None:
         self.text.config(state='normal')
-        self.text.insert('end', f"-----[Turn {self.get_turn()}]-----\n")
         self.text.insert('end', f"{text}\n")
         self.text.see('end')
         self.text.config(state='disabled')  
