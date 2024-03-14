@@ -99,7 +99,7 @@ class GameBoard:
                             return
                         elif new_space in self.__valid_moves: # A new action space is selected
                             self.set_action_space(unit, new_space)
-                            self.set_attack_spaces(new_space)
+                            self.set_attack_spaces(unit, new_space)
                             return
                     else:
                         print("You cannot move enemy units")
@@ -173,6 +173,8 @@ class GameBoard:
             self.window.draw_sprite(x, y, unit_sprite)
         if space.is_selected():
             self.outline_space(row, col, 'blue')
+        if space == self.action_space:
+            self.outline_space(row, col, 'purple')
 
     def draw_sprites(self):
         for i in range(BOARD_ROWS):
@@ -221,12 +223,13 @@ class GameBoard:
         new_space = self.__spaces[row][col]
         new_space.select()
         self.selected_space = new_space
-        self.selected_unit = new_space.get_unit()
+        unit = new_space.get_unit()
+        self.selected_unit = unit
         self.draw_space(new_space)
-        if self.selected_unit is not None:
+        if unit is not None:
             self.__valid_moves = self.get_movement_spaces(row, col)
-            self.set_action_space(self.selected_unit, new_space)
-            self.set_attack_spaces(new_space)
+            self.set_action_space(unit, new_space)
+            self.set_attack_spaces(unit, new_space)
 
     def deselect_space(self) -> None:
         space = self.selected_space
@@ -282,10 +285,12 @@ class GameBoard:
         self.preview_sprite(unit, space)
         self.action_space = space
 
-    def set_attack_spaces(self, space):
+    def set_attack_spaces(self, unit, space):
         self.reset_target_spaces()
         row = space.get_row()
         col = space.get_col()
+        self.draw_space(space)
+        self.preview_sprite(unit, space)
         try:
             self.__attack_spaces = self.get_attack_spaces(row, col)
         except Exception as e:
@@ -295,13 +300,15 @@ class GameBoard:
         self.reset_target_spaces()
         row = space.get_row()
         col = space.get_col()
+        self.draw_space(space)
+        self.preview_sprite(unit, space)
         try:
             self.__ability_spaces = self.get_target_spaces(row, col, unit.get_ability_range(), 'yellow')
         except Exception as e:
             print(e)
     
     def set_unit_buttons(self, unit, space):
-        self.ui.controlBar.buttons['red'].change_unclick_func(lambda: self.set_attack_spaces(space))
+        self.ui.controlBar.buttons['red'].change_unclick_func(lambda: self.set_attack_spaces(unit, space))
         self.ui.controlBar.buttons['yellow'].change_unclick_func(lambda: self.set_ability_spaces(unit, space))
         self.ui.controlBar.buttons['green'].change_unclick_func(lambda: self.move_unit(unit, space))
         self.ui.controlBar.buttons['grey'].change_unclick_func(self.cancel_action)
