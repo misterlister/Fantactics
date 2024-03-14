@@ -47,19 +47,19 @@ class GameState:
 
     def setup_board(self):
         try:
-            p1_units_r1 = [Archer(), Cavalry(), Healer(), Archmage(), General(), Sorcerer(), Cavalry(), Archer()]
-            self.setup_row(0, 0, p1_units_r1, False)        
-            p1_units_r2 = [Peasant(), Peasant(), Soldier(), Soldier(), Soldier(), Soldier(), Peasant(), Peasant()]
-            self.setup_row(1, 0, p1_units_r2, False) 
-            self.player1.assign_units(p1_units_r1+p1_units_r2)
-            self.player1.join_game(self)
-
             p2_units_r1 = [Archer(), Cavalry(), Healer(), Archmage(), General(), Sorcerer(), Cavalry(), Archer()]
-            self.setup_row(7, 7, p2_units_r1, True)          
+            self.setup_row(0, 0, p2_units_r1, False)        
             p2_units_r2 = [Peasant(), Peasant(), Soldier(), Soldier(), Soldier(), Soldier(), Peasant(), Peasant()]
-            self.setup_row(6, 7, p2_units_r2, True) 
+            self.setup_row(1, 0, p2_units_r2, False) 
             self.player2.assign_units(p2_units_r1+p2_units_r2)
             self.player2.join_game(self)
+
+            p1_units_r1 = [Archer(), Cavalry(), Healer(), Archmage(), General(), Sorcerer(), Cavalry(), Archer()]
+            self.setup_row(7, 7, p1_units_r1, True)          
+            p1_units_r2 = [Peasant(), Peasant(), Soldier(), Soldier(), Soldier(), Soldier(), Peasant(), Peasant()]
+            self.setup_row(6, 7, p1_units_r2, True) 
+            self.player1.assign_units(p1_units_r1+p1_units_r2)
+            self.player1.join_game(self)
             self.board.draw_sprites()
 
             self.board.link_to_state(self)
@@ -121,3 +121,5 @@ class GameState:
                 self.player2.end_turn()
                 self.set_turn(self.player1)
         self.ui.logItems['text'].update_label()
+        for panel in self.ui.statsPanel:
+                self.ui.statsPanel[panel].clear()

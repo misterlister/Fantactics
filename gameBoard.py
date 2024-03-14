@@ -76,30 +76,33 @@ class GameBoard:
                             return
                         self.deselect_space()
                     self.select_space(row, col)
-                    self.update_stats_panel('friendlyUnitPanel') 
+                    self.update_stats_panel()
                     return
                 else: # A unit is currently selected
                     unit = self.selected_unit
-                    if self.__attack_spaces != None: # Attack range is active
-                        if new_space in self.__attack_spaces: # A valid target is selected
-                            self.move_unit(unit, self.action_space)
-                            self.combat(unit, new_space.get_unit())
+                    if unit.get_player().is_current_turn():
+                        if self.__attack_spaces != None: # Attack range is active
+                            if new_space in self.__attack_spaces: # A valid target is selected
+                                self.move_unit(unit, self.action_space)
+                                self.combat(unit, new_space.get_unit())
+                                self.end_turn()
+                                return
+                        if self.__ability_spaces != None: # Ability range is active
+                            if new_space in self.__ability_spaces: # A valid target is selected
+                                self.move_unit(unit, self.action_space)
+                                self.activate_ability(unit, new_space)
+                                self.end_turn()
+                                return
+                        if self.action_space == new_space: # Movement to a new space is confirmed
+                            self.move_unit(unit, new_space)
                             self.end_turn()
                             return
-                    if self.__ability_spaces != None: # Ability range is active
-                        if new_space in self.__ability_spaces: # A valid target is selected
-                            self.move_unit(unit, self.action_space)
-                            self.activate_ability(unit, new_space)
-                            self.end_turn()
+                        elif new_space in self.__valid_moves: # A new action space is selected
+                            self.set_action_space(unit, new_space)
+                            self.set_attack_spaces(new_space)
                             return
-                    if self.action_space == new_space: # Movement to a new space is confirmed
-                        self.move_unit(unit, new_space)
-                        self.end_turn()
-                        return
-                    elif new_space in self.__valid_moves: # A new action space is selected
-                        self.set_action_space(unit, new_space)
-                        self.set_attack_spaces(new_space)
-                        return
+                    else:
+                        print("You cannot move enemy units")
 
                     print("Cancelled Action.")
                     self.cancel_action()
@@ -109,8 +112,12 @@ class GameBoard:
                 
     # Update the stats panel items
     # Should be called on selection of a unit
-    def update_stats_panel(self, panel: str):
+    def update_stats_panel(self):
         if self.selected_unit is not None:
+            if self.selected_unit.get_player().is_current_turn():
+                panel = 'friendlyUnitPanel'
+            else:
+                panel = 'enemyUnitPanel'
             sprite = self.selected_unit.get_sprite()
             self.ui.statsPanel[panel].update_image(self.window.get_sprite(sprite))
             self.ui.statsPanel[panel].update_name(self.selected_unit.get_name())
@@ -119,7 +126,8 @@ class GameBoard:
             self.ui.statsPanel[panel].update_armour(self.selected_unit.get_armour_val())
             self.ui.statsPanel[panel].update_movement(self.selected_unit.get_movement())
         else:
-            self.ui.statsPanel[panel].clear()
+            for panel in self.ui.statsPanel:
+                self.ui.statsPanel[panel].clear()
 
     def outline_space(self, row: int, col: int, colour: str) -> None:
         x1 = self.get_col_x(col) + LINE_WIDTH
