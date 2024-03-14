@@ -33,6 +33,7 @@ class GameBoard:
         self.y_end = y_start + (BOARD_ROWS * square_size)
         self.square_size = square_size
         self.__spaces = [[Space(i, j) for j in range(BOARD_COLS)] for i in range(BOARD_ROWS)]
+        self.connect_spaces(self.__spaces)
         self.draw_board()
         self.window.canvas.bind('<Button-1>', self.click)
         self.window.canvas.bind('<Button-3>', self.right_click)
@@ -110,6 +111,19 @@ class GameBoard:
     def right_click(self, event):
         self.cancel_action()
                 
+    def connect_spaces(self, spaces):
+        for i in range(BOARD_ROWS):
+            for j in range(BOARD_COLS):
+                if j-1 >= 0:
+                    spaces[i][j].set_left(spaces[i][j-1])
+                if i-1 >= 0:
+                    spaces[i][j].set_up(spaces[i-1][j])
+                if j+1 < BOARD_COLS:
+                    spaces[i][j].set_right(spaces[i][j+1])
+                if i+1 < BOARD_ROWS:
+                    spaces[i][j].set_down(spaces[i+1][j])
+
+
     # Update the stats panel items
     # Should be called on selection of a unit
     def update_stats_panel(self):
@@ -400,6 +414,10 @@ class Space:
         self.__terrain = None
         self.__unit = None
         self.__selected = False
+        self.__left = None
+        self.__up = None
+        self.__right = None
+        self.__down = None
 
     def get_unit(self):
         return self.__unit
@@ -432,3 +450,28 @@ class Space:
 
     def is_selected(self):
         return self.__selected
+    
+    def set_left(self, space):
+        self.__left = space
+
+    def set_up(self, space):
+        self.__up = space
+
+    def set_right(self, space):
+        self.__right = space
+
+    def set_down(self, space):
+        self.__down = space
+
+    def get_left(self):
+        return self.__left
+    
+    def get_up(self):
+        return self.__up
+    
+    def get_right(self):
+        return self.__right
+    
+    def get_down(self):
+        return self.__down
+
