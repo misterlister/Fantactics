@@ -344,16 +344,18 @@ class Sorcerer(Unit):
         target_row = target.get_location().get_row()
         target_col = target.get_location().get_col()
         attack_log = []
-        if target_col - 1 > 0:
+        if target_col - 1 >= 0:
             left_target = spaces[target_row][target_col - 1].get_unit()
-            attack_log.append(self.sorcerous_assault(left_target))
-        attack_log.append(self.sorcerous_assault(target))
-        if target_col + 1 > 0:
+            if left_target != None:
+                attack_log.append(self.magic_attack(left_target))
+        attack_log.append(self.magic_attack(target))
+        if target_col + 1 < BOARD_COLS:
             right_target = spaces[target_row][target_col + 1].get_unit()
-            attack_log.append(self.sorcerous_assault(right_target))
+            if right_target != None:
+                attack_log.append(self.magic_attack(right_target))
         return attack_log
         
-    def sorcerous_assault(self, target):
+    def magic_attack(self, target):
         unit_name = self.get_name()
         target_name = target.get_name()
         attack_log = []
@@ -477,6 +479,45 @@ class Archmage(Unit):
         ability_name = "Arcane Vortex"
         ability_range = 3
         super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range)
+        self.__special_damage = 6
+        self.__special_damage_type = DamageType.MAGIC
+
+    def special_ability(self, target, spaces):
+        target_row = target.get_location().get_row()
+        target_col = target.get_location().get_col()
+        attack_log = []
+        if target_row - 1 >= 0:
+            top_target = spaces[target_row - 1][target_col].get_unit()
+            if top_target != None:
+                attack_log.append(self.magic_attack(top_target))
+        if target_col - 1 >= 0:
+            left_target = spaces[target_row][target_col - 1].get_unit()
+            if left_target != None:
+                attack_log.append(self.magic_attack(left_target))
+        attack_log.append(self.magic_attack(target))
+        if target_col + 1 < BOARD_COLS:
+            right_target = spaces[target_row][target_col + 1].get_unit()
+            if right_target != None:
+                attack_log.append(self.magic_attack(right_target))
+        if target_row + 1 < BOARD_ROWS:
+            bottom_target = spaces[target_row + 1][target_col].get_unit()
+            if bottom_target != None:
+                attack_log.append(self.magic_attack(bottom_target))
+        return attack_log
+        
+    def magic_attack(self, target):
+        unit_name = self.get_name()
+        target_name = target.get_name()
+        attack_log = []
+        first_strike_attack = ceil(self.__special_damage * FIRST_STRIKE_BOOST)
+        target_hp = target.get_curr_hp()
+        self.attack(target, first_strike_attack, self.__special_damage_type)
+        damage_dealt = target_hp - target.get_curr_hp()
+        attack_log.append(f"{unit_name} blasts {target_name} with arcane energy, dealing {damage_dealt} damage!\n")
+        if target.is_dead():
+            attack_log.append(f"{unit_name} has slain {target_name}!\n")
+            target.get_location().assign_unit(None)
+        return attack_log
 
 class General(Unit):
     def __init__(self) -> None:
