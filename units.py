@@ -51,7 +51,8 @@ class Unit:
             name_list,
             title_list,
             ability_name,
-            ability_range
+            ability_range,
+            ability_value
             ) -> None:
         
         self.__max_hp = hp
@@ -66,6 +67,7 @@ class Unit:
         self.__name = self.make_name(name_list, title_list)
         self.__ability_name = ability_name
         self.__ability_range = ability_range
+        self.__ability_value = ability_value
         self.__location = None
         self.__dead = False
         self.__player = None
@@ -112,6 +114,9 @@ class Unit:
     
     def get_ability_range(self):
         return self.__ability_range
+    
+    def get_ability_value(self):
+        return self.__ability_value
     
     def set_player(self, player):
         self.__player = player
@@ -284,7 +289,8 @@ class Peasant(Unit):
         title_list = Titles.Peasant
         ability_name = "Surge of Bravery"
         ability_range = 0
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range)
+        ability_value = 2
+        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range, ability_value)
         self.ability_used = False
 
 class Soldier(Unit):
@@ -300,8 +306,9 @@ class Soldier(Unit):
         name_list = Names.Commoner
         title_list = Titles.Soldier
         ability_name = "Guarded Advance" 
-        ability_range = 1        
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range)
+        ability_range = 1
+        ability_value = None
+        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range, ability_value)
 
     def find_target_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
         target_spaces = set()
@@ -335,9 +342,9 @@ class Sorcerer(Unit):
         name_list = Names.Mage
         title_list = Titles.Sorcerer
         ability_name = "Sorcerous Assault"    
-        ability_range = 4    
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range)
-        self.__special_damage = 5
+        ability_range = 4
+        ability_value = 5
+        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range, ability_value)
         self.__special_damage_type = DamageType.MAGIC
 
     def special_ability(self, target, spaces):
@@ -347,19 +354,19 @@ class Sorcerer(Unit):
         if target_col - 1 >= 0:
             left_target = spaces[target_row][target_col - 1].get_unit()
             if left_target != None:
-                attack_log += (self.magic_attack(left_target))
-        attack_log += (self.magic_attack(target))
+                attack_log += (self.magic_power(left_target))
+        attack_log += (self.magic_power(target))
         if target_col + 1 < BOARD_COLS:
             right_target = spaces[target_row][target_col + 1].get_unit()
             if right_target != None:
-                attack_log += (self.magic_attack(right_target))
+                attack_log += (self.magic_power(right_target))
         return attack_log
         
-    def magic_attack(self, target):
+    def magic_power(self, target):
         unit_name = self.get_name()
         target_name = target.get_name()
         attack_log = []
-        first_strike_attack = ceil(self.__special_damage * FIRST_STRIKE_BOOST)
+        first_strike_attack = ceil(self.get_ability_value() * FIRST_STRIKE_BOOST)
         target_hp = target.get_curr_hp()
         self.attack(target, first_strike_attack, self.__special_damage_type)
         damage_dealt = target_hp - target.get_curr_hp()
@@ -382,27 +389,43 @@ class Healer(Unit):
         name_list = Names.Mage
         title_list = Titles.Healer
         ability_name = "Healing Radiance"
-        ability_range = 1
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range)
+        ability_range = 0
+        ability_value = 5
+        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range, ability_value)
 
-    def find_target_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
-        target_spaces = set()
-        # Only add this space if there an ally here
-        if space_list[i][j].get_unit() != None:
-            if space_list[i][j].get_unit().get_player() == self.get_player():
-                if space_list[i][j].get_unit() != self:
-                    target_spaces = {(i,j)}
-        if range <= 0:
-            return target_spaces
-        target_spaces = target_spaces.union(self.check_target_spaces(i-1, j, range, space_list))
-        #target_spaces = target_spaces.union(self.check_target_spaces(i-1, j-1, range, space_list))
-        target_spaces = target_spaces.union(self.check_target_spaces(i, j-1, range, space_list))
-        #target_spaces = target_spaces.union(self.check_target_spaces(i+1, j-1, range, space_list))
-        target_spaces = target_spaces.union(self.check_target_spaces(i+1, j, range, space_list))
-        #target_spaces = target_spaces.union(self.check_target_spaces(i+1, j+1, range, space_list))
-        target_spaces = target_spaces.union(self.check_target_spaces(i, j+1, range, space_list))
-        #target_spaces = target_spaces.union(self.check_target_spaces(i-1, j+1, range, space_list))
-        return target_spaces
+    def special_ability(self, target, spaces):
+        target_row = target.get_location().get_row()
+        target_col = target.get_location().get_col()
+        attack_log = []
+        if target_row - 1 >= 0:
+            top_target = spaces[target_row - 1][target_col].get_unit()
+            if top_target != None:
+                attack_log += (self.magic_power(top_target))
+        if target_col - 1 >= 0:
+            left_target = spaces[target_row][target_col - 1].get_unit()
+            if left_target != None:
+                attack_log += (self.magic_power(left_target))
+        attack_log += (self.magic_power(target))
+        if target_col + 1 < BOARD_COLS:
+            right_target = spaces[target_row][target_col + 1].get_unit()
+            if right_target != None:
+                attack_log += (self.magic_power(right_target))
+        if target_row + 1 < BOARD_ROWS:
+            bottom_target = spaces[target_row + 1][target_col].get_unit()
+            if bottom_target != None:
+                attack_log += (self.magic_power(bottom_target))
+        return attack_log
+        
+    def magic_power(self, target):
+        unit_name = self.get_name()
+        target_name = target.get_name()
+        attack_log = []
+        target_hp = target.get_curr_hp()
+        target.heal(self.get_ability_value())
+        damage_healed = target.get_curr_hp() - target_hp
+        if damage_healed > 0:
+            attack_log.append(f"{unit_name} infuses {target_name} with mystical energy, healing {damage_healed} damage!\n")
+        return attack_log
 
 class Archer(Unit):
     def __init__(self) -> None:
@@ -418,15 +441,15 @@ class Archer(Unit):
         title_list = Titles.Archer
         ability_name = "Ranged Attack"
         ability_range = 5
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range)
-        self.__special_damage = 7
+        ability_value = 7
+        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range, ability_value)
         self.__special_damage_type = DamageType.PIERCE
 
     def special_ability(self, target, spaces):
         unit_name = self.get_name()
         target_name = target.get_name()
         attack_log = []
-        first_strike_attack = ceil(self.__special_damage * FIRST_STRIKE_BOOST)
+        first_strike_attack = ceil(self.get_ability_value() * FIRST_STRIKE_BOOST)
         target_hp = target.get_curr_hp()
         self.attack(target, first_strike_attack, self.__special_damage_type)
         damage_dealt = target_hp - target.get_curr_hp()
@@ -450,7 +473,8 @@ class Cavalry(Unit):
         title_list = Titles.Cavalry
         ability_name = "Harrying Strike"
         ability_range = 1
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range)
+        ability_value = None
+        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range, ability_value)
     
     def check_move_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
         valid_spaces = set()
@@ -478,8 +502,8 @@ class Archmage(Unit):
         title_list = Titles.Archmage
         ability_name = "Arcane Vortex"
         ability_range = 3
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range)
-        self.__special_damage = 6
+        ability_value = 6
+        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range, ability_value)
         self.__special_damage_type = DamageType.MAGIC
 
     def special_ability(self, target, spaces):
@@ -489,27 +513,27 @@ class Archmage(Unit):
         if target_row - 1 >= 0:
             top_target = spaces[target_row - 1][target_col].get_unit()
             if top_target != None:
-                attack_log += (self.magic_attack(top_target))
+                attack_log += (self.magic_power(top_target))
         if target_col - 1 >= 0:
             left_target = spaces[target_row][target_col - 1].get_unit()
             if left_target != None:
-                attack_log += (self.magic_attack(left_target))
-        attack_log += (self.magic_attack(target))
+                attack_log += (self.magic_power(left_target))
+        attack_log += (self.magic_power(target))
         if target_col + 1 < BOARD_COLS:
             right_target = spaces[target_row][target_col + 1].get_unit()
             if right_target != None:
-                attack_log += (self.magic_attack(right_target))
+                attack_log += (self.magic_power(right_target))
         if target_row + 1 < BOARD_ROWS:
             bottom_target = spaces[target_row + 1][target_col].get_unit()
             if bottom_target != None:
-                attack_log += (self.magic_attack(bottom_target))
+                attack_log += (self.magic_power(bottom_target))
         return attack_log
         
-    def magic_attack(self, target):
+    def magic_power(self, target):
         unit_name = self.get_name()
         target_name = target.get_name()
         attack_log = []
-        first_strike_attack = ceil(self.__special_damage * FIRST_STRIKE_BOOST)
+        first_strike_attack = ceil(self.get_ability_value() * FIRST_STRIKE_BOOST)
         target_hp = target.get_curr_hp()
         self.attack(target, first_strike_attack, self.__special_damage_type)
         damage_dealt = target_hp - target.get_curr_hp()
@@ -533,7 +557,8 @@ class General(Unit):
         title_list = Titles.General
         ability_name = "Inspirational Rally"
         ability_range = 0
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range)
+        ability_value = 1
+        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range, ability_value)
         self.ability_used = False
 
 
