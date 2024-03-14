@@ -64,6 +64,9 @@ class Panel():
     def getFrame(self):
         return self.frame
     
+    def clear(self):
+        pass
+    
 class StatsPanel(Panel):
     def __init__(
             self, 
