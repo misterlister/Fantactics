@@ -344,7 +344,7 @@ class GameBoard:
                 self.ui.logItems['text'].add_text(f"{unit_name} has been slain by {target_name}!\n")
                 unit_loc.assign_unit(None)
                 self.cancel_action()
-        self.update_stats_panel('friendlyUnitPanel') 
+        self.update_stats_panel() 
             
     def preview_sprite(self, unit, space):
         preview = unit.get_sprite()
