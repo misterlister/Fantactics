@@ -43,6 +43,7 @@ class GameBoard:
         self.__attack_spaces = None
         self.__ability_spaces = None
         self.__transparent_square = self.set_transparency()
+        self.__game_state = None
     
     def draw_board(self) -> None:
         for i in range (BOARD_ROWS + 1):
@@ -56,6 +57,9 @@ class GameBoard:
             p1 = Point(x_position, self.y_start)
             p2 = Point(x_position, self.y_end)
             self.window.draw_line(p1, p2)
+
+    def link_to_state(self, state):
+        self.__game_state = state
 
     def click(self, event):
         if event.x > self.x_start and event.x < self.x_end:
