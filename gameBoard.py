@@ -35,6 +35,7 @@ class GameBoard:
         self.__spaces = [[Space(i, j) for j in range(BOARD_COLS)] for i in range(BOARD_ROWS)]
         self.draw_board()
         self.window.canvas.bind('<Button-1>', self.click)
+        self.window.canvas.bind('<Button-3>', self.right_click)
         self.selected_space = None
         self.selected_unit = None
         self.action_space = None
@@ -95,6 +96,9 @@ class GameBoard:
 
                     print("Cancelled Action.")
                     self.cancel_action()
+
+    def right_click(self, event):
+        self.cancel_action()
                 
     # Update the stats panel items
     # Should be called on selection of a unit
