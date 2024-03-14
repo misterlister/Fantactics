@@ -27,9 +27,9 @@ class Effect(IntEnum):
     STRONG = 3
 
 class MoveSpeed(IntEnum):
-    SLOW = 1
-    MED = 2
-    FAST = 3
+    SLOW = 2
+    MED = 3
+    FAST = 4
 
 class MoveType(IntEnum):
     FOOT = 1
@@ -154,13 +154,18 @@ class Unit:
 
     def basic_attack(self, target):
         first_strike_attack = ceil(self.__damage * FIRST_STRIKE_BOOST)
+        target_hp = target.get_curr_hp()
         self.attack(target, first_strike_attack, self.__damage_type)
-        if target.is_dead():
-            #self.move()
-            pass
+        damage_dealt = target_hp - target.get_curr_hp()
+        attack_log = f"{self.get_name()} attacks {target.get_name()}, dealing {damage_dealt} damage!\n"
+        return attack_log
 
     def retaliate(self, target):
+        target_hp = target.get_curr_hp()
         self.attack(target, self.__damage, self.__damage_type)
+        damage_dealt = target_hp - target.get_curr_hp()
+        retaliation_log = f"{self.get_name()} retaliates against {target.get_name()}, dealing {damage_dealt} damage!\n"
+        return retaliation_log
 
     def attack(self, target, damage: int, damage_type):
         effectiveness = weapon_matchup(damage_type, target.get_armour_type())
@@ -172,13 +177,18 @@ class Unit:
             atk_damage = ceil(atk_damage * POOR_EFFECT_MOD)
         target.take_damage(atk_damage)
 
-    def special_ability(self):
-        pass
+    def special_ability(self, target, spaces):
+        # TEMP
+        messages = []
+        if target == None or target == self:
+            messages.append(f"{self.__name} used {self.__ability_name} on themself")
+        else:
+            messages.append(f"{self.__name} used {self.__ability_name} on {target.get_name()}")
+        return messages
+        #
 
     def die(self):
         self.__dead = True
-        if self.__location is not None:
-            self.__location.assign_unit(None)
 
     def revive(self):
         self.__dead = False
@@ -194,13 +204,13 @@ class Unit:
         if range <= 0:
             return valid_spaces
         valid_spaces = valid_spaces.union(self.check_move_spaces(i-1, j, range, space_list))
-        valid_spaces = valid_spaces.union(self.check_move_spaces(i-1, j-1, range, space_list))
+        #valid_spaces = valid_spaces.union(self.check_move_spaces(i-1, j-1, range, space_list))
         valid_spaces = valid_spaces.union(self.check_move_spaces(i, j-1, range, space_list))
-        valid_spaces = valid_spaces.union(self.check_move_spaces(i+1, j-1, range, space_list))
+        #valid_spaces = valid_spaces.union(self.check_move_spaces(i+1, j-1, range, space_list))
         valid_spaces = valid_spaces.union(self.check_move_spaces(i+1, j, range, space_list))
-        valid_spaces = valid_spaces.union(self.check_move_spaces(i+1, j+1, range, space_list))
+        #valid_spaces = valid_spaces.union(self.check_move_spaces(i+1, j+1, range, space_list))
         valid_spaces = valid_spaces.union(self.check_move_spaces(i, j+1, range, space_list))
-        valid_spaces = valid_spaces.union(self.check_move_spaces(i-1, j+1, range, space_list))
+        #valid_spaces = valid_spaces.union(self.check_move_spaces(i-1, j+1, range, space_list))
         return valid_spaces
 
     def check_move_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
@@ -212,6 +222,30 @@ class Unit:
             valid_spaces = valid_spaces.union(self.find_move_spaces(i, j, range-1, space_list))
         return valid_spaces
 
+    def find_attack_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
+        target_spaces = set()
+        # Only add this space if there is an enemy here
+        if space_list[i][j].get_unit() != None:
+            if space_list[i][j].get_unit().get_player() != self.get_player():
+                target_spaces = {(i,j)}
+        if range <= 0:
+            return target_spaces
+        target_spaces = target_spaces.union(self.check_attack_spaces(i-1, j, range, space_list))
+        #target_spaces = target_spaces.union(self.check_attack_spaces(i-1, j-1, range, space_list))
+        target_spaces = target_spaces.union(self.check_attack_spaces(i, j-1, range, space_list))
+        #target_spaces = target_spaces.union(self.check_attack_spaces(i+1, j-1, range, space_list))
+        target_spaces = target_spaces.union(self.check_attack_spaces(i+1, j, range, space_list))
+        #target_spaces = target_spaces.union(self.check_attack_spaces(i+1, j+1, range, space_list))
+        target_spaces = target_spaces.union(self.check_attack_spaces(i, j+1, range, space_list))
+        #target_spaces = target_spaces.union(self.check_attack_spaces(i-1, j+1, range, space_list))
+        return target_spaces
+
+    def check_attack_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
+        valid_spaces = set()
+        if i >= 0 and i < BOARD_ROWS and j >= 0 and j < BOARD_COLS:
+            valid_spaces = valid_spaces.union(self.find_attack_spaces(i, j, range-1, space_list))
+        return valid_spaces
+    
     def find_target_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
         target_spaces = set()
         # Only add this space if there is an enemy here
@@ -221,13 +255,13 @@ class Unit:
         if range <= 0:
             return target_spaces
         target_spaces = target_spaces.union(self.check_target_spaces(i-1, j, range, space_list))
-        target_spaces = target_spaces.union(self.check_target_spaces(i-1, j-1, range, space_list))
+        #target_spaces = target_spaces.union(self.check_target_spaces(i-1, j-1, range, space_list))
         target_spaces = target_spaces.union(self.check_target_spaces(i, j-1, range, space_list))
-        target_spaces = target_spaces.union(self.check_target_spaces(i+1, j-1, range, space_list))
+        #target_spaces = target_spaces.union(self.check_target_spaces(i+1, j-1, range, space_list))
         target_spaces = target_spaces.union(self.check_target_spaces(i+1, j, range, space_list))
-        target_spaces = target_spaces.union(self.check_target_spaces(i+1, j+1, range, space_list))
+        #target_spaces = target_spaces.union(self.check_target_spaces(i+1, j+1, range, space_list))
         target_spaces = target_spaces.union(self.check_target_spaces(i, j+1, range, space_list))
-        target_spaces = target_spaces.union(self.check_target_spaces(i-1, j+1, range, space_list))
+        #target_spaces = target_spaces.union(self.check_target_spaces(i-1, j+1, range, space_list))
         return target_spaces
 
     def check_target_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
@@ -269,6 +303,25 @@ class Soldier(Unit):
         ability_range = 1        
         super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range)
 
+    def find_target_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
+        target_spaces = set()
+        # Only add this space if there an ally here
+        if space_list[i][j].get_unit() != None:
+            if space_list[i][j].get_unit().get_player() == self.get_player():
+                if space_list[i][j].get_unit() != self:
+                    target_spaces = {(i,j)}
+        if range <= 0:
+            return target_spaces
+        target_spaces = target_spaces.union(self.check_target_spaces(i-1, j, range, space_list))
+        #target_spaces = target_spaces.union(self.check_target_spaces(i-1, j-1, range, space_list))
+        target_spaces = target_spaces.union(self.check_target_spaces(i, j-1, range, space_list))
+        #target_spaces = target_spaces.union(self.check_target_spaces(i+1, j-1, range, space_list))
+        target_spaces = target_spaces.union(self.check_target_spaces(i+1, j, range, space_list))
+        #target_spaces = target_spaces.union(self.check_target_spaces(i+1, j+1, range, space_list))
+        target_spaces = target_spaces.union(self.check_target_spaces(i, j+1, range, space_list))
+        #target_spaces = target_spaces.union(self.check_target_spaces(i-1, j+1, range, space_list))
+        return target_spaces
+
 class Sorcerer(Unit):
     def __init__(self) -> None:
         hp=14
@@ -284,6 +337,37 @@ class Sorcerer(Unit):
         ability_name = "Sorcerous Assault"    
         ability_range = 4    
         super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range)
+        self.__special_damage = 5
+        self.__special_damage_type = DamageType.MAGIC
+
+    def special_ability(self, target, spaces):
+        target_row = target.get_location().get_row()
+        target_col = target.get_location().get_col()
+        attack_log = []
+        if target_col - 1 >= 0:
+            left_target = spaces[target_row][target_col - 1].get_unit()
+            if left_target != None:
+                attack_log.append(self.magic_attack(left_target))
+        attack_log.append(self.magic_attack(target))
+        if target_col + 1 < BOARD_COLS:
+            right_target = spaces[target_row][target_col + 1].get_unit()
+            if right_target != None:
+                attack_log.append(self.magic_attack(right_target))
+        return attack_log
+        
+    def magic_attack(self, target):
+        unit_name = self.get_name()
+        target_name = target.get_name()
+        attack_log = []
+        first_strike_attack = ceil(self.__special_damage * FIRST_STRIKE_BOOST)
+        target_hp = target.get_curr_hp()
+        self.attack(target, first_strike_attack, self.__special_damage_type)
+        damage_dealt = target_hp - target.get_curr_hp()
+        attack_log.append(f"{unit_name} blasts {target_name} with arcane energy, dealing {damage_dealt} damage!\n")
+        if target.is_dead():
+            attack_log.append(f"{unit_name} has slain {target_name}!\n")
+            target.get_location().assign_unit(None)
+        return attack_log
 
 class Healer(Unit):
     def __init__(self) -> None:
@@ -301,6 +385,25 @@ class Healer(Unit):
         ability_range = 1
         super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range)
 
+    def find_target_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
+        target_spaces = set()
+        # Only add this space if there an ally here
+        if space_list[i][j].get_unit() != None:
+            if space_list[i][j].get_unit().get_player() == self.get_player():
+                if space_list[i][j].get_unit() != self:
+                    target_spaces = {(i,j)}
+        if range <= 0:
+            return target_spaces
+        target_spaces = target_spaces.union(self.check_target_spaces(i-1, j, range, space_list))
+        #target_spaces = target_spaces.union(self.check_target_spaces(i-1, j-1, range, space_list))
+        target_spaces = target_spaces.union(self.check_target_spaces(i, j-1, range, space_list))
+        #target_spaces = target_spaces.union(self.check_target_spaces(i+1, j-1, range, space_list))
+        target_spaces = target_spaces.union(self.check_target_spaces(i+1, j, range, space_list))
+        #target_spaces = target_spaces.union(self.check_target_spaces(i+1, j+1, range, space_list))
+        target_spaces = target_spaces.union(self.check_target_spaces(i, j+1, range, space_list))
+        #target_spaces = target_spaces.union(self.check_target_spaces(i-1, j+1, range, space_list))
+        return target_spaces
+
 class Archer(Unit):
     def __init__(self) -> None:
         hp=15
@@ -316,6 +419,22 @@ class Archer(Unit):
         ability_name = "Ranged Attack"
         ability_range = 5
         super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range)
+        self.__special_damage = 7
+        self.__special_damage_type = DamageType.PIERCE
+
+    def special_ability(self, target, spaces):
+        unit_name = self.get_name()
+        target_name = target.get_name()
+        attack_log = []
+        first_strike_attack = ceil(self.__special_damage * FIRST_STRIKE_BOOST)
+        target_hp = target.get_curr_hp()
+        self.attack(target, first_strike_attack, self.__special_damage_type)
+        damage_dealt = target_hp - target.get_curr_hp()
+        attack_log.append(f"{unit_name} fires an arrow at {target_name}, dealing {damage_dealt} damage!\n")
+        if target.is_dead():
+            attack_log.append(f"{unit_name} has slain {target_name}!\n")
+            target.get_location().assign_unit(None)
+        return attack_log
 
 class Cavalry(Unit):
     def __init__(self) -> None:
@@ -360,6 +479,45 @@ class Archmage(Unit):
         ability_name = "Arcane Vortex"
         ability_range = 3
         super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range)
+        self.__special_damage = 6
+        self.__special_damage_type = DamageType.MAGIC
+
+    def special_ability(self, target, spaces):
+        target_row = target.get_location().get_row()
+        target_col = target.get_location().get_col()
+        attack_log = []
+        if target_row - 1 >= 0:
+            top_target = spaces[target_row - 1][target_col].get_unit()
+            if top_target != None:
+                attack_log.append(self.magic_attack(top_target))
+        if target_col - 1 >= 0:
+            left_target = spaces[target_row][target_col - 1].get_unit()
+            if left_target != None:
+                attack_log.append(self.magic_attack(left_target))
+        attack_log.append(self.magic_attack(target))
+        if target_col + 1 < BOARD_COLS:
+            right_target = spaces[target_row][target_col + 1].get_unit()
+            if right_target != None:
+                attack_log.append(self.magic_attack(right_target))
+        if target_row + 1 < BOARD_ROWS:
+            bottom_target = spaces[target_row + 1][target_col].get_unit()
+            if bottom_target != None:
+                attack_log.append(self.magic_attack(bottom_target))
+        return attack_log
+        
+    def magic_attack(self, target):
+        unit_name = self.get_name()
+        target_name = target.get_name()
+        attack_log = []
+        first_strike_attack = ceil(self.__special_damage * FIRST_STRIKE_BOOST)
+        target_hp = target.get_curr_hp()
+        self.attack(target, first_strike_attack, self.__special_damage_type)
+        damage_dealt = target_hp - target.get_curr_hp()
+        attack_log.append(f"{unit_name} blasts {target_name} with arcane energy, dealing {damage_dealt} damage!\n")
+        if target.is_dead():
+            attack_log.append(f"{unit_name} has slain {target_name}!\n")
+            target.get_location().assign_unit(None)
+        return attack_log
 
 class General(Unit):
     def __init__(self) -> None:
