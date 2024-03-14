@@ -349,9 +349,10 @@ class GameBoard:
         return transparent_square
     
     def activate_ability(self, unit, space):
-        special_log = unit.special_ability(space.get_unit())
-        self.ui.logItems['text'].add_text(special_log) 
-
+        special_log = unit.special_ability(space.get_unit(), self.__spaces)
+        for message in special_log:
+            self.ui.logItems['text'].add_text(message)
+        self.draw_sprites()
 
 class Terrain:
     def __init__(self) -> None:
@@ -363,13 +364,11 @@ class Space:
             self,
             row: int,
             col: int,
-            terrain = None,
-            unit = None,
             ) -> None:
         self.__row = row
         self.__col = col
-        self.__terrain = terrain
-        self.__unit = unit
+        self.__terrain = None
+        self.__unit = None
         self.__selected = False
 
     def get_unit(self):

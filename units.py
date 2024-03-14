@@ -177,12 +177,14 @@ class Unit:
             atk_damage = ceil(atk_damage * POOR_EFFECT_MOD)
         target.take_damage(atk_damage)
 
-    def special_ability(self, target):
+    def special_ability(self, target, spaces):
         # TEMP
+        messages = []
         if target == None or target == self:
-            print(f"{self.__name} used {self.__ability_name} on themself")
+            messages.append(f"{self.__name} used {self.__ability_name} on themself")
         else:
-            print(f"{self.__name} used {self.__ability_name} on {target.get_name()}")
+            messages.append(f"{self.__name} used {self.__ability_name} on {target.get_name()}")
+        return messages
         #
 
     def die(self):
@@ -389,12 +391,18 @@ class Archer(Unit):
         self.__special_damage = 7
         self.__special_damage_type = DamageType.PIERCE
 
-    def special_ability(self, target):
+    def special_ability(self, target, spaces):
+        unit_name = self.get_name()
+        target_name = target.get_name()
+        attack_log = []
         first_strike_attack = ceil(self.__special_damage * FIRST_STRIKE_BOOST)
         target_hp = target.get_curr_hp()
         self.attack(target, first_strike_attack, self.__special_damage_type)
         damage_dealt = target_hp - target.get_curr_hp()
-        attack_log = f"{self.get_name()} fires an arrow at {target.get_name()}, dealing {damage_dealt} damage!\n"
+        attack_log.append(f"{unit_name} fires an arrow at {target_name}, dealing {damage_dealt} damage!\n")
+        if target.is_dead():
+            attack_log.append(f"{unit_name} has slain {target_name}!\n")
+            target.get_location().assign_unit(None)
         return attack_log
 
 class Cavalry(Unit):
