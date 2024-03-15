@@ -3,6 +3,7 @@ from graphics import Window, WINDOW_WIDTH, WINDOW_HEIGHT
 from gameBoard import GameBoard
 from gameState import Player, GameState
 from userInterface import UserInterface
+from constants import *
 
 if __name__ == "__main__":
     root = Tk()

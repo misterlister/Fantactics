@@ -2,18 +2,7 @@ from tkinter import Tk, LabelFrame, Canvas, Text, Label, Scrollbar
 from PIL import ImageTk, Image
 from typing import Callable
 from graphics import WINDOW_WIDTH, WINDOW_HEIGHT
-
-SPRITE_BUFFER = 8
-STATS_IMAGE_SIZE = (2 * 64) + SPRITE_BUFFER
-ERROR_UNPRESSED, ERROR_PRESSED = "Assets/Text/error_unpressed.png", "Assets/Text/error_pressed.png"
-EMPTY_SPRITE = "Assets/Text/empty.png"
-FONT = 'consolas'
-DEFAULT_FONT_SIZE = 12
-BGCOLOUR = '#5d4037'
-BORDER_WIDTH = 4
-PANEL_WIDTH, PANEL_HEIGHT = 320, 720 
-CONTROL_PANEL_HEIGHT = 80
-
+from constants import *
 
 # It does nothing
 def do_nothing(): 

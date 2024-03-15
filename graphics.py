@@ -1,24 +1,6 @@
 from tkinter import Tk, BOTH, Canvas, PhotoImage
 from PIL import ImageTk, Image
-
-BG_COL = '#d9d9d9'
-WINDOW_WIDTH = 1280
-WINDOW_HEIGHT = 720
-LINE_WIDTH = 2
-
-class SpriteType:
-    ARCHER1 = "Archer1"
-    PEASANT1 = "Peasant1"
-    SOLDIER1 = "Soldier1"
-    SORCERER1 = "Sorcerer1"
-    HEALER1 = "Healer1"
-    ARCHMAGE1 = "Archmage1"
-    ARCHER2 = "Archer2"
-    PEASANT2 = "Peasant2"
-    SOLDIER2 = "Soldier2"
-    SORCERER2 = "Sorcerer2"
-    HEALER2 = "Healer2"
-    ARCHMAGE2 = "Archmage2"
+from constants import *
 
 class Point:
     def __init__(self, x:int, y:int) -> None:
