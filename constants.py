@@ -95,3 +95,8 @@ class MoveType(IntEnum):
     FOOT = 1
     HORSE = 2
     FLY = 3
+
+class TargetType(IntEnum):
+    ITSELF = 1
+    ALLY = 2
+    ENEMY = 3

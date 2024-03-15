@@ -40,6 +40,11 @@ class Unit:
         self.__location = None
         self.__dead = False
         self.__player = None
+        self.__ability_targets = {
+            TargetType.ITSELF: False,
+            TargetType.ALLY: False,
+            TargetType.ENEMY: False
+        }
         
         
     def get_max_hp(self):
@@ -86,6 +91,14 @@ class Unit:
     
     def get_ability_value(self):
         return self.__ability_value
+    
+    def get_ability_targets(self):
+        return self.__ability_targets
+    
+    def set_ability_targets(self, itself: bool, ally: bool, enemy: bool):
+        self.__ability_targets[TargetType.ITSELF] = itself
+        self.__ability_targets[TargetType.ALLY] = ally
+        self.__ability_targets[TargetType.ENEMY] = enemy
     
     def set_player(self, player):
         self.__player = player
@@ -178,13 +191,9 @@ class Unit:
         if range <= 0:
             return valid_spaces
         valid_spaces = valid_spaces.union(self.check_move_spaces(i-1, j, range, space_list))
-        #valid_spaces = valid_spaces.union(self.check_move_spaces(i-1, j-1, range, space_list))
         valid_spaces = valid_spaces.union(self.check_move_spaces(i, j-1, range, space_list))
-        #valid_spaces = valid_spaces.union(self.check_move_spaces(i+1, j-1, range, space_list))
         valid_spaces = valid_spaces.union(self.check_move_spaces(i+1, j, range, space_list))
-        #valid_spaces = valid_spaces.union(self.check_move_spaces(i+1, j+1, range, space_list))
         valid_spaces = valid_spaces.union(self.check_move_spaces(i, j+1, range, space_list))
-        #valid_spaces = valid_spaces.union(self.check_move_spaces(i-1, j+1, range, space_list))
         return valid_spaces
 
     def check_move_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
@@ -205,13 +214,9 @@ class Unit:
         if range <= 0:
             return target_spaces
         target_spaces = target_spaces.union(self.check_attack_spaces(i-1, j, range, space_list))
-        #target_spaces = target_spaces.union(self.check_attack_spaces(i-1, j-1, range, space_list))
         target_spaces = target_spaces.union(self.check_attack_spaces(i, j-1, range, space_list))
-        #target_spaces = target_spaces.union(self.check_attack_spaces(i+1, j-1, range, space_list))
         target_spaces = target_spaces.union(self.check_attack_spaces(i+1, j, range, space_list))
-        #target_spaces = target_spaces.union(self.check_attack_spaces(i+1, j+1, range, space_list))
         target_spaces = target_spaces.union(self.check_attack_spaces(i, j+1, range, space_list))
-        #target_spaces = target_spaces.union(self.check_attack_spaces(i-1, j+1, range, space_list))
         return target_spaces
 
     def check_attack_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
@@ -229,13 +234,9 @@ class Unit:
         if range <= 0:
             return target_spaces
         target_spaces = target_spaces.union(self.check_target_spaces(i-1, j, range, space_list))
-        #target_spaces = target_spaces.union(self.check_target_spaces(i-1, j-1, range, space_list))
         target_spaces = target_spaces.union(self.check_target_spaces(i, j-1, range, space_list))
-        #target_spaces = target_spaces.union(self.check_target_spaces(i+1, j-1, range, space_list))
         target_spaces = target_spaces.union(self.check_target_spaces(i+1, j, range, space_list))
-        #target_spaces = target_spaces.union(self.check_target_spaces(i+1, j+1, range, space_list))
         target_spaces = target_spaces.union(self.check_target_spaces(i, j+1, range, space_list))
-        #target_spaces = target_spaces.union(self.check_target_spaces(i-1, j+1, range, space_list))
         return target_spaces
 
     def check_target_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
@@ -263,6 +264,7 @@ class Peasant(Unit):
         ability_range = 0
         ability_value = 2
         super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range, ability_value)
+        self.set_ability_targets(True, False, False)
         self.ability_used = False
 
 class Soldier(Unit):
@@ -284,6 +286,7 @@ class Soldier(Unit):
         ability_range = 1
         ability_value = None
         super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range, ability_value)
+        self.set_ability_targets(False, True, False)
 
     def find_target_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
         target_spaces = set()
@@ -295,13 +298,9 @@ class Soldier(Unit):
         if range <= 0:
             return target_spaces
         target_spaces = target_spaces.union(self.check_target_spaces(i-1, j, range, space_list))
-        #target_spaces = target_spaces.union(self.check_target_spaces(i-1, j-1, range, space_list))
         target_spaces = target_spaces.union(self.check_target_spaces(i, j-1, range, space_list))
-        #target_spaces = target_spaces.union(self.check_target_spaces(i+1, j-1, range, space_list))
         target_spaces = target_spaces.union(self.check_target_spaces(i+1, j, range, space_list))
-        #target_spaces = target_spaces.union(self.check_target_spaces(i+1, j+1, range, space_list))
         target_spaces = target_spaces.union(self.check_target_spaces(i, j+1, range, space_list))
-        #target_spaces = target_spaces.union(self.check_target_spaces(i-1, j+1, range, space_list))
         return target_spaces
 
 class Archer(Unit):
@@ -323,6 +322,7 @@ class Archer(Unit):
         ability_range = 5
         ability_value = 7
         super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range, ability_value)
+        self.set_ability_targets(False, False, True)
         self.__special_damage_type = DamageType.PIERCE
 
     def special_ability(self, target, spaces):
@@ -358,6 +358,7 @@ class Cavalry(Unit):
         ability_range = 1
         ability_value = None
         super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range, ability_value)
+        self.set_ability_targets(False, False, False)
     
     def check_move_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
         valid_spaces = set()
@@ -389,7 +390,9 @@ class Sorcerer(Unit):
         ability_range = 4
         ability_value = 5
         super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range, ability_value)
+        self.set_ability_targets(True, True, True)
         self.__special_damage_type = DamageType.MAGIC
+        
 
     def special_ability(self, target, spaces):
         target_row = target.get_location().get_row()
@@ -439,6 +442,7 @@ class Healer(Unit):
         ability_range = 0
         ability_value = 5
         super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range, ability_value)
+        self.set_ability_targets(False, True, False)
 
     def special_ability(self, target, spaces):
         target_row = target.get_location().get_row()
@@ -493,6 +497,7 @@ class Archmage(Unit):
         ability_range = 3
         ability_value = 6
         super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range, ability_value)
+        self.set_ability_targets(True, True, True)
         self.__special_damage_type = DamageType.MAGIC
 
     def special_ability(self, target, spaces):
@@ -551,6 +556,7 @@ class General(Unit):
         ability_range = 0
         ability_value = 1
         super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range, ability_value)
+        self.set_ability_targets(True, False, False)
         self.ability_used = False
 
 
