@@ -51,11 +51,11 @@ class Window:
 
     def __load_sprites(self):
         sprites = {}
-        sprites[SpriteType.ARCHER] = ImageTk.PhotoImage(Image.open("Assets/Units/archer.png"))
-        sprites[SpriteType.PEASANT] = ImageTk.PhotoImage(Image.open("Assets/Units/peasant.png"))
-        sprites[SpriteType.SOLDIER] = ImageTk.PhotoImage(Image.open("Assets/Units/soldier.png"))
-        sprites[SpriteType.SORCERER] = ImageTk.PhotoImage(Image.open("Assets/Units/sorcerer.png"))
-        sprites[SpriteType.HEALER] = ImageTk.PhotoImage(Image.open("Assets/Units/healer.png"))
-        sprites[SpriteType.ARCHMAGE] = ImageTk.PhotoImage(Image.open("Assets/Units/archmage.png"))
+        sprites[SpriteType.ARCHER] = ImageTk.PhotoImage(Image.open("Assets/Units/archer_white.png"))
+        sprites[SpriteType.PEASANT] = ImageTk.PhotoImage(Image.open("Assets/Units/peasant_white.png"))
+        sprites[SpriteType.SOLDIER] = ImageTk.PhotoImage(Image.open("Assets/Units/soldier_white.png"))
+        sprites[SpriteType.SORCERER] = ImageTk.PhotoImage(Image.open("Assets/Units/sorcerer_white.png"))
+        sprites[SpriteType.HEALER] = ImageTk.PhotoImage(Image.open("Assets/Units/healer_white.png"))
+        sprites[SpriteType.ARCHMAGE] = ImageTk.PhotoImage(Image.open("Assets/Units/archmage_white.png"))
         return sprites
     

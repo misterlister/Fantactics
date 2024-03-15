@@ -299,19 +299,24 @@ class CombatLog():
         self.text = Text(root, state='disabled', bg=colour, fg='white', bd=0, font=(FONT, DEFAULT_FONT_SIZE), wrap='word') # Add ', yscrollcommand=self.bar.set' for scrollbar, not currently functional
         self.text.pack(side='left', expand='True', anchor='nw', fill='both')
         self.text.place(x=xPos, y=yPos, height=height - xPos, width=width)
+        #self.text.tag_config("red", foreground='red')
         self.text.insert('end', 'meow')
         self.__game_state = None
+        self.lastTurn = 0
         self.label = Label(root, text='', bg=BGCOLOUR, fg='white', font=(FONT, DEFAULT_FONT_SIZE))
         self.label.place(x=0, y=0)
 
     def update_label(self) -> None:
         self.label.config(text=f"Turn {self.get_turn()}: Player {self.get_player()}")
-        self.add_text(f"-----[Turn {self.get_turn()}]-----\n")
         
     def add_text(self, text: str) -> None:
         self.text.config(state='normal')
+        if self.lastTurn is not self.get_turn():
+            self.text.insert('end', f"-----[Turn {self.get_turn()}]-----\n")
+            #self.text.tag_add("red", 'end-2c linestart', 'end-2c lineend')
         self.text.insert('end', f"{text}\n")
         self.text.see('end')
+        self.lastTurn = self.get_turn()
         self.text.config(state='disabled')  
 
     def link_to_state(self, state):
