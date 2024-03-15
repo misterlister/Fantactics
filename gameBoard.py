@@ -95,8 +95,7 @@ class GameBoard:
                                 self.end_turn()
                                 return
                         if self.action_space == new_space: # Movement to a new space is confirmed
-                            self.move_unit(unit, new_space)
-                            self.end_turn()
+                            self.move_and_wait(unit, new_space)
                             return
                         elif new_space in self.__valid_moves: # A new action space is selected
                             self.set_action_space(unit, new_space)
@@ -396,6 +395,11 @@ class GameBoard:
 
     def end_turn(self):
         self.__game_state.next_turn()
+
+    def move_and_wait(self, unit, space):
+        self.move_unit(unit, space)
+        self.end_turn()
+
 
 
 class Terrain:
