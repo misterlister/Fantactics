@@ -43,7 +43,8 @@ class Unit:
         self.__ability_targets = {
             TargetType.ITSELF: False,
             TargetType.ALLY: False,
-            TargetType.ENEMY: False
+            TargetType.ENEMY: False,
+            TargetType.NONE: False
         }
         
         
@@ -182,68 +183,52 @@ class Unit:
 
     def choose_action(self):
         print("Choose Action!")
-
-    def find_move_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
-        valid_spaces = set()
-        # Add this space if its empty, or it is this units current location
-        if space_list[i][j].get_unit() == None or space_list[i][j].get_unit() == self:
-            valid_spaces = {(i,j)}
-        if range <= 0:
-            return valid_spaces
-        valid_spaces = valid_spaces.union(self.check_move_spaces(i-1, j, range, space_list))
-        valid_spaces = valid_spaces.union(self.check_move_spaces(i, j-1, range, space_list))
-        valid_spaces = valid_spaces.union(self.check_move_spaces(i+1, j, range, space_list))
-        valid_spaces = valid_spaces.union(self.check_move_spaces(i, j+1, range, space_list))
-        return valid_spaces
-
-    def check_move_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
-        valid_spaces = set()
-        if i >= 0 and i < BOARD_ROWS and j >= 0 and j < BOARD_COLS:
-            if space_list[i][j].get_unit() != None:
-                if self.__move_type != MoveType.FLY:
-                    return valid_spaces
-            valid_spaces = valid_spaces.union(self.find_move_spaces(i, j, range-1, space_list))
-        return valid_spaces
-
-    def find_attack_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
-        target_spaces = set()
-        # Only add this space if there is an enemy here
-        if space_list[i][j].get_unit() != None:
-            if space_list[i][j].get_unit().get_player() != self.get_player():
-                target_spaces = {(i,j)}
+    
+    def find_target_spaces(self, i: int, j: int, range: int, space_list: list, target_dict: dict, pass_dict: dict = ALL_TARGETS) -> set:
+        # Add this space if it is a valid target
+        if self.verify_target(space_list[i][j], target_dict):
+            target_spaces = {(i,j)}
+        else:
+            target_spaces = set()
         if range <= 0:
             return target_spaces
-        target_spaces = target_spaces.union(self.check_attack_spaces(i-1, j, range, space_list))
-        target_spaces = target_spaces.union(self.check_attack_spaces(i, j-1, range, space_list))
-        target_spaces = target_spaces.union(self.check_attack_spaces(i+1, j, range, space_list))
-        target_spaces = target_spaces.union(self.check_attack_spaces(i, j+1, range, space_list))
+        target_spaces = target_spaces.union(self.check_target_spaces(i-1, j, range, space_list, target_dict, pass_dict))
+        target_spaces = target_spaces.union(self.check_target_spaces(i, j-1, range, space_list, target_dict, pass_dict))
+        target_spaces = target_spaces.union(self.check_target_spaces(i+1, j, range, space_list, target_dict, pass_dict))
+        target_spaces = target_spaces.union(self.check_target_spaces(i, j+1, range, space_list, target_dict, pass_dict))
         return target_spaces
+    
+    def verify_target(self, space: Space, target_dict: dict) -> bool:
+        unit = space.get_unit()
+        if unit == None: # Check if the space is empty
+            if target_dict[TargetType.NONE] == True:
+                return True
+            else: 
+                return False
+        if unit == self: # Check if the space is occupied by this unit
+            if target_dict[TargetType.ITSELF] == True:
+                return True
+            else: 
+                return False
+        if unit.get_player() == self.get_player(): # Check if this space is occupied by an ally
+            if target_dict[TargetType.ALLY] == True:
+                return True
+            else: 
+                return False
+        else: # The space must be occupied by an enemy
+            if target_dict[TargetType.ENEMY] == True:
+                return True
+            else: 
+                return False
 
-    def check_attack_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
+    def check_target_spaces(self, i: int, j: int, range: int, space_list: list, target_dict: dict, pass_dict: dict) -> set:
         valid_spaces = set()
         if i >= 0 and i < BOARD_ROWS and j >= 0 and j < BOARD_COLS:
-            valid_spaces = valid_spaces.union(self.find_attack_spaces(i, j, range-1, space_list))
+            if self.verify_target(space_list[i][j], pass_dict):
+                valid_spaces = valid_spaces.union(self.find_target_spaces(i, j, range-1, space_list, target_dict, pass_dict))
         return valid_spaces
     
-    def find_target_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
-        target_spaces = set()
-        # Only add this space if there is an enemy here
-        if space_list[i][j].get_unit() != None:
-            if space_list[i][j].get_unit().get_player() != self.get_player():
-                target_spaces = {(i,j)}
-        if range <= 0:
-            return target_spaces
-        target_spaces = target_spaces.union(self.check_target_spaces(i-1, j, range, space_list))
-        target_spaces = target_spaces.union(self.check_target_spaces(i, j-1, range, space_list))
-        target_spaces = target_spaces.union(self.check_target_spaces(i+1, j, range, space_list))
-        target_spaces = target_spaces.union(self.check_target_spaces(i, j+1, range, space_list))
-        return target_spaces
 
-    def check_target_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
-        valid_spaces = set()
-        if i >= 0 and i < BOARD_ROWS and j >= 0 and j < BOARD_COLS:
-            valid_spaces = valid_spaces.union(self.find_target_spaces(i, j, range-1, space_list))
-        return valid_spaces
 
 class Peasant(Unit):
     def __init__(self, p1 = True) -> None:
@@ -287,21 +272,6 @@ class Soldier(Unit):
         ability_value = None
         super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range, ability_value)
         self.set_ability_targets(False, True, False)
-
-    def find_target_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
-        target_spaces = set()
-        # Only add this space if there an ally here
-        if space_list[i][j].get_unit() != None:
-            if space_list[i][j].get_unit().get_player() == self.get_player():
-                if space_list[i][j].get_unit() != self:
-                    target_spaces = {(i,j)}
-        if range <= 0:
-            return target_spaces
-        target_spaces = target_spaces.union(self.check_target_spaces(i-1, j, range, space_list))
-        target_spaces = target_spaces.union(self.check_target_spaces(i, j-1, range, space_list))
-        target_spaces = target_spaces.union(self.check_target_spaces(i+1, j, range, space_list))
-        target_spaces = target_spaces.union(self.check_target_spaces(i, j+1, range, space_list))
-        return target_spaces
 
 class Archer(Unit):
     def __init__(self, p1 = True) -> None:
@@ -360,15 +330,16 @@ class Cavalry(Unit):
         super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range, ability_value)
         self.set_ability_targets(False, False, False)
     
-    def check_move_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
+    # Variation of movement calculation that allows for passing all units except Enemy-aligned Soldiers
+    def check_target_spaces(self, i: int, j: int, range: int, space_list: list, target_dict: dict, pass_dict: dict) -> set:
         valid_spaces = set()
         if i >= 0 and i < BOARD_ROWS and j >= 0 and j < BOARD_COLS:
-            # If there is a solder in the space which doesn't belong to this player, return
-            if isinstance(space_list[i][j].get_unit(), Soldier): 
-                    if space_list[i][j].get_unit().get_player() != self.get_player():
-                        return valid_spaces 
-            # Otherwise proceed
-            valid_spaces = valid_spaces.union(self.find_move_spaces(i, j, range-1, space_list))
+            target = space_list[i][j].get_unit()
+            if target != None: # If there is a unit here
+                if target.get_player() != self.get_player(): # And this unit is an enemy
+                    if isinstance(target, Soldier): # And that enemy is a Soldier Class
+                        return valid_spaces # Do not proceed
+            valid_spaces = valid_spaces.union(self.find_target_spaces(i, j, range-1, space_list, target_dict, pass_dict))
         return valid_spaces
     
 class Sorcerer(Unit):

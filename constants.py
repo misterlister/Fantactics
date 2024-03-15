@@ -100,3 +100,35 @@ class TargetType(IntEnum):
     ITSELF = 1
     ALLY = 2
     ENEMY = 3
+    NONE = 4
+
+ENEMY_TARGETS = {
+    TargetType.ITSELF: False,
+    TargetType.ALLY: False,
+    TargetType.ENEMY: True,
+    TargetType.NONE: False
+}
+
+MOVE_TARGETS = {
+    TargetType.ITSELF: True,
+    TargetType.ALLY: False,
+    TargetType.ENEMY: False,
+    TargetType.NONE: True
+}
+
+ALLY_TARGETS = {
+    TargetType.ITSELF: False,
+    TargetType.ALLY: True,
+    TargetType.ENEMY: False,
+    TargetType.NONE: False
+}
+
+ALL_TARGETS = {
+    TargetType.ITSELF: True,
+    TargetType.ALLY: True,
+    TargetType.ENEMY: True,
+    TargetType.NONE: True
+}
+
+
+

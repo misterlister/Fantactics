@@ -197,22 +197,26 @@ class GameBoard:
 
     def get_movement_spaces(self, i: int, j: int) -> set:
         range = self.selected_unit.get_movement()
-        valid_coords = self.selected_unit.find_move_spaces(i, j, range, self.__spaces)
+        if self.selected_unit.get_move_type() == MoveType.FLY:
+            pass_dict = ALL_TARGETS
+        else:
+            pass_dict = MOVE_TARGETS
+        target_dict = MOVE_TARGETS
+        valid_coords = self.selected_unit.find_target_spaces(i, j, range, self.__spaces, target_dict, pass_dict)
         valid_spaces = self.set_spaces(valid_coords, 'green')
         return valid_spaces
     
-    def get_target_spaces(self, i: int, j: int, range, colour) -> set:
-        if range > 0:
-            valid_coords = self.selected_unit.find_target_spaces(i, j, range, self.__spaces)
-        elif range == 0: # An ability with range 0 can only target itself
-            valid_coords = {(i,j)}
-        else:
-            raise Exception("Error: Target range less than zero")
-        valid_spaces = self.set_spaces(valid_coords, colour)
+    def get_target_spaces(self, i: int, j: int, unit) -> set:
+        range = unit.get_ability_range()
+        target_dict = unit.get_ability_targets()
+        valid_coords = self.selected_unit.find_target_spaces(i, j, range, self.__spaces, target_dict)
+        valid_spaces = self.set_spaces(valid_coords, 'yellow')
         return valid_spaces
     
     def get_attack_spaces(self, i: int, j: int) -> set:
-        valid_coords = self.selected_unit.find_attack_spaces(i, j, 1, self.__spaces)
+        range = 1
+        target_dict = ENEMY_TARGETS
+        valid_coords = self.selected_unit.find_target_spaces(i, j, range, self.__spaces, target_dict)
         valid_spaces = self.set_spaces(valid_coords, 'red')
         return valid_spaces
     
@@ -307,7 +311,7 @@ class GameBoard:
         self.draw_space(space)
         self.preview_sprite(unit, space)
         try:
-            self.__ability_spaces = self.get_target_spaces(row, col, unit.get_ability_range(), 'yellow')
+            self.__ability_spaces = self.get_target_spaces(row, col, unit)
         except Exception as e:
             print(e)
     
