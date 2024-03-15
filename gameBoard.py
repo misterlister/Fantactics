@@ -62,13 +62,17 @@ class GameBoard:
                 print(f"Clicked square {row},{col}. Contents: {contents}")
                 new_space = self.__spaces[row][col]
                 if self.selected_unit is None: # No unit is currently selected
-                    if self.selected_space is not None:
-                        if self.selected_space == new_space:
+                    if self.selected_space is not None: # If another space was already selected
+                        if self.selected_space == new_space: # If a selected space is selected, deselect it
                             self.deselect_space()
+                            self.clear_stats_panel()
                             return
                         self.deselect_space()
                     self.select_space(row, col)
-                    self.update_stats_panel()
+                    if self.selected_unit is None:
+                        self.clear_stats_panel()
+                    else:
+                        self.update_stats_panel()
                     return
                 else: # A unit is currently selected
                     unit = self.selected_unit
@@ -129,8 +133,9 @@ class GameBoard:
             self.ui.statsPanel[panel].update_damage(self.selected_unit.get_damage_val())
             self.ui.statsPanel[panel].update_armour(self.selected_unit.get_armour_val())
             self.ui.statsPanel[panel].update_movement(self.selected_unit.get_movement())
-        else:
-            for panel in self.ui.statsPanel:
+
+    def clear_stats_panel(self):
+        for panel in self.ui.statsPanel:
                 self.ui.statsPanel[panel].clear()
 
     def outline_space(self, row: int, col: int, colour: str) -> None:
@@ -195,28 +200,28 @@ class GameBoard:
         self.window.canvas.create_rectangle(x1, y1, x2, y2, fill=BG_COL, outline = 'black', width=2)
 ######
 
-    def get_movement_spaces(self, i: int, j: int) -> set:
-        range = self.selected_unit.get_movement()
-        if self.selected_unit.get_move_type() == MoveType.FLY:
+    def get_movement_spaces(self, unit, space) -> set:
+        range = unit.get_movement()
+        if unit.get_move_type() == MoveType.FLY:
             pass_dict = ALL_TARGETS
         else:
             pass_dict = MOVE_TARGETS
         target_dict = MOVE_TARGETS
-        valid_coords = self.selected_unit.find_target_spaces(i, j, range, self.__spaces, target_dict, pass_dict)
+        valid_coords = unit.find_target_spaces(space, range, target_dict, pass_dict)
         valid_spaces = self.set_spaces(valid_coords, 'green')
         return valid_spaces
     
-    def get_target_spaces(self, i: int, j: int, unit) -> set:
+    def get_target_spaces(self, unit, space) -> set:
         range = unit.get_ability_range()
         target_dict = unit.get_ability_targets()
-        valid_coords = self.selected_unit.find_target_spaces(i, j, range, self.__spaces, target_dict)
+        valid_coords = unit.find_target_spaces(space, range, target_dict)
         valid_spaces = self.set_spaces(valid_coords, 'yellow')
         return valid_spaces
     
-    def get_attack_spaces(self, i: int, j: int) -> set:
+    def get_attack_spaces(self, unit, space) -> set:
         range = 1
         target_dict = ENEMY_TARGETS
-        valid_coords = self.selected_unit.find_target_spaces(i, j, range, self.__spaces, target_dict)
+        valid_coords = unit.find_target_spaces(space, range, target_dict)
         valid_spaces = self.set_spaces(valid_coords, 'red')
         return valid_spaces
     
@@ -235,7 +240,7 @@ class GameBoard:
         self.selected_unit = unit
         self.draw_space(new_space)
         if unit is not None:
-            self.__valid_moves = self.get_movement_spaces(row, col)
+            self.__valid_moves = self.get_movement_spaces(unit, new_space)
             self.set_action_space(unit, new_space)
             self.set_attack_spaces(unit, new_space)
 
@@ -300,7 +305,7 @@ class GameBoard:
         self.draw_space(space)
         self.preview_sprite(unit, space)
         try:
-            self.__attack_spaces = self.get_attack_spaces(row, col)
+            self.__attack_spaces = self.get_attack_spaces(unit, space)
         except Exception as e:
             print(e)
 
@@ -311,7 +316,7 @@ class GameBoard:
         self.draw_space(space)
         self.preview_sprite(unit, space)
         try:
-            self.__ability_spaces = self.get_target_spaces(row, col, unit)
+            self.__ability_spaces = self.get_target_spaces(unit, space)
         except Exception as e:
             print(e)
     
