@@ -276,7 +276,7 @@ class Unit:
         return valid_spaces
 
 class Peasant(Unit):
-    def __init__(self) -> None:
+    def __init__(self, p1 = True) -> None:
         hp=11
         dam_val=6
         dam_type=DamageType.BLUDGEON
@@ -284,7 +284,10 @@ class Peasant(Unit):
         arm_type=ArmourType.PADDED
         move=MoveSpeed.MED
         move_type = MoveType.FOOT
-        sprite = SpriteType.PEASANT
+        if p1:
+            sprite = SpriteType.PEASANT1
+        else:
+            sprite = SpriteType.PEASANT2
         name_list = Names.Commoner
         title_list = Titles.Peasant
         ability_name = "Surge of Bravery"
@@ -294,7 +297,7 @@ class Peasant(Unit):
         self.ability_used = False
 
 class Soldier(Unit):
-    def __init__(self) -> None:
+    def __init__(self, p1 = True) -> None:
         hp=16
         dam_val=8
         dam_type=DamageType.PIERCE
@@ -302,7 +305,10 @@ class Soldier(Unit):
         arm_type=ArmourType.CHAIN
         move=MoveSpeed.MED
         move_type = MoveType.FOOT
-        sprite = SpriteType.SOLDIER
+        if p1:
+            sprite = SpriteType.SOLDIER1
+        else:
+            sprite = SpriteType.SOLDIER2
         name_list = Names.Commoner
         title_list = Titles.Soldier
         ability_name = "Guarded Advance" 
@@ -330,7 +336,7 @@ class Soldier(Unit):
         return target_spaces
 
 class Sorcerer(Unit):
-    def __init__(self) -> None:
+    def __init__(self, p1 = True) -> None:
         hp=14
         dam_val=6
         dam_type=DamageType.PIERCE
@@ -338,7 +344,10 @@ class Sorcerer(Unit):
         arm_type=ArmourType.ROBES
         move=MoveSpeed.MED
         move_type = MoveType.FOOT
-        sprite = SpriteType.SORCERER
+        if p1:
+            sprite = SpriteType.SORCERER1
+        else:
+            sprite = SpriteType.SORCERER2
         name_list = Names.Mage
         title_list = Titles.Sorcerer
         ability_name = "Sorcerous Assault"    
@@ -377,7 +386,7 @@ class Sorcerer(Unit):
         return attack_log
 
 class Healer(Unit):
-    def __init__(self) -> None:
+    def __init__(self, p1 = True) -> None:
         hp=15
         dam_val=8
         dam_type=DamageType.BLUDGEON
@@ -385,7 +394,10 @@ class Healer(Unit):
         arm_type=ArmourType.CHAIN
         move=MoveSpeed.MED
         move_type = MoveType.FOOT
-        sprite = SpriteType.HEALER
+        if p1:
+            sprite = SpriteType.HEALER1
+        else:
+            sprite = SpriteType.HEALER2
         name_list = Names.Mage
         title_list = Titles.Healer
         ability_name = "Healing Radiance"
@@ -428,7 +440,7 @@ class Healer(Unit):
         return attack_log
 
 class Archer(Unit):
-    def __init__(self) -> None:
+    def __init__(self, p1 = True) -> None:
         hp=15
         dam_val=6
         dam_type=DamageType.PIERCE
@@ -436,7 +448,10 @@ class Archer(Unit):
         arm_type=ArmourType.PADDED
         move=MoveSpeed.MED
         move_type = MoveType.FOOT
-        sprite = SpriteType.ARCHER
+        if p1:
+            sprite = SpriteType.ARCHER1
+        else:
+            sprite = SpriteType.ARCHER2
         name_list = Names.Commoner
         title_list = Titles.Archer
         ability_name = "Ranged Attack"
@@ -460,7 +475,7 @@ class Archer(Unit):
         return attack_log
 
 class Cavalry(Unit):
-    def __init__(self) -> None:
+    def __init__(self, p1 = True) -> None:
         hp=20
         dam_val=9
         dam_type=DamageType.SLASH
@@ -468,7 +483,10 @@ class Cavalry(Unit):
         arm_type=ArmourType.PLATE
         move=MoveSpeed.FAST
         move_type = MoveType.HORSE
-        sprite = SpriteType.PEASANT
+        if p1:
+            sprite = SpriteType.PEASANT1
+        else:
+            sprite = SpriteType.PEASANT2
         name_list = Names.Noble
         title_list = Titles.Cavalry
         ability_name = "Harrying Strike"
@@ -489,7 +507,7 @@ class Cavalry(Unit):
     
 
 class Archmage(Unit):
-    def __init__(self) -> None:
+    def __init__(self, p1 = True) -> None:
         hp=22
         dam_val=7
         dam_type=DamageType.BLUDGEON
@@ -497,7 +515,10 @@ class Archmage(Unit):
         arm_type=ArmourType.ROBES
         move=MoveSpeed.MED
         move_type = MoveType.FLY
-        sprite = SpriteType.ARCHMAGE
+        if p1:
+            sprite = SpriteType.ARCHMAGE1
+        else:
+            sprite = SpriteType.ARCHMAGE2
         name_list = Names.Mage
         title_list = Titles.Archmage
         ability_name = "Arcane Vortex"
@@ -544,7 +565,7 @@ class Archmage(Unit):
         return attack_log
 
 class General(Unit):
-    def __init__(self) -> None:
+    def __init__(self, p1 = True) -> None:
         hp=24
         dam_val=10
         dam_type=DamageType.SLASH
@@ -552,7 +573,10 @@ class General(Unit):
         arm_type=ArmourType.PLATE
         move=MoveSpeed.SLOW
         move_type = MoveType.FOOT
-        sprite = SpriteType.PEASANT
+        if p1:
+            sprite = SpriteType.PEASANT1
+        else:
+            sprite = SpriteType.PEASANT2
         name_list = Names.Noble
         title_list = Titles.General
         ability_name = "Inspirational Rally"

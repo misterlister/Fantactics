@@ -7,12 +7,18 @@ WINDOW_HEIGHT = 720
 LINE_WIDTH = 2
 
 class SpriteType:
-    ARCHER = "Archer"
-    PEASANT = "Peasant"
-    SOLDIER = "Soldier"
-    SORCERER = "Sorcerer"
-    HEALER = "Healer"
-    ARCHMAGE = "Archmage"
+    ARCHER1 = "Archer1"
+    PEASANT1 = "Peasant1"
+    SOLDIER1 = "Soldier1"
+    SORCERER1 = "Sorcerer1"
+    HEALER1 = "Healer1"
+    ARCHMAGE1 = "Archmage1"
+    ARCHER2 = "Archer2"
+    PEASANT2 = "Peasant2"
+    SOLDIER2 = "Soldier2"
+    SORCERER2 = "Sorcerer2"
+    HEALER2 = "Healer2"
+    ARCHMAGE2 = "Archmage2"
 
 class Point:
     def __init__(self, x:int, y:int) -> None:
@@ -51,11 +57,17 @@ class Window:
 
     def __load_sprites(self):
         sprites = {}
-        sprites[SpriteType.ARCHER] = ImageTk.PhotoImage(Image.open("Assets/Units/archer_white.png"))
-        sprites[SpriteType.PEASANT] = ImageTk.PhotoImage(Image.open("Assets/Units/peasant_white.png"))
-        sprites[SpriteType.SOLDIER] = ImageTk.PhotoImage(Image.open("Assets/Units/soldier_white.png"))
-        sprites[SpriteType.SORCERER] = ImageTk.PhotoImage(Image.open("Assets/Units/sorcerer_white.png"))
-        sprites[SpriteType.HEALER] = ImageTk.PhotoImage(Image.open("Assets/Units/healer_white.png"))
-        sprites[SpriteType.ARCHMAGE] = ImageTk.PhotoImage(Image.open("Assets/Units/archmage_white.png"))
+        sprites[SpriteType.ARCHER1] = ImageTk.PhotoImage(Image.open("Assets/Units/archer_white.png"))
+        sprites[SpriteType.PEASANT1] = ImageTk.PhotoImage(Image.open("Assets/Units/peasant_white.png"))
+        sprites[SpriteType.SOLDIER1] = ImageTk.PhotoImage(Image.open("Assets/Units/soldier_white.png"))
+        sprites[SpriteType.SORCERER1] = ImageTk.PhotoImage(Image.open("Assets/Units/sorcerer_white.png"))
+        sprites[SpriteType.HEALER1] = ImageTk.PhotoImage(Image.open("Assets/Units/healer_white.png"))
+        sprites[SpriteType.ARCHMAGE1] = ImageTk.PhotoImage(Image.open("Assets/Units/archmage_white.png"))
+        sprites[SpriteType.ARCHER2] = ImageTk.PhotoImage(Image.open("Assets/Units/archer_black.png"))
+        sprites[SpriteType.PEASANT2] = ImageTk.PhotoImage(Image.open("Assets/Units/peasant_black.png"))
+        sprites[SpriteType.SOLDIER2] = ImageTk.PhotoImage(Image.open("Assets/Units/soldier_black.png"))
+        sprites[SpriteType.SORCERER2] = ImageTk.PhotoImage(Image.open("Assets/Units/sorcerer_black.png"))
+        sprites[SpriteType.HEALER2] = ImageTk.PhotoImage(Image.open("Assets/Units/healer_black.png"))
+        sprites[SpriteType.ARCHMAGE2] = ImageTk.PhotoImage(Image.open("Assets/Units/archmage_black.png"))
         return sprites
     
