@@ -9,6 +9,7 @@ from constants import *
 class Unit:
     def __init__(
             self, 
+            unit_type: str,
             hp: int, 
             dam_val: int, 
             dam_type: DamageType, 
@@ -24,6 +25,7 @@ class Unit:
             ability_value
             ) -> None:
         
+        self.__unit_type = unit_type
         self.__max_hp = hp
         self.__curr_hp = hp
         self.__damage = dam_val
@@ -42,7 +44,9 @@ class Unit:
         self.__player = None
         self.__ability_targets = TARGET_NONE
         
-        
+    def get_unit_type(self):
+        return self.__unit_type
+
     def get_max_hp(self):
         return self.__max_hp
 
@@ -224,6 +228,7 @@ class Unit:
 
 class Peasant(Unit):
     def __init__(self, p1 = True) -> None:
+        unit_type = "Peasant"
         hp=11
         dam_val=6
         dam_type=DamageType.BLUDGEON
@@ -240,12 +245,14 @@ class Peasant(Unit):
         ability_name = "Surge of Bravery"
         ability_range = 0
         ability_value = 2
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range, ability_value)
+        super().__init__(unit_type, hp, dam_val, dam_type, arm_val, arm_type, move, move_type, 
+                         sprite, name_list, title_list, ability_name, ability_range, ability_value)
         self.set_ability_targets(TARGET_SELF)
         self.ability_used = False
 
 class Soldier(Unit):
     def __init__(self, p1 = True) -> None:
+        unit_type = "Soldier"
         hp=16
         dam_val=8
         dam_type=DamageType.PIERCE
@@ -262,7 +269,8 @@ class Soldier(Unit):
         ability_name = "Guarded Advance" 
         ability_range = 1
         ability_value = None
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range, ability_value)
+        super().__init__(unit_type, hp, dam_val, dam_type, arm_val, arm_type, move, move_type, 
+                         sprite, name_list, title_list, ability_name, ability_range, ability_value)
         self.set_ability_targets(TARGET_ALLIES)
 
     def special_ability(self, target, space):
@@ -281,6 +289,7 @@ class Soldier(Unit):
 
 class Archer(Unit):
     def __init__(self, p1 = True) -> None:
+        unit_type = "Archer"
         hp=15
         dam_val=6
         dam_type=DamageType.PIERCE
@@ -297,7 +306,8 @@ class Archer(Unit):
         ability_name = "Ranged Attack"
         ability_range = 5
         ability_value = 7
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range, ability_value)
+        super().__init__(unit_type, hp, dam_val, dam_type, arm_val, arm_type, move, move_type, 
+                         sprite, name_list, title_list, ability_name, ability_range, ability_value)
         self.set_ability_targets(TARGET_ENEMIES)
         self.__special_damage_type = DamageType.PIERCE
 
@@ -317,6 +327,7 @@ class Archer(Unit):
 
 class Cavalry(Unit):
     def __init__(self, p1 = True) -> None:
+        unit_type = "Cavalry"
         hp=20
         dam_val=9
         dam_type=DamageType.SLASH
@@ -333,7 +344,8 @@ class Cavalry(Unit):
         ability_name = "Harrying Strike"
         ability_range = 0
         ability_value = None
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range, ability_value)
+        super().__init__(unit_type, hp, dam_val, dam_type, arm_val, arm_type, move, move_type, 
+                         sprite, name_list, title_list, ability_name, ability_range, ability_value)
         self.set_ability_targets(TARGET_SELF)
     
     # Variation of movement calculation that allows for passing all units except Enemy-aligned Soldiers
@@ -350,6 +362,7 @@ class Cavalry(Unit):
     
 class Sorcerer(Unit):
     def __init__(self, p1 = True) -> None:
+        unit_type = "Sorcerer"
         hp=14
         dam_val=6
         dam_type=DamageType.PIERCE
@@ -366,7 +379,8 @@ class Sorcerer(Unit):
         ability_name = "Sorcerous Assault"    
         ability_range = 4
         ability_value = 5
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range, ability_value)
+        super().__init__(unit_type, hp, dam_val, dam_type, arm_val, arm_type, move, move_type, 
+                         sprite, name_list, title_list, ability_name, ability_range, ability_value)
         self.set_ability_targets(TARGET_ALL)
         self.__special_damage_type = DamageType.MAGIC
         
@@ -407,6 +421,7 @@ class Sorcerer(Unit):
 
 class Healer(Unit):
     def __init__(self, p1 = True) -> None:
+        unit_type = "Healer"
         hp=15
         dam_val=8
         dam_type=DamageType.BLUDGEON
@@ -423,7 +438,8 @@ class Healer(Unit):
         ability_name = "Healing Radiance"
         ability_range = 0
         ability_value = 5
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range, ability_value)
+        super().__init__(unit_type, hp, dam_val, dam_type, arm_val, arm_type, move, move_type, 
+                         sprite, name_list, title_list, ability_name, ability_range, ability_value)
         self.set_ability_targets(TARGET_SELF)
 
     def special_ability(self, target, space):
@@ -467,6 +483,7 @@ class Healer(Unit):
 
 class Archmage(Unit):
     def __init__(self, p1 = True) -> None:
+        unit_type = "Archmage"
         hp=22
         dam_val=7
         dam_type=DamageType.BLUDGEON
@@ -483,7 +500,8 @@ class Archmage(Unit):
         ability_name = "Arcane Vortex"
         ability_range = 3
         ability_value = 6
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range, ability_value)
+        super().__init__(unit_type, hp, dam_val, dam_type, arm_val, arm_type, move, move_type, 
+                         sprite, name_list, title_list, ability_name, ability_range, ability_value)
         self.set_ability_targets(TARGET_ALL)
         self.__special_damage_type = DamageType.MAGIC
 
@@ -534,6 +552,7 @@ class Archmage(Unit):
 
 class General(Unit):
     def __init__(self, p1 = True) -> None:
+        unit_type = "General"
         hp=24
         dam_val=10
         dam_type=DamageType.SLASH
@@ -550,7 +569,8 @@ class General(Unit):
         ability_name = "Inspirational Rally"
         ability_range = 0
         ability_value = 1
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range, ability_value)
+        super().__init__(unit_type, hp, dam_val, dam_type, arm_val, arm_type, move, move_type, 
+                         sprite, name_list, title_list, ability_name, ability_range, ability_value)
         self.set_ability_targets(TARGET_SELF)
         self.ability_used = False
 

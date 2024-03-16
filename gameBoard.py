@@ -127,6 +127,7 @@ class GameBoard:
                 panel = 'enemyUnitPanel'
             sprite = unit.get_sprite()
             self.ui.statsPanel[panel].update_image(self.window.get_sprite(sprite))
+            self.ui.statsPanel[panel].update_class(unit.get_unit_type())
             self.ui.statsPanel[panel].update_name(unit.get_name())
             self.ui.statsPanel[panel].update_health(unit.get_curr_hp(), unit.get_max_hp())
             self.ui.statsPanel[panel].update_damage(unit.get_damage_val())
