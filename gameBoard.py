@@ -204,10 +204,10 @@ class GameBoard:
     def get_movement_spaces(self, unit, space) -> set:
         range = unit.get_movement()
         if unit.get_move_type() == MoveType.FLY:
-            pass_dict = ALL_TARGETS
+            pass_dict = TARGET_ALL
         else:
-            pass_dict = MOVE_TARGETS
-        target_dict = MOVE_TARGETS
+            pass_dict = TARGET_MOVE
+        target_dict = TARGET_MOVE
         valid_coords = unit.find_target_spaces(space, range, target_dict, pass_dict)
         valid_spaces = self.set_spaces(valid_coords, 'green')
         return valid_spaces
@@ -221,7 +221,7 @@ class GameBoard:
     
     def get_attack_spaces(self, unit, space) -> set:
         range = 1
-        target_dict = ENEMY_TARGETS
+        target_dict = TARGET_ENEMIES
         valid_coords = unit.find_target_spaces(space, range, target_dict)
         valid_spaces = self.set_spaces(valid_coords, 'red')
         return valid_spaces
@@ -326,9 +326,8 @@ class GameBoard:
     def set_unit_buttons(self, unit, space):
         self.ui.controlBar.buttons['red'].change_unclick_func(lambda: self.set_attack_spaces(unit, space))
         self.ui.controlBar.buttons['yellow'].change_unclick_func(lambda: self.set_ability_spaces(unit, space))
-        self.ui.controlBar.buttons['green'].change_unclick_func(lambda: self.move_unit(unit, space))
+        self.ui.controlBar.buttons['green'].change_unclick_func(lambda: self.move_and_wait(unit, space))
         self.ui.controlBar.buttons['grey'].change_unclick_func(self.cancel_action)
-
 
     def unset_unit_buttons(self):
         self.ui.controlBar.buttons['red'].change_unclick_func(do_nothing)
@@ -345,7 +344,6 @@ class GameBoard:
             for space in self.__attack_spaces:
                 self.draw_space(space)
         self.__attack_spaces = None
-
 
     def combat(self, unit, target):
         unit_name = unit.get_name()
@@ -395,7 +393,7 @@ class GameBoard:
         return transparent_square
     
     def activate_ability(self, unit, space):
-        special_log = unit.special_ability(space.get_unit(), self.__spaces)
+        special_log = unit.special_ability(space.get_unit(), space)
         for message in special_log:
             self.ui.logItems['text'].add_text(message)
         self.draw_sprites()
