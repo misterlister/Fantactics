@@ -69,16 +69,14 @@ class GameBoard:
                             return
                         self.deselect_space()
                     self.select_space(row, col)
-                    if self.selected_unit is None:
-                        self.clear_stats_panel()
-                    else:
-                        self.update_stats_panel()
+                    self.update_stats_panel(self.selected_unit)
                     return
                 else: # A unit is currently selected
                     unit = self.selected_unit
                     if unit.get_player().is_current_turn():
                         if self.__attack_spaces != None: # Attack range is active
                             if new_space in self.__attack_spaces: # A valid target is selected
+                                self.update_stats_panel(new_space.get_unit()) 
                                 self.move_unit(unit, self.action_space)
                                 self.combat(unit, new_space.get_unit())
                                 self.end_turn()
@@ -86,6 +84,7 @@ class GameBoard:
                         if self.__ability_spaces != None: # Ability range is active
                             if new_space in self.__ability_spaces: # A valid target is selected
                                 self.move_unit(unit, self.action_space)
+                                self.update_stats_panel(new_space.get_unit()) 
                                 self.activate_ability(unit, new_space)
                                 self.end_turn()
                                 return
@@ -120,23 +119,25 @@ class GameBoard:
 
     # Update the stats panel items
     # Should be called on selection of a unit
-    def update_stats_panel(self):
-        if self.selected_unit is not None:
-            if self.selected_unit.get_player().is_current_turn():
+    def update_stats_panel(self, unit):
+        if unit is not None:
+            if unit.get_player().is_current_turn():
                 panel = 'friendlyUnitPanel'
             else:
                 panel = 'enemyUnitPanel'
-            sprite = self.selected_unit.get_sprite()
+            sprite = unit.get_sprite()
             self.ui.statsPanel[panel].update_image(self.window.get_sprite(sprite))
-            self.ui.statsPanel[panel].update_name(self.selected_unit.get_name())
-            self.ui.statsPanel[panel].update_health(self.selected_unit.get_curr_hp(), self.selected_unit.get_max_hp())
-            self.ui.statsPanel[panel].update_damage(self.selected_unit.get_damage_val())
-            self.ui.statsPanel[panel].update_armour(self.selected_unit.get_armour_val())
-            self.ui.statsPanel[panel].update_movement(self.selected_unit.get_movement())
+            self.ui.statsPanel[panel].update_name(unit.get_name())
+            self.ui.statsPanel[panel].update_health(unit.get_curr_hp(), unit.get_max_hp())
+            self.ui.statsPanel[panel].update_damage(unit.get_damage_val())
+            self.ui.statsPanel[panel].update_armour(unit.get_armour_val())
+            self.ui.statsPanel[panel].update_movement(unit.get_movement())
+        else:
+            self.clear_stats_panel()
 
     def clear_stats_panel(self):
         for panel in self.ui.statsPanel:
-                self.ui.statsPanel[panel].clear()
+            self.ui.statsPanel[panel].clear()
 
     def outline_space(self, row: int, col: int, colour: str) -> None:
         x1 = self.get_col_x(col) + LINE_WIDTH
@@ -275,6 +276,8 @@ class GameBoard:
         self.action_space = None
         self.draw_sprites()
         self.deselect_space()
+        self.clear_stats_panel()
+
 
     def get_col_x(self, col):
         x = self.x_start + (col * (self.square_size))
@@ -350,6 +353,7 @@ class GameBoard:
         unit_loc = unit.get_location()
         target_loc = target.get_location()
         attack_log = unit.basic_attack(target)
+        self.update_stats_panel(target) 
         # Send attack details to combat log
         self.ui.logItems['text'].add_text(attack_log) 
         if target.is_dead(): # If the target is dead, remove them and take their place
@@ -358,13 +362,16 @@ class GameBoard:
             self.move_unit(unit, target_loc)
         else: # Otherwise, they will retaliate
             retaliation_log = target.retaliate(unit)
+            self.update_stats_panel(unit)
             # Send retaliation details to combat log
             self.ui.logItems['text'].add_text(retaliation_log) 
             if unit.is_dead(): # If the unit died, remove them
                 self.ui.logItems['text'].add_text(f"{unit_name} has been slain by {target_name}!\n")
                 unit_loc.assign_unit(None)
-                self.cancel_action()
-        self.update_stats_panel() 
+                self.action_space = None
+                self.draw_sprites()
+                self.deselect_space()
+        
             
     def preview_sprite(self, unit, space):
         preview = unit.get_sprite()
