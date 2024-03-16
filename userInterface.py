@@ -1,7 +1,6 @@
 from tkinter import Tk, LabelFrame, Canvas, Text, Label, Scrollbar
 from PIL import ImageTk, Image
 from typing import Callable
-from graphics import WINDOW_WIDTH, WINDOW_HEIGHT
 from constants import *
 
 # It does nothing

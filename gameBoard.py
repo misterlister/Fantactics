@@ -1,7 +1,7 @@
-from graphics import Window, Point, WINDOW_HEIGHT, WINDOW_WIDTH, BG_COL, LINE_WIDTH
+from graphics import Window, Point
 from tkinter import Tk
 from PIL import ImageTk, Image
-from userInterface import UserInterface, SPRITE_BUFFER, do_nothing
+from userInterface import UserInterface, do_nothing
 from constants import *
 
 
@@ -282,7 +282,6 @@ class GameBoard:
         self.deselect_space()
         self.clear_stats_panel()
 
-
     def get_col_x(self, col):
         x = self.x_start + (col * (self.square_size))
         return x
@@ -307,8 +306,6 @@ class GameBoard:
 
     def set_attack_spaces(self, unit, space):
         self.reset_target_spaces()
-        row = space.get_row()
-        col = space.get_col()
         self.draw_space(space)
         self.preview_sprite(unit, space)
         try:
@@ -318,8 +315,6 @@ class GameBoard:
 
     def set_ability_spaces(self, unit, space):
         self.reset_target_spaces()
-        row = space.get_row()
-        col = space.get_col()
         self.draw_space(space)
         self.preview_sprite(unit, space)
         try:
@@ -374,7 +369,6 @@ class GameBoard:
                 self.draw_sprites()
                 self.deselect_space()
         
-            
     def preview_sprite(self, unit, space):
         preview = unit.get_sprite()
         x = self.get_col_x(space.get_col())

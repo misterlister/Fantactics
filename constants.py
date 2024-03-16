@@ -39,8 +39,8 @@ BOARD_COLS = 8
 BOARD_WIDTH = DEFAULT_SQUARE_SIZE * BOARD_COLS
 BOARD_HEIGHT = DEFAULT_SQUARE_SIZE * BOARD_ROWS
 # X and Y coordinates of the top left of the game board
-DEFAULT_X_POS = (WINDOW_WIDTH - BOARD_WIDTH) // 2
-DEFAULT_Y_POS = (WINDOW_HEIGHT - BOARD_HEIGHT) // 4
+DEFAULT_X_POS = ((WINDOW_WIDTH - BOARD_WIDTH) // 2)
+DEFAULT_Y_POS = ((WINDOW_HEIGHT - BOARD_HEIGHT) // 4)
 
 # Identifiers for unit sprites
 class SpriteType:
@@ -60,9 +60,9 @@ class SpriteType:
 # Damage multiplier for units initiating combat
 FIRST_STRIKE_BOOST = 1.2
 # Damage multiplier for ineffective attacks
-POOR_EFFECT_MOD = 4/5
+POOR_EFFECT_MOD = 3/4
 # Damage multiplier for effective attacks
-STRONG_EFFECT_MOD = 5/4
+STRONG_EFFECT_MOD = 4/3
 
 # Enums for attack damage types
 class DamageType(IntEnum):

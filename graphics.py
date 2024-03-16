@@ -1,4 +1,4 @@
-from tkinter import Tk, BOTH, Canvas, PhotoImage
+from tkinter import Tk, BOTH, Canvas
 from PIL import ImageTk, Image
 from constants import *
 

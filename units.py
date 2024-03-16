@@ -1,6 +1,5 @@
-from enum import IntEnum
 from math import ceil
-from gameBoard import Space, BOARD_ROWS, BOARD_COLS
+from gameBoard import Space
 from graphics import SpriteType
 from random import randint
 from names import Names, Titles
@@ -229,10 +228,10 @@ class Unit:
 class Peasant(Unit):
     def __init__(self, p1 = True) -> None:
         unit_type = "Peasant"
-        hp=11
-        dam_val=6
+        hp=12
+        dam_val=5
         dam_type=DamageType.BLUDGEON
-        arm_val=2
+        arm_val=0
         arm_type=ArmourType.PADDED
         move=MoveSpeed.MED
         move_type = MoveType.FOOT
@@ -254,9 +253,9 @@ class Soldier(Unit):
     def __init__(self, p1 = True) -> None:
         unit_type = "Soldier"
         hp=16
-        dam_val=8
+        dam_val=6
         dam_type=DamageType.PIERCE
-        arm_val=3
+        arm_val=0#1
         arm_type=ArmourType.CHAIN
         move=MoveSpeed.MED
         move_type = MoveType.FOOT
@@ -291,9 +290,9 @@ class Archer(Unit):
     def __init__(self, p1 = True) -> None:
         unit_type = "Archer"
         hp=15
-        dam_val=6
+        dam_val=4
         dam_type=DamageType.PIERCE
-        arm_val=2
+        arm_val=0
         arm_type=ArmourType.PADDED
         move=MoveSpeed.MED
         move_type = MoveType.FOOT
@@ -328,10 +327,10 @@ class Archer(Unit):
 class Cavalry(Unit):
     def __init__(self, p1 = True) -> None:
         unit_type = "Cavalry"
-        hp=20
-        dam_val=9
+        hp=18
+        dam_val=7
         dam_type=DamageType.SLASH
-        arm_val=4
+        arm_val=0#1
         arm_type=ArmourType.PLATE
         move=MoveSpeed.FAST
         move_type = MoveType.HORSE
@@ -353,10 +352,11 @@ class Cavalry(Unit):
         valid_spaces = set()
         if space != None: # If this space doesn't exist, return
             target = space.get_unit()
-            if target != None: # If there is a unit here
-                if target.get_player() != self.get_player(): # And this unit is an enemy
-                    if isinstance(target, Soldier): # And that enemy is a Soldier Class
-                        return valid_spaces # Do not proceed
+            if target_dict != TARGET_ENEMIES: # If this is not an attack
+                if target != None: # If there is a unit here
+                    if target.get_player() != self.get_player(): # And this unit is an enemy
+                        if isinstance(target, Soldier): # And that enemy is a Soldier Class
+                            return valid_spaces # Do not proceed
             valid_spaces = valid_spaces.union(self.find_target_spaces(space, range-1, target_dict, pass_dict))
         return valid_spaces
     
@@ -364,9 +364,9 @@ class Sorcerer(Unit):
     def __init__(self, p1 = True) -> None:
         unit_type = "Sorcerer"
         hp=14
-        dam_val=6
+        dam_val=4
         dam_type=DamageType.PIERCE
-        arm_val=1
+        arm_val=0
         arm_type=ArmourType.ROBES
         move=MoveSpeed.MED
         move_type = MoveType.FOOT
@@ -423,9 +423,9 @@ class Healer(Unit):
     def __init__(self, p1 = True) -> None:
         unit_type = "Healer"
         hp=15
-        dam_val=8
+        dam_val=6
         dam_type=DamageType.BLUDGEON
-        arm_val=3
+        arm_val=0#1
         arm_type=ArmourType.CHAIN
         move=MoveSpeed.MED
         move_type = MoveType.FOOT
@@ -485,9 +485,9 @@ class Archmage(Unit):
     def __init__(self, p1 = True) -> None:
         unit_type = "Archmage"
         hp=22
-        dam_val=7
+        dam_val=5
         dam_type=DamageType.BLUDGEON
-        arm_val=1
+        arm_val=0
         arm_type=ArmourType.ROBES
         move=MoveSpeed.MED
         move_type = MoveType.FLY
@@ -554,9 +554,9 @@ class General(Unit):
     def __init__(self, p1 = True) -> None:
         unit_type = "General"
         hp=24
-        dam_val=10
+        dam_val=8
         dam_type=DamageType.SLASH
-        arm_val=4
+        arm_val=0#2
         arm_type=ArmourType.PLATE
         move=MoveSpeed.SLOW
         move_type = MoveType.FOOT
@@ -604,7 +604,7 @@ def weapon_matchup(weapon, armour):
         elif armour == ArmourType.CHAIN:
             return Effect.NEUTRAL
         elif armour == ArmourType.PLATE:
-            return Effect.STRONG
+            return Effect.NEUTRAL
         
     elif weapon == DamageType.MAGIC:
         if armour == ArmourType.ROBES:
@@ -612,7 +612,7 @@ def weapon_matchup(weapon, armour):
         elif armour == ArmourType.PADDED:
             return Effect.NEUTRAL
         elif armour == ArmourType.CHAIN:
-            return Effect.STRONG
+            return Effect.NEUTRAL
         elif armour == ArmourType.PLATE:
             return Effect.STRONG
         
