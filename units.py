@@ -265,6 +265,20 @@ class Soldier(Unit):
         super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range, ability_value)
         self.set_ability_targets(TARGET_ALLIES)
 
+    def special_ability(self, target, space):
+        unit_name = self.get_name()
+        target_name = target.get_name()
+        attack_log = []
+        current_space = self.get_location()
+        current_space.assign_unit(None)
+        target.move(current_space)
+        space.assign_unit(self)
+        self.move(space)
+        attack_log.append(f"{unit_name} moves to defend {target_name}, taking their place.\n")
+        attack_log.append(f"{unit_name} -> {space.get_row()},{space.get_col()}.\n")
+        attack_log.append(f"{target_name} -> {current_space.get_row()},{current_space.get_col()}.\n")
+        return attack_log
+
 class Archer(Unit):
     def __init__(self, p1 = True) -> None:
         hp=15
