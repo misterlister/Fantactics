@@ -304,7 +304,7 @@ class Archer(Unit):
         title_list = Titles.Archer
         ability_name = "Ranged Attack"
         ability_range = 5
-        ability_value = 7
+        ability_value = 6
         super().__init__(unit_type, hp, dam_val, dam_type, arm_val, arm_type, move, move_type, 
                          sprite, name_list, title_list, ability_name, ability_range, ability_value)
         self.set_ability_targets(TARGET_ENEMIES)
@@ -378,7 +378,7 @@ class Sorcerer(Unit):
         title_list = Titles.Sorcerer
         ability_name = "Sorcerous Assault"    
         ability_range = 4
-        ability_value = 5
+        ability_value = 6
         super().__init__(unit_type, hp, dam_val, dam_type, arm_val, arm_type, move, move_type, 
                          sprite, name_list, title_list, ability_name, ability_range, ability_value)
         self.set_ability_targets(TARGET_ALL)
@@ -409,9 +409,9 @@ class Sorcerer(Unit):
         else:
             target_name = target.get_name()
         attack_log = []
-        first_strike_attack = ceil(self.get_ability_value() * FIRST_STRIKE_BOOST)
+        damage = self.get_ability_value()
         target_hp = target.get_curr_hp()
-        self.attack(target, first_strike_attack, self.__special_damage_type)
+        self.attack(target, damage, self.__special_damage_type)
         damage_dealt = target_hp - target.get_curr_hp()
         attack_log.append(f"{unit_name} blasts {target_name} with arcane energy, dealing {damage_dealt} damage!\n")
         if target.is_dead():
@@ -499,7 +499,7 @@ class Archmage(Unit):
         title_list = Titles.Archmage
         ability_name = "Arcane Vortex"
         ability_range = 3
-        ability_value = 6
+        ability_value = 7
         super().__init__(unit_type, hp, dam_val, dam_type, arm_val, arm_type, move, move_type, 
                          sprite, name_list, title_list, ability_name, ability_range, ability_value)
         self.set_ability_targets(TARGET_ALL)
@@ -540,9 +540,9 @@ class Archmage(Unit):
         else:
             target_name = target.get_name()
         attack_log = []
-        first_strike_attack = ceil(self.get_ability_value() * FIRST_STRIKE_BOOST)
+        damage = self.get_ability_value()
         target_hp = target.get_curr_hp()
-        self.attack(target, first_strike_attack, self.__special_damage_type)
+        self.attack(target, damage, self.__special_damage_type)
         damage_dealt = target_hp - target.get_curr_hp()
         attack_log.append(f"{unit_name} blasts {target_name} with arcane energy, dealing {damage_dealt} damage!\n")
         if target.is_dead():
