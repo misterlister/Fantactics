@@ -268,7 +268,10 @@ class GameBoard:
             self.draw_space(old_space)
             self.draw_space(space)
             if old_space != space:
-                self.ui.logItems['text'].add_text(f"{unit.get_name()} -> {space.get_row()},{space.get_col()}. \n") # Send movement to combat log
+                move_log = f"{unit.get_name()} -> {space.get_row()},{space.get_col()}.\n"
+            else:
+                move_log = f"{unit.get_name()} stayed in place.\n"
+            self.ui.logItems['text'].add_text(move_log) # Send movement to combat log
         except Exception as e:
             print(e)
 
