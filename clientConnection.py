@@ -5,16 +5,26 @@ import threading
 from tkinter import Tk
 from globals import *
 from clientConnection import *
+from messageHandler import *
 
 serverIP = "localhost"
 port = 5000
 playerSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
+playerSocket.settimeout(2)
 def conn_thread():
 
+    if not establishConnection():
+        return
+    
     while True:
-        time.sleep(0.25)
-        print("Connection Thread Active")
+        time.sleep(5)
+        try:
+            send("Ping")
+            serverPacket= playerSocket.recv(MAX_MESSAGE_SIZE)
+            if serverPacket:
+                parseMessage(serverPacket.decode('ascii'))
+        except:
+            pass
         if gameClosedEvent.is_set():
             break
 
@@ -27,22 +37,14 @@ def establishConnection():
     except:
         print("Failed to connect to server.")
         return False
+    print("Connection to server established")
     return True
-
-def update(root):
-    send("PING!")
-    root.after(1000, lambda: update(root))   
-
-
-
+    
 def send(message):
     if len(message) > MAX_MESSAGE_SIZE:
         print("Message from client to server is too long")
     else:
         packet = message.encode("ascii")
-        print("Message: ", message)
-        print("Length of Message: ",len(message))
-        print("Size of packet: ",len(packet))
         playerSocket.sendall(packet)
 
 def checkConn():
