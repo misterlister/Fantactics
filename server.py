@@ -1,9 +1,8 @@
 import socket
 import selectors
-
+from constants import *
 IP = 'localhost'
 PORT = 5000  
-MAX_MESSAGE_SIZE = 256
 p1Active = False
 p2Active = False
 sel = selectors.DefaultSelector()

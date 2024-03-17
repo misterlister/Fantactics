@@ -7,21 +7,20 @@ from constants import *
 import time
 from clientConnection import *
 from globals import *
+from tkWrapper import myTk
 
 if __name__ == "__main__":
 
-    threadConn.start()
-    #root = Tk()
+    conn = clientConnection("localhost", 5000)
+    root = myTk()
     window = Window(WINDOW_WIDTH, WINDOW_HEIGHT, root)
     userInterface = UserInterface(root)
     board = GameBoard(window, root, userInterface)
     player1 = Player()
     player2 = Player()
     gameState = GameState(player1, player2, board, userInterface)
-    
-    root.after(200,checkConn)
     root.mainloop()
-    lock.acquire()
-    gameClosedEvent.set()
-    lock.release()
-    threadConn.join
+    
+    conn.setConnClosed()
+
+    conn.joinThread()

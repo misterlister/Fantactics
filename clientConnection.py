@@ -7,49 +7,77 @@ from globals import *
 from clientConnection import *
 from messageHandler import *
 
-serverIP = "localhost"
-port = 5000
-playerSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-playerSocket.settimeout(2)
-def conn_thread():
+class clientConnection():
 
-    if not establishConnection():
-        return
-    
-    while True:
-        time.sleep(5)
+    def __init__(self, ip: str, port, timeout:int = 2):
+
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        
         try:
-            send("Ping")
-            serverPacket= playerSocket.recv(MAX_MESSAGE_SIZE)
-            if serverPacket:
-                parseMessage(serverPacket.decode('ascii'))
+            self.socket.connect((ip, port))
+            self.socket.settimeout(timeout)
         except:
-            pass
-        if gameClosedEvent.is_set():
-            break
+            print("Could not connect!")
+            self.setConnClosed()
+            return
 
-threadConn = threading.Thread(target=conn_thread)
-threadConn.setDaemon = True
+        self.setConnOpen()
+        print("Connected to server.")
 
-def establishConnection():
-    try:
-        playerSocket.connect((serverIP, port))
-    except:
-        print("Failed to connect to server.")
-        return False
-    print("Connection to server established")
-    return True
+        self.__thread = threading.Thread(target=self.__threadFunction, args=())
+        self.__thread.daemon = True
+        self.__thread.start()
+
+    def __del__(self):
+        self.__thread.join()
+        self.setConnClosed()
+        self.socket.shutdown(socket.SHUT_RDWR)
+        self.socket.close()
     
-def send(message):
-    if len(message) > MAX_MESSAGE_SIZE:
-        print("Message from client to server is too long")
-    else:
-        packet = message.encode("ascii")
-        playerSocket.sendall(packet)
+    def __threadFunction(self) -> None:
 
-def checkConn():
-    if threadConn.is_alive() and not connClosedEvent.is_set():
-        root.after(1000, checkConn)
-    else:
-        print("Connection closed. Exiting Program")
-        root.destroy()
+        while not gameClosedEvent.is_set() or not connClosedEvent.is_set():
+            
+            try:
+                serverPacket= self.socket.recv(MAX_MESSAGE_SIZE)
+        
+                if serverPacket:
+                    parseMessage(serverPacket.decode('ascii'))
+
+                else:
+                    break
+            
+            except:
+                print("No message received")
+
+        self.__del__(self)
+ 
+    def send(self, message:str) -> bool:
+        print("SEND FN")
+        if len(message) > MAX_MESSAGE_SIZE:
+            print("Message from client to server is too long")
+            return False
+        
+        else:
+            packet = message.encode("ascii")
+
+            try:
+                self.socket.sendall(packet)
+            
+            except:
+                print("\nCould not send msg to server.\n")
+                self.setConnClosed()
+                return False
+    
+    def joinThread(self) -> None:
+        self.__thread.join()
+
+    def setConnClosed(self):
+        lock.acquire()
+        connClosedEvent.set()
+        lock.release()
+
+    def setConnOpen(self):
+        lock.acquire()
+        connClosedEvent.clear()
+        lock.release()
