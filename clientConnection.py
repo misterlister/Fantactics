@@ -4,38 +4,20 @@ import time
 import threading
 from tkinter import Tk
 from globals import *
-from clientConnection import *
-from messageHandler import *
+from errors import *
 
-class clientConnection():
+this_file = "clientConnection.py"
 
-    def __init__(self, ip: str, port, timeout:int = 2):
+class receiver():
 
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    def __init__(self, sock):
         
-        try:
-            self.socket.connect((ip, port))
-            self.socket.settimeout(timeout)
-        except:
-            print("Could not connect!")
-            self.setConnClosed()
-            return
-
-        self.setConnOpen()
-        print("Connected to server.")
-
+        self.socket = sock
         self.__thread = threading.Thread(target=self.__threadFunction, args=())
         self.__thread.daemon = True
         self.__thread.start()
 
-    def __del__(self):
-        self.__thread.join()
-        self.setConnClosed()
-        self.socket.shutdown(socket.SHUT_RDWR)
-        self.socket.close()
-    
     def __threadFunction(self) -> None:
-
         while not gameClosedEvent.is_set() or not connClosedEvent.is_set():
             
             try:
@@ -50,34 +32,52 @@ class clientConnection():
             except:
                 print("No message received")
 
-        self.__del__(self)
- 
-    def send(self, message:str) -> bool:
-        print("SEND FN")
-        if len(message) > MAX_MESSAGE_SIZE:
-            print("Message from client to server is too long")
-            return False
-        
-        else:
-            packet = message.encode("ascii")
+        setConnClosed()
+        self.socket.shutdown(socket.SHUT_RDWR)
+        self.socket.close()
 
-            try:
-                self.socket.sendall(packet)
-            
-            except:
-                print("\nCould not send msg to server.\n")
-                self.setConnClosed()
-                return False
+def send(self, message:str) -> bool:
+    if len(message) > MAX_MESSAGE_SIZE:
+        errorMessage(this_file, "Message to server is too long.")
+        return False
     
-    def joinThread(self) -> None:
-        self.__thread.join()
+    else:
+        packet = message.encode("ascii")
 
-    def setConnClosed(self):
-        lock.acquire()
-        connClosedEvent.set()
-        lock.release()
+        try:
+            self.socket.sendall(packet)
+        
+        except:
+            errorMessage(this_file, "Could not send msg to server.")
+            setConnClosed()
+            return False
 
-    def setConnOpen(self):
-        lock.acquire()
-        connClosedEvent.clear()
-        lock.release()
+def parseMessage (message: str) -> bool:
+    print("Server Message: ",message)
+    return True
+
+def establishConn(ip, port, timeout) -> tuple[bool, socket.socket]:
+    
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        sock.connect((ip, port))
+        sock.settimeout(timeout)
+
+    except:
+        errorMessage(this_file, "Could not establish connection.")
+        setConnClosed()
+        return False, None
+
+    setConnOpen()
+    print("Connected to server.")
+    return True, sock
+
+def setConnClosed():
+    lock.acquire()
+    connClosedEvent.set()
+    lock.release()
+
+def setConnOpen():
+    lock.acquire()
+    connClosedEvent.clear()
+    lock.release()

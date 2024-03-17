@@ -1,6 +1,9 @@
 import socket
 import selectors
 from constants import *
+import random
+from serverConnection import *
+
 IP = 'localhost'
 PORT = 5000  
 p1Active = False
@@ -22,14 +25,11 @@ def receive(conn, mask):
         sel.unregister(conn)
         conn.close()
 
-def write():
-    print("Hello World")
-
 if __name__ == "__main__":
 
     listenSocket = socket.socket()
     listenSocket.bind((IP,PORT))
-    listenSocket.listen(100)
+    listenSocket.listen()
 
     print("Server listenining at hostname: ", IP, ", port: ", PORT)    
     p1Conn, p1Addr = listenSocket.accept()
@@ -37,12 +37,13 @@ if __name__ == "__main__":
     sel.register(p1Conn, selectors.EVENT_READ, receive)
     p1Active = True
 
-    print("Player 1 Accepted. waiting on player 2")
+    print("Welcome to Fantactics. Please wait for your opponent")
     p2Conn, p2Addr = listenSocket.accept()
     p2ID = p2Conn.fileno()
     sel.register(p2Conn, selectors.EVENT_READ, receive)
-    print("Player 2 Accepted.")
+    print("Welcome to Fantactics.")
     p2Active = True
+    listenSocket.close() 
 
     while p1Active or p2Active:
         events = sel.select()

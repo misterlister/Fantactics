@@ -8,10 +8,18 @@ import time
 from clientConnection import *
 from globals import *
 from tkWrapper import myTk
+from errors import *
+
+this_file = "main.py"
+
 
 if __name__ == "__main__":
 
-    conn = clientConnection("localhost", 5000)
+    connResult, conn = establishConn("localhost", 5000, 2)
+    if not connResult:
+        errorMessage(this_file, "Could not establish connection")
+        exit()
+    recv = receiver(conn)
     root = myTk()
     window = Window(WINDOW_WIDTH, WINDOW_HEIGHT, root)
     userInterface = UserInterface(root)
@@ -20,7 +28,6 @@ if __name__ == "__main__":
     player2 = Player()
     gameState = GameState(player1, player2, board, userInterface)
     root.mainloop()
-    
-    conn.setConnClosed()
-
-    conn.joinThread()
+    lock.acquire()
+    gameClosedEvent.set()
+    lock.release()
