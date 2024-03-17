@@ -105,6 +105,7 @@ class StatsPanel(Panel):
 
         self.labels['name'].place(x=0, y=0)
 
+    # Clear all data from stat display
     def clear(self) -> None:
         self.update_name()
         self.update_class()
@@ -114,6 +115,7 @@ class StatsPanel(Panel):
         self.update_movement()   
         self.update_image(self.empty)
 
+    # Update classes to be called during selection of a unit
     def update_name(self, new: str = '') -> None:
         self.labels['name'].config(text= f"Name: {new}")
         

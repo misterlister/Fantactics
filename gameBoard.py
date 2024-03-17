@@ -1,5 +1,5 @@
 from graphics import Window, Point
-from tkinter import Tk
+from tkinter import Tk, Label
 from PIL import ImageTk, Image
 from userInterface import UserInterface, do_nothing
 from constants import *
@@ -24,6 +24,8 @@ class GameBoard:
         self.y_end = y_start + (BOARD_ROWS * square_size)
         self.square_size = square_size
         self.__spaces = [[Space(i, j) for j in range(BOARD_COLS)] for i in range(BOARD_ROWS)]
+        self.rowLabel = []
+        self.colLabel = []
         self.connect_spaces(self.__spaces)
         self.draw_board()
         self.window.canvas.bind('<Button-1>', self.click)
@@ -36,19 +38,28 @@ class GameBoard:
         self.__ability_spaces = None
         self.__transparent_square = self.set_transparency()
         self.__game_state = None
-    
+        
     def draw_board(self) -> None:
         for i in range (BOARD_ROWS + 1):
             y_position = self.get_row_y(i)
+            self.rowLabel.append(Label(self.root, text=i, anchor='center', bg=BG_COL, font=(FONT, DEFAULT_FONT_SIZE)))
+            self.rowLabel[i].place(x=330, y=(i * DEFAULT_SQUARE_SIZE) + 60)
             p1 = Point(self.x_start, y_position)
             p2 = Point(self.x_end, y_position)
             self.window.draw_line(p1, p2)
 
-        for j in range (BOARD_COLS + 1):
+        for j in range(BOARD_COLS + 1):
+            
             x_position = self.get_col_x(j)
+            self.colLabel.append(Label(self.root, text=j, anchor='center', bg=BG_COL, font=(FONT, DEFAULT_FONT_SIZE)))
+            self.colLabel[j].place(x=(j * DEFAULT_SQUARE_SIZE) + 380, y=614)
             p1 = Point(x_position, self.y_start)
             p2 = Point(x_position, self.y_end)
             self.window.draw_line(p1, p2)
+
+        # Destroy excess labels, not most elegant solution but least code
+        self.rowLabel[i].destroy()
+        self.colLabel[j].destroy()
 
     def link_to_state(self, state):
         self.__game_state = state
