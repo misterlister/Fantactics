@@ -4,7 +4,6 @@ IP = 'localhost'
 PORT = 5000  
 MAX_MESSAGE_SIZE = 256
 
-
 if __name__ == "__main__":
 
     listenSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
