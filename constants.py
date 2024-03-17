@@ -42,6 +42,10 @@ BOARD_HEIGHT = DEFAULT_SQUARE_SIZE * BOARD_ROWS
 DEFAULT_X_POS = ((WINDOW_WIDTH - BOARD_WIDTH) // 2)
 DEFAULT_Y_POS = ((WINDOW_HEIGHT - BOARD_HEIGHT) // 4)
 
+# Maximum length of message and size of message buffer
+MAX_MESSAGE_SIZE = 256
+
+
 # Identifiers for unit sprites
 class SpriteType:
     ARCHER1 = "Archer1"
