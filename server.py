@@ -1,7 +1,6 @@
 import socket
 import selectors
 from constants import *
-import random
 from serverConnection import *
 
 IP = 'localhost'
@@ -25,18 +24,7 @@ def receive(conn, mask):
         sel.unregister(conn)
         conn.close()
 
-def assignPlayers() -> tuple[Player,Player]:
-    randomNumber = random.randint(1,100)
-    
-    if randomNumber%2 == 0:
-        bluePlayer = Player(p1Conn, "blue")
-        redPlayer = Player(p2Conn, "red")
-    
-    else:
-        bluePlayer = Player(p2Conn, "blue")
-        redPlayer = Player(p1Conn, "red")
-    
-    return bluePlayer, redPlayer
+
 
 if __name__ == "__main__":
 
@@ -58,10 +46,11 @@ if __name__ == "__main__":
     p2Active = True
     print("Welcome to Fantactics.")
 
-    bluePlayer, redPlayer = assignPlayers()
-
-    setTurn("blue", bluePlayer.getConn(), redPlayer.getConn())
-
+    bluePlayer, redPlayer = assignColours(p1Conn, p2Conn)
+    
+    #if not (bluePlayer.startTurn() or redPlayer.startTurn()):
+        #errorMessage(this_file,"Could not assign colours to players.")
+    bluePlayer.startTurn()
     listenSocket.close() 
 
     while p1Active or p2Active:
