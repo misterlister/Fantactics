@@ -4,6 +4,6 @@ import threading
 lock = threading.Lock()
 gameClosedEvent = threading.Event()
 connClosedEvent = threading.Event()
-
-myTurn = False
+myTurn = threading.Event()
+myTurn.clear()
 

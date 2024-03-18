@@ -25,6 +25,19 @@ def receive(conn, mask):
         sel.unregister(conn)
         conn.close()
 
+def assignPlayers() -> tuple[Player,Player]:
+    randomNumber = random.randint(1,100)
+    
+    if randomNumber%2 == 0:
+        bluePlayer = Player(p1Conn, "blue")
+        redPlayer = Player(p2Conn, "red")
+    
+    else:
+        bluePlayer = Player(p2Conn, "blue")
+        redPlayer = Player(p1Conn, "red")
+    
+    return bluePlayer, redPlayer
+
 if __name__ == "__main__":
 
     listenSocket = socket.socket()
@@ -33,6 +46,7 @@ if __name__ == "__main__":
 
     print("Server listenining at hostname: ", IP, ", port: ", PORT)    
     p1Conn, p1Addr = listenSocket.accept()
+    print("P1Conn type: ", type(p1Conn))
     p1ID = p1Conn.fileno()
     sel.register(p1Conn, selectors.EVENT_READ, receive)
     p1Active = True
@@ -41,8 +55,13 @@ if __name__ == "__main__":
     p2Conn, p2Addr = listenSocket.accept()
     p2ID = p2Conn.fileno()
     sel.register(p2Conn, selectors.EVENT_READ, receive)
-    print("Welcome to Fantactics.")
     p2Active = True
+    print("Welcome to Fantactics.")
+
+    bluePlayer, redPlayer = assignPlayers()
+
+    setTurn("blue", bluePlayer.getConn(), redPlayer.getConn())
+
     listenSocket.close() 
 
     while p1Active or p2Active:

@@ -35,7 +35,8 @@ class receiver():
         setConnClosed()
         self.socket.shutdown(socket.SHUT_RDWR)
         self.socket.close()
-
+# End of receiver class.
+        
 def send(self, message:str) -> bool:
     if len(message) > MAX_MESSAGE_SIZE:
         errorMessage(this_file, "Message to server is too long.")
@@ -54,6 +55,13 @@ def send(self, message:str) -> bool:
 
 def parseMessage (message: str) -> bool:
     print("Server Message: ",message)
+    
+    if message == "[Turn:YOU]":
+        setMyTurn()
+
+    if message == "[Turn:OPP]":
+        setOppTurn()
+
     return True
 
 def establishConn(ip, port, timeout) -> tuple[bool, socket.socket]:
@@ -80,4 +88,14 @@ def setConnClosed():
 def setConnOpen():
     lock.acquire()
     connClosedEvent.clear()
+    lock.release()
+
+def setMyTurn():
+    lock.acquire()
+    myTurn.set()
+    lock.release()
+
+def setOppTurn():
+    lock.acquire()
+    myTurn.clear()
     lock.release()

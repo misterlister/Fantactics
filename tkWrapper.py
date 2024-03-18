@@ -1,7 +1,7 @@
 from tkinter import Tk
 from clientConnection import *
 import time
-
+from globals import *
 class myTk(Tk):
     
     def __init__(self):
@@ -10,8 +10,10 @@ class myTk(Tk):
         self.after(250,self.__checkConn)
 
     def __checkConn(self):
+
         if  not connClosedEvent.is_set():
-            self.after(250, self.__checkConn)
+            print("Is it my turn? ", myTurn.is_set())
+            self.after(500, self.__checkConn)
         else:
             self.__onConnectionClose()
 
