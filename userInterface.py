@@ -12,17 +12,19 @@ class UserInterface():
 
         # Create Stats Panel (left side panel)
         self.stats = Panel(root)
-        self.statsPanel = { # Stats panel is divided into 3 seperate subPanels
+        self.statsPanel = { # Stats panel is divided into 3 seperate sub panels
             'friendlyUnitPanel' : StatsPanel(self.stats.getFrame(), height=PANEL_HEIGHT / 3, bgColour='#754239'),
             'enemyUnitPanel' : StatsPanel(self.stats.getFrame(), yPos=PANEL_HEIGHT / 3, height=PANEL_HEIGHT / 3, bgColour='#57312a'),
             'terrainPanel' : Panel(self.stats.getFrame(), yPos=(PANEL_HEIGHT / 3) * 2, height=PANEL_HEIGHT / 3, colour='black')
         }
         
-        ### Create Log Panel (right side panel)
+        ### Create Log Panel (right side panel), multiple panels as for future additions
         self.log = Panel(root, WINDOW_WIDTH-PANEL_WIDTH, 0)
         self.logItems = {
             'text' : CombatLog(self.log.getFrame(), yPos= 50, height=PANEL_HEIGHT - CONTROL_PANEL_HEIGHT - 50)
         }
+
+        self.info = InfoPanel(root, PANEL_WIDTH, 0, width=WINDOW_WIDTH - (2 * PANEL_WIDTH), height=25, colour=BG_COL)
 
         self.controlBar = ControlBar(root, PANEL_WIDTH, PANEL_HEIGHT - CONTROL_PANEL_HEIGHT, width=WINDOW_WIDTH - (2 * PANEL_WIDTH), height=CONTROL_PANEL_HEIGHT)
         self.__game_state = None
@@ -39,7 +41,7 @@ class Panel():
             yPos: int = 0, 
             width: int = PANEL_WIDTH,
             height: int = PANEL_HEIGHT,
-            colour: str = BGCOLOUR,
+            colour: str = UI_BG_COLOUR,
             bd: int = 0,
             relief: str = 'solid'
             ) -> None:
@@ -63,7 +65,7 @@ class StatsPanel(Panel):
             yPos: int = 0, 
             width: int = PANEL_WIDTH, 
             height: int = PANEL_HEIGHT, 
-            bgColour: str = BGCOLOUR,
+            bgColour: str = UI_BG_COLOUR,
             bd: int = 0,
             relief: str = 'solid',
             textColour: str = 'white',
@@ -116,22 +118,22 @@ class StatsPanel(Panel):
         self.update_image(self.empty)
 
     # Update classes to be called during selection of a unit
-    def update_name(self, new: str = '') -> None:
+    def update_name(self, new: str = ' ') -> None:
         self.labels['name'].config(text= f"Name: {new}")
         
-    def update_class(self, new: str = '') -> None:
+    def update_class(self, new: str = ' ') -> None:
         self.labels['class'].config(text= f"Class: {new}")
 
-    def update_health(self, new: str = '', max: int = None) -> None:
+    def update_health(self, new: str = ' ', max: int = None) -> None:
         self.labels['health'].config(text= f" {new} / {max}")
 
-    def update_damage(self, new: str = '', type: int = None) -> None:
+    def update_damage(self, new: str = ' ', type: int = None) -> None:
         self.labels['damage'].config(text= f" {new} {type}")
     
-    def update_armour(self, new: str = '', type: int = None) -> None:
+    def update_armour(self, new: str = ' ', type: int = None) -> None:
         self.labels['armour'].config(text= f"Armour: {new} {type}")
 
-    def update_movement(self, new: str = '', type: int = None) -> None:
+    def update_movement(self, new: str = ' ', type: int = None) -> None:
         self.labels['movement'].config(text= f"Movement: {new} {type}")
     
     def update_image(self, image: ImageTk) -> None:
@@ -148,7 +150,7 @@ class ControlBar(Panel):
             yPos: int = 0, 
             width: int = PANEL_WIDTH, 
             height: int = PANEL_HEIGHT, 
-            colour: str = BGCOLOUR,
+            colour: str = UI_BG_COLOUR,
             bd: int = 0,
             relief: str = 'solid'
             ) -> None:
@@ -179,6 +181,29 @@ class ControlBar(Panel):
                 print(e)
             index += 1
                    
+class InfoPanel(Panel):
+    def __init__(
+            self, 
+            root: Tk, 
+            xPos: int = 0, 
+            yPos: int = 0, 
+            width: int = PANEL_WIDTH,
+            height: int = PANEL_HEIGHT,
+            colour: str = UI_BG_COLOUR,
+            bd: int = 0,
+            relief: str = 'solid'
+            ) -> None:
+        super().__init__(root, xPos, yPos, width, height, colour, bd, relief)
+
+        self.label = Label(self.frame, text='Hello world', justify='center', bg=colour, fg='black', font=(FONT, DEFAULT_FONT_SIZE))
+        self.label.place(x=width/2, y=0, anchor='n')
+    
+    def update(self, new: str):
+        self.label.config(text=new)
+
+    def clear(self):
+        self.label.config(text='')
+
 # Base class for buttons with a sprite
 class CanvasButton():
     def __init__(
@@ -194,7 +219,7 @@ class CanvasButton():
             toggleable: bool = False
             ) -> None:
         
-        self.button = Canvas(frame, bg=BGCOLOUR, bd=0, highlightthickness=0, cursor='hand2') # Create the button object
+        self.button = Canvas(frame, bg=UI_BG_COLOUR, bd=0, highlightthickness=0, cursor='hand2') # Create the button object
         self.button.pack_propagate(0) # Prevent the Canvas from shrinking
         self.button.pack(expand=1, fill=None)
         self.button.place(x=xPos, y=yPos)
@@ -280,7 +305,7 @@ class CombatLog():
             yPos: int = 0,
             width: int = PANEL_WIDTH,
             height: int = PANEL_HEIGHT,
-            colour: str = BGCOLOUR
+            colour: str = UI_BG_COLOUR
             ) -> None:
         
         #self.bar = Scrollbar(root, orient='vertical')
@@ -293,7 +318,7 @@ class CombatLog():
         self.text.insert('end', 'meow')
         self.__game_state = None
         self.lastTurn = 0
-        self.label = Label(root, text='', bg=BGCOLOUR, fg='white', font=(FONT, DEFAULT_FONT_SIZE))
+        self.label = Label(root, text='', bg=UI_BG_COLOUR, fg='white', font=(FONT, DEFAULT_FONT_SIZE))
         self.label.place(x=0, y=0)
 
     def update_label(self) -> None:
