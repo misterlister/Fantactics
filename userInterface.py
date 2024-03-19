@@ -105,7 +105,7 @@ class StatsPanel(Panel):
         for item in self.labels:
             self.labels[item].config(bg=bgColour, fg=textColour, font=(FONT, DEFAULT_FONT_SIZE))
             self.labels[item].place(x=STATS_IMAGE_SIZE + (2 * BORDER_WIDTH) + 1, y=index)
-            index += 34
+            index += 35
 
         self.labels['name'].place(x=0, y=0)
 
