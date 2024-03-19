@@ -85,25 +85,27 @@ class StatsPanel(Panel):
 
         # Icons to be displayed alongside labels
         self.icons = {
+            'class' : ImageTk.PhotoImage(Image.open('Assets/Icons/class.png')),
             'health' : ImageTk.PhotoImage(Image.open('Assets/Icons/health.png')),
-            'damage' : ImageTk.PhotoImage(Image.open('Assets/Icons/damage.png'))
+            'damage' : ImageTk.PhotoImage(Image.open('Assets/Icons/damage.png')),
+            'armour' : ImageTk.PhotoImage(Image.open('Assets/Icons/armour.png')),
+            'movement' : ImageTk.PhotoImage(Image.open('Assets/Icons/movement.png')),
         }
         # Label fields for stats to be displayed
         self.labels = {
             'name' : Label(self.frame, text='Name:'),
-            'class' : Label(self.frame, text='Class:'),
-            'health' : Label(self.frame, text='', image=self.icons['health'], compound='left'),
-            'damage' : Label(self.frame, text='', image= self.icons['damage'], compound='left'),
-            'armour' : Label(self.frame, text='Armour:'),
-            'movement' : Label(self.frame, text='Movement:')
+            'class' : Label(self.frame, text=' ', image=self.icons['class'], compound='left'),
+            'health' : Label(self.frame, text='   ', image=self.icons['health'], compound='left'),
+            'damage' : Label(self.frame, text=' ', image=self.icons['damage'], compound='left'),
+            'armour' : Label(self.frame, text=' ', image=self.icons['armour'], compound='left'),
+            'movement' : Label(self.frame, text=' ', image=self.icons['movement'], compound='left')
         }
         
-        index = 0
+        index = -12
         for item in self.labels:
             self.labels[item].config(bg=bgColour, fg=textColour, font=(FONT, DEFAULT_FONT_SIZE))
-            #self.labels[item].pack()
             self.labels[item].place(x=STATS_IMAGE_SIZE + (2 * BORDER_WIDTH) + 1, y=index)
-            index += 30
+            index += 34
 
         self.labels['name'].place(x=0, y=0)
 
@@ -122,19 +124,19 @@ class StatsPanel(Panel):
         self.labels['name'].config(text= f"Name: {new}")
         
     def update_class(self, new: str = ' ') -> None:
-        self.labels['class'].config(text= f"Class: {new}")
+        self.labels['class'].config(text= f" {new}")
 
-    def update_health(self, new: str = ' ', max: int = None) -> None:
+    def update_health(self, new: str = '  ', max: str = '') -> None:
         self.labels['health'].config(text= f" {new} / {max}")
 
-    def update_damage(self, new: str = ' ', type: int = None) -> None:
+    def update_damage(self, new: str = ' ', type: str = '') -> None:
         self.labels['damage'].config(text= f" {new} {type}")
     
-    def update_armour(self, new: str = ' ', type: int = None) -> None:
-        self.labels['armour'].config(text= f"Armour: {new} {type}")
+    def update_armour(self, new: str = ' ', type: str = '') -> None:
+        self.labels['armour'].config(text= f" {new} {type}")
 
-    def update_movement(self, new: str = ' ', type: int = None) -> None:
-        self.labels['movement'].config(text= f"Movement: {new} {type}")
+    def update_movement(self, new: str = ' ', type: str = '') -> None:
+        self.labels['movement'].config(text= f" {new} {type}")
     
     def update_image(self, image: ImageTk) -> None:
         #image = image.resize((2 * image.width(), 2 * image.height()))

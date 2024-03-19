@@ -51,7 +51,7 @@ class GameBoard:
         for j in range(BOARD_COLS + 1):
             
             x_position = self.get_col_x(j)
-            self.colLabel.append(Label(self.root, text=j, anchor='center', bg=BG_COL, font=(FONT, DEFAULT_FONT_SIZE)))
+            self.colLabel.append(Label(self.root, text=chr(65 + j), anchor='center', bg=BG_COL, font=(FONT, DEFAULT_FONT_SIZE)))
             self.colLabel[j].place(x=(j * DEFAULT_SQUARE_SIZE) + 380, y=614)
             p1 = Point(x_position, self.y_start)
             p2 = Point(x_position, self.y_end)
