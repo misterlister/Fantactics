@@ -62,7 +62,7 @@ class GameState:
             self.setup_row(6, 7, p1_units_r2, True) 
             self.player1.assign_units(p1_units_r1+p1_units_r2)
             self.player1.join_game(self)
-            self.board.draw_sprites()
+            self.board.draw_all_spaces()
 
             self.board.link_to_state(self)
             self.ui.link_to_state(self)

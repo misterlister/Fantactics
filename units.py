@@ -42,7 +42,7 @@ class Unit:
         self.__dead = False
         self.__player = None
         self.__ability_targets = TARGET_NONE
-        self.__ability_area_of_effect = []
+        self._ability_area_of_effect = []
         
     def get_unit_type(self):
         return self.__unit_type
@@ -228,14 +228,22 @@ class Unit:
     def get_area_of_effect(self, space):
         space_list = []
         space_list.append(space)
-        if Direction.UP in self.__ability_area_of_effect:
-            space_list.append(space.get_up())
-        if Direction.LEFT in self.__ability_area_of_effect:
-            space_list.append(space.get_left())
-        if Direction.RIGHT in self.__ability_area_of_effect:
-            space_list.append(space.get_right())
-        if Direction.DOWN in self.__ability_area_of_effect:
-            space_list.append(space.get_down())
+        if Direction.UP in self._ability_area_of_effect:
+            up_space = space.get_up()
+            if up_space != None:
+                space_list.append(up_space)
+        if Direction.LEFT in self._ability_area_of_effect:
+            left_space = space.get_left()
+            if left_space != None:
+                space_list.append(left_space)
+        if Direction.RIGHT in self._ability_area_of_effect:
+            right_space = space.get_right()
+            if right_space != None:
+                space_list.append(right_space)
+        if Direction.DOWN in self._ability_area_of_effect:
+            down_space = space.get_down()
+            if down_space != None:
+                space_list.append(down_space)
         return space_list
         
 
@@ -397,7 +405,7 @@ class Sorcerer(Unit):
                          sprite, name_list, title_list, ability_name, ability_range, ability_value)
         self.set_ability_targets(TARGET_ALL)
         self.__special_damage_type = DamageType.MAGIC
-        self.__ability_area_of_effect = [Direction.LEFT, Direction.RIGHT]
+        self._ability_area_of_effect.extend([Direction.LEFT, Direction.RIGHT])
         
 
     def special_ability(self, target, space):
@@ -456,7 +464,7 @@ class Healer(Unit):
         super().__init__(unit_type, hp, dam_val, dam_type, arm_val, arm_type, move, move_type, 
                          sprite, name_list, title_list, ability_name, ability_range, ability_value)
         self.set_ability_targets(TARGET_SELF)
-        self.__ability_area_of_effect = [Direction.UP, Direction.LEFT, Direction.RIGHT, Direction.DOWN]
+        self._ability_area_of_effect.extend([Direction.UP, Direction.LEFT, Direction.RIGHT, Direction.DOWN])
 
     def special_ability(self, target, space):
         attack_log = []
@@ -520,7 +528,7 @@ class Archmage(Unit):
                          sprite, name_list, title_list, ability_name, ability_range, ability_value)
         self.set_ability_targets(TARGET_ALL)
         self.__special_damage_type = DamageType.MAGIC
-        self.__ability_area_of_effect = [Direction.UP, Direction.LEFT, Direction.RIGHT, Direction.DOWN]
+        self._ability_area_of_effect.extend([Direction.UP, Direction.LEFT, Direction.RIGHT, Direction.DOWN])
 
     def special_ability(self, target, space):
         attack_log = []

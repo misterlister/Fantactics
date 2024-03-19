@@ -31,13 +31,15 @@ class GameBoard:
         self.__transparent_square = self.set_transparency()
         self.window.canvas.bind('<Button-1>', self.click)
         self.window.canvas.bind('<Button-3>', self.right_click)
-        self.selected_space = None
-        self.selected_unit = None
-        self.action_space = None
-        self.__action_confirmed = False
-        self.__valid_moves = None
-        self.__attack_spaces = None
-        self.__ability_spaces = None
+        self.__selected_space = None # Space currently selected
+        self.__selected_unit = None # Unit currently selected
+        self.__action_space = None # Location where selected unit will move to take an action
+        self.__target_space = None # Target space where the selected unit will act on
+        self.__area_of_effect_spaces = [] # Spaces within the area of effect of a targeted action
+        self.__valid_moves = None # Spaces where the selected unit can move to
+        self.__attack_spaces = None # Spaces the selected unit can attack from the selected action space
+        self.__ability_spaces = None # Spaces the selected unit can target with their ability from the selected action space
+        self.__action_confirmed = False # Keeps track of if the current action has been confirmed
         self.__game_state = None
         
     def draw_board(self) -> None:
@@ -73,64 +75,66 @@ class GameBoard:
                 contents = self.check_square(row, col)
                 print(f"Clicked square {row},{col}. Contents: {contents}")
                 new_space = self.__spaces[row][col]
-                if self.selected_unit is None: # No unit is currently selected
+                if self.__selected_unit is None: # No unit is currently selected
                     self.click_no_unit_selected(new_space)
                 else: # A unit is currently selected
-                    self.click_unit_selected(self.selected_unit, new_space)
+                    self.click_unit_selected(self.__selected_unit, new_space)
 
     def click_no_unit_selected(self, space):
-        if self.selected_space is not None: # If another space was already selected
-            if self.selected_space == space: # If a selected space is selected, deselect it
+        if self.__selected_space is not None: # If another space was already selected
+            if self.__selected_space == space: # If a selected space is selected, deselect it
                 self.deselect_space()
                 self.clear_stats_panel()
                 return
             self.deselect_space()
         self.select_space(space)
-        self.update_stats_panel(self.selected_unit)
+        self.update_stats_panel(self.__selected_unit)
         return
 
     def click_unit_selected(self, unit, space):
-        unit = self.selected_unit
+        unit = self.__selected_unit
         if unit.get_player().is_current_turn():
             if self.__attack_spaces != None: # Attack range is active
                 if space in self.__attack_spaces: # A valid target is selected
-                    if self.__action_confirmed:
+                    if space == self.__target_space and self.__action_confirmed:
                         self.attack_action(unit, space)
                     else:
                         self.setup_action(self.attack_action, unit, space, "red")
                     return
-            if self.__ability_spaces != None: # Ability range is active
+            elif self.__ability_spaces != None: # Ability range is active
                 if space in self.__ability_spaces: # A valid target is selected
-                    if self.__action_confirmed:
+                    if space == self.__target_space and self.__action_confirmed:
                         self.ability_action(unit, space)
                     else:
                         self.setup_action(self.ability_action, unit, space, "yellow")
                     return
-            if self.action_space == space: # Movement to a new space is confirmed
+            if self.__action_space == space: # Movement to a new space is confirmed
                 if self.__action_confirmed:
                     self.move_and_wait(unit, space)
                 else:
                     self.setup_action(self.move_and_wait, unit, space, "green")
+                return
             elif space in self.__valid_moves: # A new action space is selected
                 self.set_action_space(unit, space)
                 self.set_attack_spaces(unit, space)
+                return
         else:
             print("You cannot move enemy units")
-            print("Cancelled Action.")
-            self.cancel_action()
+        print("Cancelled Action.")
+        self.cancel_action()
 
     def right_click(self, event):
         self.cancel_action()
 
     def attack_action(self, unit, space):
         self.update_stats_panel(space.get_unit()) 
-        self.move_unit(unit, self.action_space)
+        self.move_unit(unit, self.__action_space)
         self.combat(unit, space.get_unit())
         self.end_turn()
         return
     
     def ability_action(self, unit, space):
-        self.move_unit(unit, self.action_space)
+        self.move_unit(unit, self.__action_space)
         self.update_stats_panel(space.get_unit()) 
         self.activate_ability(unit, space)
         self.end_turn()
@@ -138,10 +142,17 @@ class GameBoard:
 
     def setup_action(self, action, unit, space, colour):
         self.__action_confirmed = True
+        if self.__target_space is not None: # If there was a selected space before, redraw all area of effect spaces
+            for sp in self.__area_of_effect_spaces:
+                self.draw_space(sp)
+        self.__target_space = space
         self.ui.controlBar.buttons['green'].change_unclick_func(lambda: action(unit, space))
-        self.circle_outline_space(space.get_row(), space.get_col(), colour)
-
-
+        if action == self.ability_action: # If this is an ability, highlight the area of effect
+            self.__area_of_effect_spaces = unit.get_area_of_effect(space)
+            for effect_space in self.__area_of_effect_spaces:
+                self.circle_outline_space(effect_space, colour)
+        else: # Otherwise, highlight the target space
+            self.circle_outline_space(space, colour)
                 
     def connect_spaces(self, spaces):
         for i in range(BOARD_ROWS):
@@ -179,14 +190,18 @@ class GameBoard:
         for panel in self.ui.statsPanel:
             self.ui.statsPanel[panel].clear()
 
-    def outline_space(self, row: int, col: int, colour: str) -> None:
+    def outline_space(self, space, colour: str) -> None:
+        row = space.get_row()
+        col = space.get_col()
         x1 = self.get_col_x(col) + LINE_WIDTH
         y1 = self.get_row_y(row) + LINE_WIDTH
         x2 = self.get_col_x(col+1) - LINE_WIDTH
         y2 = self.get_row_y(row+1) - LINE_WIDTH
         self.window.canvas.create_rectangle(x1, y1, x2, y2, width=SELECTION_BUFFER, outline=colour)
 
-    def circle_outline_space(self, row: int, col: int, colour: str) -> None:
+    def circle_outline_space(self, space, colour: str) -> None:
+        row = space.get_row()
+        col = space.get_col()
         x1 = self.get_col_x(col) + LINE_WIDTH * 2
         y1 = self.get_row_y(row) + LINE_WIDTH * 2
         x2 = self.get_col_x(col+1) - LINE_WIDTH * 2
@@ -228,12 +243,21 @@ class GameBoard:
         if unit is not None:
             unit_sprite = unit.get_sprite()
             self.window.draw_sprite(x, y, unit_sprite)
+        if self.__valid_moves != None:
+            if space in self.__valid_moves:
+                self.outline_space(space, 'green')
         if space.is_selected():
-            self.outline_space(row, col, 'blue')
-        if space == self.action_space:
-            self.outline_space(row, col, 'purple')
+            self.outline_space(space, 'blue')
+        if space == self.__action_space:
+            self.outline_space(space, 'purple')
+        if self.__attack_spaces != None:
+            if space in self.__attack_spaces:
+                self.outline_space(space, 'red')
+        if self.__ability_spaces != None:
+            if space in self.__ability_spaces:
+                self.outline_space(space, 'yellow')
 
-    def draw_sprites(self):
+    def draw_all_spaces(self):
         for i in range(BOARD_ROWS):
             for j in range(BOARD_COLS):
                 self.draw_space(self.__spaces[i][j])
@@ -276,15 +300,20 @@ class GameBoard:
     def set_spaces(self, coords, colour):
         valid_spaces = []
         for tuple in coords:
-            self.outline_space(tuple[0], tuple[1], colour)
-            valid_spaces.append(self.__spaces[tuple[0]][tuple[1]])
+            space = self.__spaces[tuple[0]][tuple[1]]
+            self.outline_space(space, colour)
+            valid_spaces.append(space)
         return valid_spaces
+    
+    def draw_space_list(self, spaces: list):
+        for space in spaces:
+            self.draw_space(space)
 
     def select_space(self, space) -> None:
         space.select()
-        self.selected_space = space
+        self.__selected_space = space
         unit = space.get_unit()
-        self.selected_unit = unit
+        self.__selected_unit = unit
         self.draw_space(space)
         if unit is not None:
             self.__valid_moves = self.get_movement_spaces(unit, space)
@@ -292,20 +321,20 @@ class GameBoard:
             self.set_attack_spaces(unit, space)
 
     def deselect_space(self) -> None:
-        space = self.selected_space
+        space = self.__selected_space
         if space is not None:
             space.deselect()
-            self.unset_unit_buttons()
-            self.selected_space = None
-            self.selected_unit = None
-            self.action_space = None
-            self.__action_confirmed = False
-            self.reset_target_spaces()
-            self.draw_space(space)
-            if self.__valid_moves is not None:
-                for sp in self.__valid_moves:
-                    self.draw_space(sp)
-            self.__valid_moves = None
+        self.unset_unit_buttons()
+        self.__selected_space = None
+        self.__selected_unit = None
+        self.__action_space = None
+        self.__target_space = None
+        self.__area_of_effect_spaces = []
+        self.__valid_moves = None
+        self.__attack_spaces = None
+        self.__ability_spaces = None
+        self.__action_confirmed = False
+        self.draw_all_spaces()
 
     def move_unit(self, unit, space):
         old_space = unit.get_location()
@@ -323,8 +352,8 @@ class GameBoard:
             print(e)
 
     def cancel_action(self):
-        self.action_space = None
-        self.draw_sprites()
+        self.__action_space = None
+        self.draw_all_spaces()
         self.deselect_space()
         self.clear_stats_panel()
 
@@ -337,19 +366,18 @@ class GameBoard:
         return y
     
     def set_action_space(self, unit, space):
-        self.__action_confirmed = False
-        if self.action_space is not None: # If a new action space is being selected, overriding another
-            self.draw_space(self.selected_space)
-            if self.action_space == self.selected_unit.get_location(): # If the old space was the current unit's space
-                self.outline_space(self.action_space.get_row(), self.action_space.get_col(), 'blue')
+        if self.__action_space is not None: # If a new action space is being selected, overriding another
+            self.draw_space(self.__selected_space)
+            if self.__action_space == self.__selected_unit.get_location(): # If the old space was the current unit's space
+                self.outline_space(self.__action_space, 'blue')
             else: # Otherwise, this is another space in the current unit's range
-                self.draw_space(self.action_space)
-                self.outline_space(self.action_space.get_row(), self.action_space.get_col(), 'green')
+                self.draw_space(self.__action_space)
+                self.outline_space(self.__action_space, 'green')
         self.reset_target_spaces()
         self.set_unit_buttons(unit, space)
-        self.outline_space(space.get_row(), space.get_col(), 'purple')
+        self.outline_space(space, 'purple')
         self.preview_sprite(unit, space)
-        self.action_space = space
+        self.__action_space = space
 
     def set_attack_spaces(self, unit, space):
         self.reset_target_spaces()
@@ -382,14 +410,24 @@ class GameBoard:
         self.ui.controlBar.buttons['grey'].change_unclick_func(do_nothing)
 
     def reset_target_spaces(self):
-        if self.__ability_spaces is not None:
-            for space in self.__ability_spaces:
-                self.draw_space(space)
+        self.__action_confirmed = False
+        ability_spaces_reset = self.__ability_spaces
         self.__ability_spaces = None
-        if self.__attack_spaces is not None:
-            for space in self.__attack_spaces:
-                self.draw_space(space)
+        if ability_spaces_reset is not None:     
+            self.draw_space_list(ability_spaces_reset)
+        attack_spaces_reset = self.__attack_spaces
         self.__attack_spaces = None
+        if attack_spaces_reset is not None:
+            self.draw_space_list(attack_spaces_reset)
+        area_spaces_reset = self.__area_of_effect_spaces
+        self.__area_of_effect_spaces = []
+        if len(area_spaces_reset) > 0:
+            for sp in area_spaces_reset:
+                self.draw_space(sp)
+
+
+        
+        
 
     def combat(self, unit, target):
         unit_name = unit.get_name()
@@ -412,8 +450,8 @@ class GameBoard:
             if unit.is_dead(): # If the unit died, remove them
                 self.ui.logItems['text'].add_text(f"{unit_name} has been slain by {target_name}!\n")
                 unit_loc.assign_unit(None)
-                self.action_space = None
-                self.draw_sprites()
+                self.__action_space = None
+                self.draw_all_spaces()
                 self.deselect_space()
         
     def preview_sprite(self, unit, space):
@@ -441,7 +479,7 @@ class GameBoard:
         special_log = unit.special_ability(space.get_unit(), space)
         for message in special_log:
             self.ui.logItems['text'].add_text(message)
-        self.draw_sprites()
+        self.draw_all_spaces()
 
     def end_turn(self):
         self.__game_state.next_turn()
