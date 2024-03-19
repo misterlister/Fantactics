@@ -65,6 +65,12 @@ POOR_EFFECT_MOD = 3/4
 # Damage multiplier for effective attacks
 STRONG_EFFECT_MOD = 4/3
 
+class Direction(IntEnum):
+    UP = 1
+    LEFT = 2
+    RIGHT = 3
+    DOWN = 4
+
 # Enums for attack damage types
 class DamageType(IntEnum):
     SLASH = 1
