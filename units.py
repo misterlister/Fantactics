@@ -42,6 +42,7 @@ class Unit:
         self.__dead = False
         self.__player = None
         self.__ability_targets = TARGET_NONE
+        self.__ability_area_of_effect = []
         
     def get_unit_type(self):
         return self.__unit_type
@@ -224,6 +225,19 @@ class Unit:
                 valid_spaces = valid_spaces.union(self.find_target_spaces(space, range-1, target_dict, pass_dict))
         return valid_spaces
     
+    def get_area_of_effect(self, space):
+        space_list = []
+        space_list.append(space)
+        if Direction.UP in self.__ability_area_of_effect:
+            space_list.append(space.get_up())
+        if Direction.LEFT in self.__ability_area_of_effect:
+            space_list.append(space.get_left())
+        if Direction.RIGHT in self.__ability_area_of_effect:
+            space_list.append(space.get_right())
+        if Direction.DOWN in self.__ability_area_of_effect:
+            space_list.append(space.get_down())
+        return space_list
+        
 
 class Peasant(Unit):
     def __init__(self, p1 = True) -> None:
@@ -383,6 +397,7 @@ class Sorcerer(Unit):
                          sprite, name_list, title_list, ability_name, ability_range, ability_value)
         self.set_ability_targets(TARGET_ALL)
         self.__special_damage_type = DamageType.MAGIC
+        self.__ability_area_of_effect = [Direction.LEFT, Direction.RIGHT]
         
 
     def special_ability(self, target, space):
@@ -441,6 +456,7 @@ class Healer(Unit):
         super().__init__(unit_type, hp, dam_val, dam_type, arm_val, arm_type, move, move_type, 
                          sprite, name_list, title_list, ability_name, ability_range, ability_value)
         self.set_ability_targets(TARGET_SELF)
+        self.__ability_area_of_effect = [Direction.UP, Direction.LEFT, Direction.RIGHT, Direction.DOWN]
 
     def special_ability(self, target, space):
         attack_log = []
@@ -504,6 +520,7 @@ class Archmage(Unit):
                          sprite, name_list, title_list, ability_name, ability_range, ability_value)
         self.set_ability_targets(TARGET_ALL)
         self.__special_damage_type = DamageType.MAGIC
+        self.__ability_area_of_effect = [Direction.UP, Direction.LEFT, Direction.RIGHT, Direction.DOWN]
 
     def special_ability(self, target, space):
         attack_log = []
