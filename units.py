@@ -586,9 +586,9 @@ class General(Unit):
         move=MoveSpeed.SLOW
         move_type = MoveType.FOOT
         if p1:
-            sprite = SpriteType.PEASANT1
+            sprite = SpriteType.GENERAL1
         else:
-            sprite = SpriteType.PEASANT2
+            sprite = SpriteType.GENERAL2
         name_list = Names.Noble
         title_list = Titles.General
         ability_name = "Inspirational Rally"
