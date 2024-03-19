@@ -43,6 +43,12 @@ BOARD_HEIGHT = DEFAULT_SQUARE_SIZE * BOARD_ROWS
 DEFAULT_X_POS = ((WINDOW_WIDTH - BOARD_WIDTH) // 2)
 DEFAULT_Y_POS = ((WINDOW_HEIGHT - BOARD_HEIGHT) // 4)
 
+MOVE_COL = "green"
+ATTACK_COL = "red"
+SELECT_COL = "blue"
+ACTION_COL = "purple"
+ABILITY_COL = "yellow"
+
 # Identifiers for unit sprites
 class SpriteType:
     ARCHER1 = "Archer1"
