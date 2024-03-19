@@ -19,14 +19,16 @@ if __name__ == "__main__":
     if not connResult:
         errorMessage(this_file, "Could not establish connection")
         exit()
-    recv = receiver(conn)
+    player = Player()
+    opponent = Player()
     root = myTk()
     window = Window(WINDOW_WIDTH, WINDOW_HEIGHT, root)
     userInterface = UserInterface(root)
     board = GameBoard(window, root, userInterface)
-    player1 = Player()
-    player2 = Player()
-    gameState = GameState(player1, player2, board, userInterface)
+    gameState = GameState(player, opponent, board, userInterface)
+
+    recv = receiver(conn, player, opponent,gameState)
+
     root.mainloop()
     lock.acquire()
     gameClosedEvent.set()

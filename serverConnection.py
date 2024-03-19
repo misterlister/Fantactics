@@ -25,6 +25,8 @@ class Player:
         return self.colour
         
     def sendString(self, message: str) -> bool:
+        
+        message += ' '
         if len(message) > MAX_MESSAGE_SIZE:
             errorMessage(this_file, "Message to server is too long.")
             return False
@@ -36,21 +38,26 @@ class Player:
                     packet = self.outbox.get().encode('ascii')
                 except:
                     errorMessage(this_file, "Could not encode message into packet.")
+                    return False
                 try:
+                    print("Sending: ", packet.decode("ascii"))
                     self.conn.send(packet)
+                    time.sleep(.25)
                 
                 except: 
                     errorMessage("Could not send message to ", self.colour, "player.")
+                    return False
+            return True
                         
     
     def startTurn(self) -> bool:
-        self.sendString("[Turn:YOU]")
+        return self.sendString("[Turn:YOU]")
 
     def stopTurn(self) -> bool:
-        self.sendString("[Turn:OPP]")
+        return self.sendString("[Turn:OPP]")
     
-    def initializeBoard(self):
-        self.sendstring("[Board: INIT]")
+    def initializeBoard(self) -> bool:
+        return self.sendString("[Board:INIT]")
 
 def assignColours(p1Conn: socket, p2Conn: socket) -> tuple[Player,Player]:
     randomNumber = random.randint(1,100)

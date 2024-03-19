@@ -2,6 +2,9 @@ import socket
 import selectors
 from constants import *
 from serverConnection import *
+import time
+
+this_file = "server.py"
 
 IP = 'localhost'
 PORT = 5000  
@@ -48,9 +51,13 @@ if __name__ == "__main__":
 
     bluePlayer, redPlayer = assignColours(p1Conn, p2Conn)
     
-    #if not (bluePlayer.startTurn() or redPlayer.startTurn()):
-        #errorMessage(this_file,"Could not assign colours to players.")
-    bluePlayer.startTurn()
+    if not (redPlayer.stopTurn() and bluePlayer.startTurn()):
+        errorMessage(this_file,"Could not assign initial turns.")
+
+    
+    bluePlayer.initializeBoard()
+    redPlayer.initializeBoard()
+
     listenSocket.close() 
 
     while p1Active or p2Active:

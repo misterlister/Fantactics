@@ -270,6 +270,8 @@ class GameBoard:
             self.draw_space(space)
             if old_space != space:
                 move_log = f"{unit.get_name()} -> {space.get_row()},{space.get_col()}.\n"
+                print("Aasdfasdfsd: MOVE LOG:", move_log)
+
             else:
                 move_log = f"{unit.get_name()} stayed in place.\n"
             self.ui.logItems['text'].add_text(move_log) # Send movement to combat log

@@ -12,7 +12,6 @@ class myTk(Tk):
     def __checkConn(self):
 
         if  not connClosedEvent.is_set():
-            print("Is it my turn? ", myTurn.is_set())
             self.after(500, self.__checkConn)
         else:
             self.__onConnectionClose()
