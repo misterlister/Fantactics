@@ -104,10 +104,6 @@ class GameState:
             unit._place(self.board.get_space(row, col))
             return True
         return False
-    
-    def set_turn(self, player):
-        self.__current_player = player
-        player.start_turn()
 
     def get_turn(self):
         return self.__turn_count
