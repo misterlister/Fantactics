@@ -15,28 +15,37 @@ sel = selectors.DefaultSelector()
 
 def receive(conn, mask):
     data = conn.recv(MAX_MESSAGE_SIZE)
-    
+    sendingPlayer = None
+    otherPlayer = None
     if data:
         if conn.fileno() == p1ID:
-            pass
-            #print("Message from Player 1:")
+            sendingPlayer = bluePlayer
+            otherPlayer = redPlayer
         if conn.fileno() == p2ID:
-            pass
-            #print("Message from Player 2:")
+            sendingPlayer = redPlayer
+            otherPlayer = bluePlayer
         
         message = data.decode('ascii')
         msgs = message.split()
         for msg in msgs:
-            parse_message(msg)
+            parse_message(sendingPlayer,otherPlayer,msg)
 
     else:
         sel.unregister(conn)
         conn.close()
 
 
-def parse_message(msg):
+def parse_message(sendingPlayer,otherPlayer,msg):
 
-    print("PARSED MESSAGE: ", msg)
+    instruction = ""
+
+    i = 0
+    while msg[i] != ':':
+        if msg[i] != '[':
+            instruction += msg[i]
+        i+=1
+
+    print(msg)
     if msg == "[Turn:END]":
        
         if(bluePlayer.isMyTurn()):
@@ -49,8 +58,28 @@ def parse_message(msg):
         
         else:
             errorMessage(this_file, "It is nobodies turn!")
-        
+    
+    if instruction == "Move":
 
+        coords = []
+
+        for c in msg:
+            if c.isnumeric():
+                coords.append(str(c))
+        print("coords: ", coords)
+
+        relayString = "[Move:"
+        translatedCoords = []
+        for n in coords:
+            tn = (abs(int(n)-7))
+            translatedCoords.append(tn)
+            
+        relayString += str(translatedCoords[0]) + ',' + str(translatedCoords[1])
+        relayString += ':'
+        relayString += str(translatedCoords[2]) + ',' + str(translatedCoords[3])
+        relayString += ']'
+
+        otherPlayer.sendString(relayString)
 
 
 if __name__ == "__main__":

@@ -7,12 +7,13 @@ from errors import *
 from queue import Queue
 from gameState import Player
 from clientSend import *
+from gameBoard import *
 
 this_file = "clientConnection.py"
 
 class receiver():
 
-    def __init__(self, sock, gamestate):
+    def __init__(self, sock, gamestate, gameboard):
         
         self.sock = sock
         self.__thread = threading.Thread(target=self.__threadFunction, args=())
@@ -22,6 +23,7 @@ class receiver():
         self.gamestate = gamestate
         self.p1 = None
         self.p2 = None
+        self.gameboard = gameboard
 
     def __threadFunction(self) -> None:
         
@@ -46,7 +48,17 @@ class receiver():
 
     
     def parseMessage (self, message: str) -> bool:
-        print(message)
+        print("RECEIVED::::", message)
+        
+        instruction = ""
+        i = 0
+        while message[i] != ':':
+            if message[i] != '[':
+                instruction += message[i]
+            i+=1
+
+        
+        
         if message == "[Clr:BLUE]":
             self.player = self.gamestate.player
             self.player.set_as_player()
@@ -71,14 +83,25 @@ class receiver():
 
         if message == "[Turn:OPP]":
             self.gamestate.player.end_turn()
-        
-        print("Player colour:", self.gamestate.player.get_colour())
-        print("Opponent colour:", self.gamestate.opponent.get_colour())
-        print("Player's turn:", self.gamestate.player.is_current_turn())
-        print("Opponent's turn:", self.gamestate.opponent.is_current_turn())
 
         if message == "[Board:INIT]":
             self.intializeBoards()
+
+        if instruction == "Move":
+            coords = []
+            for c in message:
+                if c.isnumeric():
+                    coords.append(c)
+            oldSpace = GameBoard.get_space(1,1)
+            newSpace = GameBoard.get_space(2,2)
+            #print("OLDSPACE: **********: ", type(oldSpace))
+            #print("OLDSPACE: **********: ", type(newSpace))
+
+            print("Coords: ", coords)
+            print("Unit at: ", coords[0], ",", coords[1])
+            #Unit = oldSpace.get_unit()
+
+            #GameBoard.move_unit(oldSpace.get_unit(), newSpace)
 
         return True
 

@@ -135,16 +135,15 @@ class GameState:
     
     def next_turn(self):
         # If the current player has an extra turn, don't change turns
-        print("PLAYER COLOUR: ", self.player.get_colour())
         pcolour = self.player.get_colour
         
         self.__turn_count += 1
         if self.__turn_count == 1:
             if self.player.is_current_turn:
-                print("It is my, ", self.player.get_colour(),"'s turn")
+                print("")
 
             if self.opponent.is_current_turn:
-                print("It is not my, ", self.player.get_colour(),"'s turn")
+                print("")
 
         #elif self.__current_player.has_extra_turn(): 
             #pass
