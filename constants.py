@@ -57,12 +57,14 @@ class SpriteType:
     SORCERER1 = "Sorcerer1"
     HEALER1 = "Healer1"
     ARCHMAGE1 = "Archmage1"
+    GENERAL1 = "General1"
     ARCHER2 = "Archer2"
     PEASANT2 = "Peasant2"
     SOLDIER2 = "Soldier2"
     SORCERER2 = "Sorcerer2"
     HEALER2 = "Healer2"
     ARCHMAGE2 = "Archmage2"
+    GENERAL2 = "General2"
 
 # Damage multiplier for units initiating combat
 FIRST_STRIKE_BOOST = 1.2

@@ -45,11 +45,13 @@ class Window:
         sprites[SpriteType.SORCERER1] = ImageTk.PhotoImage(Image.open("Assets/Units/sorcerer_white.png"))
         sprites[SpriteType.HEALER1] = ImageTk.PhotoImage(Image.open("Assets/Units/healer_white.png"))
         sprites[SpriteType.ARCHMAGE1] = ImageTk.PhotoImage(Image.open("Assets/Units/archmage_white.png"))
+        sprites[SpriteType.GENERAL1] = ImageTk.PhotoImage(Image.open("Assets/Units/general_white.png"))
         sprites[SpriteType.ARCHER2] = ImageTk.PhotoImage(Image.open("Assets/Units/archer_black.png"))
         sprites[SpriteType.PEASANT2] = ImageTk.PhotoImage(Image.open("Assets/Units/peasant_black.png"))
         sprites[SpriteType.SOLDIER2] = ImageTk.PhotoImage(Image.open("Assets/Units/soldier_black.png"))
         sprites[SpriteType.SORCERER2] = ImageTk.PhotoImage(Image.open("Assets/Units/sorcerer_black.png"))
         sprites[SpriteType.HEALER2] = ImageTk.PhotoImage(Image.open("Assets/Units/healer_black.png"))
         sprites[SpriteType.ARCHMAGE2] = ImageTk.PhotoImage(Image.open("Assets/Units/archmage_black.png"))
+        sprites[SpriteType.GENERAL2] = ImageTk.PhotoImage(Image.open("Assets/Units/general_black.png"))
         return sprites
     
