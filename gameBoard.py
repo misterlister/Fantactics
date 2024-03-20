@@ -467,13 +467,13 @@ class GameBoard:
         sprite_x = x + SPRITE_BUFFER//2
         sprite_y = y + SPRITE_BUFFER//2
         self.window.draw_sprite(sprite_x, sprite_y, preview)
-        box_x = x + LINE_WIDTH + SELECTION_BUFFER
-        box_y = y + LINE_WIDTH + SELECTION_BUFFER
+        box_x = x + (LINE_WIDTH - 2) + SELECTION_BUFFER
+        box_y = y + (LINE_WIDTH - 2) + SELECTION_BUFFER
         self.window.canvas.create_image(box_x, box_y, image=self.__transparent_square, anchor='nw')
 
     def set_transparency(self):
-        width = DEFAULT_SQUARE_SIZE - LINE_WIDTH - SELECTION_BUFFER*2
-        height = DEFAULT_SQUARE_SIZE - LINE_WIDTH - SELECTION_BUFFER*2
+        width = DEFAULT_SQUARE_SIZE - (LINE_WIDTH - 1) - (SELECTION_BUFFER * 2)
+        height = DEFAULT_SQUARE_SIZE - (LINE_WIDTH - 1) - (SELECTION_BUFFER * 2)
         alpha = 126
         # Use the fill variable to fill the shape with transparent color
         fill_col = self.root.winfo_rgb(BG_COL) + (alpha,)
