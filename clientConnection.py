@@ -1,4 +1,3 @@
-import socket
 from constants import *
 import time
 import threading
@@ -7,6 +6,7 @@ from globals import *
 from errors import *
 from queue import Queue
 from gameState import Player
+from clientSend import *
 
 this_file = "clientConnection.py"
 
@@ -14,7 +14,7 @@ class receiver():
 
     def __init__(self, sock, player, opponent,gamestate):
         
-        self.socket = sock
+        self.sock = sock
         self.__thread = threading.Thread(target=self.__threadFunction, args=())
         self.__thread.daemon = True
         self.__thread.start()
@@ -22,13 +22,18 @@ class receiver():
         self.player = player
         self.opponent = opponent
         self.gamestate = gamestate
+        self.__connectionActive = True
 
 
     def __threadFunction(self) -> None:
-        while not gameClosedEvent.is_set() or not connClosedEvent.is_set():
-            
+        
+        
+        while not (gameClosedEvent.is_set() or connClosedEvent.is_set()):
+            print("ConnClosedEvent: ", connClosedEvent.is_set())
+            print("GameClosedEvent: ", connClosedEvent.is_set())
+
             try:
-                serverPacket= self.socket.recv(MAX_MESSAGE_SIZE)
+                serverPacket= self.sock.recv(MAX_MESSAGE_SIZE)
         
                 if serverPacket:
                     str = serverPacket.decode('ascii')
@@ -42,19 +47,15 @@ class receiver():
                 # No message received this time.
                 pass
 
-        setConnClosed()
-        self.socket.shutdown(socket.SHUT_RDWR)
-        self.socket.close()
+
     
     def parseMessage (self, message: str) -> bool:
     
         print(message)
         if message == "[Clr:BLUE]":
             print("Player is BLUE@#$!$")
-            lock.acquire()
             self.player.set_colour("blue")
             self.opponent.set_colour("red")
-            lock.release()
             print("PLAYER IS NOW: ", self.player.get_colour())
 
         if message == "[Clr:RED]":
@@ -81,31 +82,14 @@ class receiver():
         print("Player get_colour()", self.player.get_colour())
 
     def intializeBoards(self):
-        lock.acquire()
         self.gamestate.setup_board()
         self.opponent.setup_board()
-        lock.release()
 
+    def killConnection(self):
+        setConnClosed()
 
 # End of receiver class.
-        
-def send(self, message:str) -> bool:
     
-    if len(message) > MAX_MESSAGE_SIZE:
-        errorMessage(this_file, "Message to server is too long.")
-        return False
-    
-    else:
-        packet = message.encode("ascii")
-
-        try:
-            self.socket.sendall(packet)
-        
-        except:
-            errorMessage(this_file, "Could not send msg to server.")
-            setConnClosed()
-            return False
-
 
 
 def establishConn(ip, port, timeout) -> tuple[bool, socket.socket]:
@@ -124,13 +108,4 @@ def establishConn(ip, port, timeout) -> tuple[bool, socket.socket]:
     print("Connected to server.")
     return True, sock
 
-def setConnClosed():
-    lock.acquire()
-    connClosedEvent.set()
-    lock.release()
-
-def setConnOpen():
-    lock.acquire()
-    connClosedEvent.clear()
-    lock.release()
 

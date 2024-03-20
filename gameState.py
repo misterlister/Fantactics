@@ -1,5 +1,8 @@
 from gameBoard import GameBoard
 from units import *
+from clientSend import Sender
+from globals import *
+from tkinter import Tk
 
 class Player:
     def __init__(self) -> None:
@@ -45,7 +48,8 @@ class GameState:
             player1: Player,
             player2: Player,
             board: GameBoard,
-            ui
+            ui,
+            sender:Sender
             ) -> None:
         self.player1 = player1
         self.player2 = player2
@@ -53,6 +57,7 @@ class GameState:
         self.ui = ui
         self.__turn_count = 0
         self.__current_player = None
+        self.sender = sender
 
 
     def setup_board(self):
@@ -121,18 +126,17 @@ class GameState:
     
     def next_turn(self):
         self.__turn_count += 1
-        if self.__current_player == None: # At start of game, set turn to Player 1
-            self.set_turn(self.player1)
-        else:
-            # If the current player has an extra turn, don't change turns
-            if self.__current_player.has_extra_turn(): 
-                pass
-            elif self.__current_player == self.player1:
-                self.player1.end_turn()
-                self.set_turn(self.player2)
-            else:
-                self.player2.end_turn()
-                self.set_turn(self.player1)
-        self.ui.logItems['text'].update_label()
-        for panel in self.ui.statsPanel:
-                self.ui.statsPanel[panel].clear()
+        # If the current player has an extra turn, don't change turns
+        #if self.__current_player.has_extra_turn(): 
+        if False:
+            pass
+        else: 
+            self.__current_player == self.player1
+            self.player1.end_turn()
+            self.sender.send("[Turn:END]")
+
+            #self.set_turn(self.player2)
+            self.ui.logItems['text'].update_label()
+            for panel in self.ui.statsPanel:
+                    self.ui.statsPanel[panel].clear()
+

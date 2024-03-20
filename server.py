@@ -27,8 +27,6 @@ def receive(conn, mask):
         sel.unregister(conn)
         conn.close()
 
-
-
 if __name__ == "__main__":
 
     listenSocket = socket.socket()
@@ -53,22 +51,22 @@ if __name__ == "__main__":
     
     if not (redPlayer.stopTurn() and bluePlayer.startTurn()):
         errorMessage(this_file,"Could not assign initial turns.")
-
     
     bluePlayer.initializeBoard()
     redPlayer.initializeBoard()
-
+    
     listenSocket.close() 
 
     while p1Active or p2Active:
-        events = sel.select()
+        try:
+            events = sel.select()
+        except:
+            break
         for key, mask in events:
             callback = key.data
             callback(key.fileobj, mask)
         
-    p1Conn.shutdown(socket.SHUT_RDWR)
     p1Conn.close() 
-
-    p2Conn.shutdown(socket.SHUT_RDWR)
     p2Conn.close()
+
     print ('Connection Closed')

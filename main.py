@@ -6,9 +6,9 @@ from userInterface import UserInterface
 from constants import *
 import time
 from clientConnection import *
-from globals import *
-from tkWrapper import myTk
+from tkWrapper import *
 from errors import *
+from clientSend import Sender
 
 this_file = "main.py"
 
@@ -22,14 +22,19 @@ if __name__ == "__main__":
     player = Player()
     opponent = Player()
     root = myTk()
+    sender = Sender(conn)
     window = Window(WINDOW_WIDTH, WINDOW_HEIGHT, root)
     userInterface = UserInterface(root)
     board = GameBoard(window, root, userInterface)
-    gameState = GameState(player, opponent, board, userInterface)
-
+    gameState = GameState(player, opponent, board, userInterface, sender)
     recv = receiver(conn, player, opponent,gameState)
+    root.bind('<Escape>', lambda a: endfGame(a,root))
 
     root.mainloop()
-    lock.acquire()
+    print("After Mainloop")
+    print("After Destroy")
+
     gameClosedEvent.set()
-    lock.release()
+    connClosedEvent.set()
+    conn.shutdown(socket.SHUT_RDWR)
+    conn.close()
