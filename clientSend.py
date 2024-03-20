@@ -19,6 +19,7 @@ class Sender:
             return False
         
         else:
+            message = message + '\n'
             packet = message.encode("ascii")
 
             try:

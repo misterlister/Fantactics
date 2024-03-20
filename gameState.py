@@ -10,8 +10,7 @@ class Player:
         self.__game_state = None
         self.__turn = False
         self.__extra_turn = False
-        self.__player = False
-        self.__opponent = False
+        self.__is_player = None
         self.__colour = False
 
     def assign_units(self, unit_list: list):
@@ -42,28 +41,38 @@ class Player:
 
     def get_colour(self) -> str:
         return self.__colour
+    
+    def set_as_player(self):
+        self.__is_player = True
+
+    def set_as_opponent(self):
+        self.__is_player = False
+
+    def is_player(self) -> bool:
+        return self.__is_player
+    
 class GameState:
     def __init__(
             self,
-            player1: Player,
-            player2: Player,
+            player: Player,
+            opponent: Player,
             board: GameBoard,
             ui,
             sender:Sender
             ) -> None:
-        self.player1 = player1
-        self.player2 = player2
+        self.player = player
+        self.opponent = opponent
         self.board = board
         self.ui = ui
         self.__turn_count = 0
         self.__current_player = None
+
         self.sender = sender
 
-
-    def setup_board(self):
+    def setup_board(self):  
         try:
-            player_blue = (self.player1.get_colour() == "blue")
-            opponent_blue = (self.player2.get_colour() == "blue")
+            player_blue = (self.player.get_colour() == "blue")
+            opponent_blue = not player_blue
 
             p2_units_r1 = [Archer(opponent_blue), Cavalry(opponent_blue), Healer(opponent_blue), Archmage(opponent_blue), 
                            General(opponent_blue), Sorcerer(opponent_blue), Cavalry(opponent_blue), Archer(opponent_blue)]
@@ -71,8 +80,8 @@ class GameState:
             p2_units_r2 = [Peasant(opponent_blue), Peasant(opponent_blue), Soldier(opponent_blue), Soldier(opponent_blue), 
                            Soldier(opponent_blue), Soldier(opponent_blue), Peasant(opponent_blue), Peasant(opponent_blue)]
             self.setup_row(1, 0, p2_units_r2, False) 
-            self.player2.assign_units(p2_units_r1+p2_units_r2)
-            self.player2.join_game(self)
+            self.opponent.assign_units(p2_units_r1+p2_units_r2)
+            self.opponent.join_game(self)
 
             p1_units_r1 = [Archer(player_blue), Cavalry(player_blue), Healer(player_blue), Archmage(player_blue), 
                            General(player_blue), Sorcerer(player_blue), Cavalry(player_blue), Archer(player_blue)]
@@ -80,8 +89,8 @@ class GameState:
             p1_units_r2 = [Peasant(player_blue), Peasant(player_blue), Soldier(player_blue), Soldier(player_blue), 
                            Soldier(player_blue), Soldier(player_blue), Peasant(), Peasant()]
             self.setup_row(6, 7, p1_units_r2, True) 
-            self.player1.assign_units(p1_units_r1+p1_units_r2)
-            self.player1.join_game(self)
+            self.player.assign_units(p1_units_r1+p1_units_r2)
+            self.player.join_game(self)
             self.board.draw_sprites()
 
             self.board.link_to_state(self)
@@ -117,26 +126,41 @@ class GameState:
         return self.__current_player
     
     def get_current_player_num(self):
-        if self.__current_player == self.player1:
+        if self.__current_player == self.player:
             return 1
-        if self.__current_player == self.player2:
+        if self.__current_player == self.opponent:
             return 2
         else:
             return "No Current Player"
     
     def next_turn(self):
-        self.__turn_count += 1
         # If the current player has an extra turn, don't change turns
-        #if self.__current_player.has_extra_turn(): 
-        if False:
-            pass
-        else: 
-            self.__current_player == self.player1
-            self.player1.end_turn()
-            self.sender.send("[Turn:END]")
+        print("PLAYER COLOUR: ", self.player.get_colour())
+        pcolour = self.player.get_colour
+        
+        self.__turn_count += 1
+        if self.__turn_count == 1:
+            if self.player.is_current_turn:
+                print("It is my, ", self.player.get_colour(),"'s turn")
 
-            #self.set_turn(self.player2)
+            if self.opponent.is_current_turn:
+                print("It is not my, ", self.player.get_colour(),"'s turn")
+
+        #elif self.__current_player.has_extra_turn(): 
+            #pass
+
+        else:  
+            former_player = self.__current_player
+
+            if self.__current_player == self.player:
+                self.__current_player = self.opponent
+            elif self.__current_player == self.opponent:
+                self.__current_player = self.player
+            self.sender.send("[Turn:END]")
+            
             self.ui.logItems['text'].update_label()
             for panel in self.ui.statsPanel:
-                    self.ui.statsPanel[panel].clear()
+                self.ui.statsPanel[panel].clear()
+
+
 

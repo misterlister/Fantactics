@@ -3,6 +3,7 @@ from tkinter import Tk
 from PIL import ImageTk, Image
 from userInterface import UserInterface, do_nothing
 from constants import *
+from clientSend import Sender
 
 
 class GameBoard:
@@ -10,6 +11,7 @@ class GameBoard:
             self,
             window: Window,
             root: Tk,
+            sender,
             ui: UserInterface,
             x_start: int = DEFAULT_X_POS,
             y_start: int = DEFAULT_Y_POS,
@@ -36,6 +38,7 @@ class GameBoard:
         self.__ability_spaces = None
         self.__transparent_square = self.set_transparency()
         self.__game_state = None
+        self.sender = sender
     
     def draw_board(self) -> None:
         for i in range (BOARD_ROWS + 1):
@@ -73,7 +76,9 @@ class GameBoard:
                     return
                 else: # A unit is currently selected
                     unit = self.selected_unit
+                    
                     if unit.get_player().is_current_turn():
+
                         if self.__attack_spaces != None: # Attack range is active
                             if new_space in self.__attack_spaces: # A valid target is selected
                                 self.update_stats_panel(new_space.get_unit()) 
@@ -96,7 +101,7 @@ class GameBoard:
                             self.set_attack_spaces(unit, new_space)
                             return
                     else:
-                        print("You cannot move enemy units")
+                        print("It's not my turn.")
 
                     print("Cancelled Action.")
                     self.cancel_action()
@@ -263,6 +268,10 @@ class GameBoard:
 
     def move_unit(self, unit, space):
         old_space = unit.get_location()
+        x1 = str(old_space.get_row())
+        y1 = str(old_space.get_col())
+
+        print("Old Space: (",x1, ", ",y1)
         try:  
             unit.move(space)
             self.deselect_space()
@@ -270,11 +279,17 @@ class GameBoard:
             self.draw_space(space)
             if old_space != space:
                 move_log = f"{unit.get_name()} -> {space.get_row()},{space.get_col()}.\n"
-                print("Aasdfasdfsd: MOVE LOG:", move_log)
+                print("MOVE LOG:", move_log)
+                x2 = str(space.get_row())
+                y2 = str(space.get_col())
+
+                msg = "[Move:" + x1 + "," + y1 + ":" + x2 + "," + y2 + "]"
+                self.sender.send(msg)
 
             else:
                 move_log = f"{unit.get_name()} stayed in place.\n"
             self.ui.logItems['text'].add_text(move_log) # Send movement to combat log
+
         except Exception as e:
             print(e)
 
@@ -404,8 +419,6 @@ class GameBoard:
     def move_and_wait(self, unit, space):
         self.move_unit(unit, space)
         self.end_turn()
-
-
 
 class Terrain:
     def __init__(self) -> None:

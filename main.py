@@ -25,9 +25,9 @@ if __name__ == "__main__":
     sender = Sender(conn)
     window = Window(WINDOW_WIDTH, WINDOW_HEIGHT, root)
     userInterface = UserInterface(root)
-    board = GameBoard(window, root, userInterface)
+    board = GameBoard(window, root, sender, userInterface)
     gameState = GameState(player, opponent, board, userInterface, sender)
-    recv = receiver(conn, player, opponent,gameState)
+    recv = receiver(conn, gameState)
     root.bind('<Escape>', lambda a: endfGame(a,root))
 
     root.mainloop()

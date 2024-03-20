@@ -4,6 +4,7 @@ from constants import *
 from serverConnection import *
 import time
 
+
 this_file = "server.py"
 
 IP = 'localhost'
@@ -14,18 +15,43 @@ sel = selectors.DefaultSelector()
 
 def receive(conn, mask):
     data = conn.recv(MAX_MESSAGE_SIZE)
-
+    
     if data:
         if conn.fileno() == p1ID:
-            print("Message from Player 1:")
+            pass
+            #print("Message from Player 1:")
         if conn.fileno() == p2ID:
-            print("Message from Player 2:")
-        print(data.decode('ascii'))
-        conn.send(data)
+            pass
+            #print("Message from Player 2:")
+        
+        message = data.decode('ascii')
+        msgs = message.split()
+        for msg in msgs:
+            parse_message(msg)
 
     else:
         sel.unregister(conn)
         conn.close()
+
+
+def parse_message(msg):
+
+    print("PARSED MESSAGE: ", msg)
+    if msg == "[Turn:END]":
+       
+        if(bluePlayer.isMyTurn()):
+            bluePlayer.stopTurn()
+            redPlayer.startTurn()
+        
+        elif(redPlayer.isMyTurn):
+            redPlayer.stopTurn()
+            bluePlayer.startTurn()
+        
+        else:
+            errorMessage(this_file, "It is nobodies turn!")
+        
+
+
 
 if __name__ == "__main__":
 
@@ -51,6 +77,7 @@ if __name__ == "__main__":
     
     if not (redPlayer.stopTurn() and bluePlayer.startTurn()):
         errorMessage(this_file,"Could not assign initial turns.")
+    bluePlayer
     
     bluePlayer.initializeBoard()
     redPlayer.initializeBoard()

@@ -12,25 +12,21 @@ this_file = "clientConnection.py"
 
 class receiver():
 
-    def __init__(self, sock, player, opponent,gamestate):
+    def __init__(self, sock, gamestate):
         
         self.sock = sock
         self.__thread = threading.Thread(target=self.__threadFunction, args=())
         self.__thread.daemon = True
         self.__thread.start()
         self.inbox = Queue()
-        self.player = player
-        self.opponent = opponent
         self.gamestate = gamestate
-        self.__connectionActive = True
-
+        self.p1 = None
+        self.p2 = None
 
     def __threadFunction(self) -> None:
         
         
         while not (gameClosedEvent.is_set() or connClosedEvent.is_set()):
-            print("ConnClosedEvent: ", connClosedEvent.is_set())
-            print("GameClosedEvent: ", connClosedEvent.is_set())
 
             try:
                 serverPacket= self.sock.recv(MAX_MESSAGE_SIZE)
@@ -50,25 +46,36 @@ class receiver():
 
     
     def parseMessage (self, message: str) -> bool:
-    
         print(message)
         if message == "[Clr:BLUE]":
-            print("Player is BLUE@#$!$")
+            self.player = self.gamestate.player
+            self.player.set_as_player()
+            self.gamestate.opponent.set_as_opponent()
+            self.gamestate.opponent.end_turn()
+
             self.player.set_colour("blue")
-            self.opponent.set_colour("red")
-            print("PLAYER IS NOW: ", self.player.get_colour())
+            self.gamestate.opponent.set_colour("red")
 
         if message == "[Clr:RED]":
-            print("Player is RED@#$!$")
+            self.player = self.gamestate.player
+            self.player.set_as_player()
+            self.gamestate.opponent.set_as_opponent()
+            self.gamestate.opponent.end_turn()
+
             self.player.set_colour("red")
-            self.opponent.set_colour("blue")
-            print("PLAYER IS NOW: ", self.player.get_colour())
+            self.gamestate.opponent.set_colour("blue")
 
         if message == "[Turn:YOU]":
-            self.player.start_turn()
+            self.gamestate.player.start_turn()
+
 
         if message == "[Turn:OPP]":
-            self.opponent.start_turn()
+            self.gamestate.player.end_turn()
+        
+        print("Player colour:", self.gamestate.player.get_colour())
+        print("Opponent colour:", self.gamestate.opponent.get_colour())
+        print("Player's turn:", self.gamestate.player.is_current_turn())
+        print("Opponent's turn:", self.gamestate.opponent.is_current_turn())
 
         if message == "[Board:INIT]":
             self.intializeBoards()
@@ -77,7 +84,7 @@ class receiver():
 
     def setPlayerColours(self, playerColour: str, opponentColour: str):
                     
-        print(" ffffffffffffffffffff Setting player to: ", playerColour)
+        print("Setting player to: ", playerColour)
 
         print("Player get_colour()", self.player.get_colour())
 

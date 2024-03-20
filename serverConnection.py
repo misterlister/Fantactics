@@ -13,7 +13,8 @@ class Player:
         self.conn = conn
         self.id = self.conn.fileno()
         self.colour = colour
-        self. outbox = Queue()
+        self.outbox = Queue()
+        self.__my_turn = None
     
     def getConn(self) -> socket:
         return self.conn
@@ -51,10 +52,15 @@ class Player:
                         
     
     def startTurn(self) -> bool:
+        self.__my_turn = True
         return self.sendString("[Turn:YOU]")
 
     def stopTurn(self) -> bool:
+        self.__my_turn = False
         return self.sendString("[Turn:OPP]")
+    
+    def isMyTurn(self) -> bool:
+        return self.__my_turn
     
     def initializeBoard(self) -> bool:
         return self.sendString("[Board:INIT]")
