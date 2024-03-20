@@ -146,6 +146,8 @@ class GameBoard:
             for sp in self.__area_of_effect_spaces:
                 self.draw_space(sp)
         self.__target_space = space
+        self.draw_space(self.__action_space)
+        self.preview_sprite(unit, self.__action_space)
         self.ui.controlBar.buttons['green'].change_unclick_func(lambda: action(unit, space))
         if action == self.ability_action: # If this is an ability, highlight the area of effect
             self.__area_of_effect_spaces = unit.get_area_of_effect(space)
@@ -153,6 +155,7 @@ class GameBoard:
                 self.circle_outline_space(effect_space, colour)
         else: # Otherwise, highlight the target space
             self.circle_outline_space(space, colour)
+        ### SHOW COMBAT/ABILITY PREVIEW HERE
                 
     def connect_spaces(self, spaces):
         for i in range(BOARD_ROWS):
@@ -193,19 +196,19 @@ class GameBoard:
     def outline_space(self, space, colour: str) -> None:
         row = space.get_row()
         col = space.get_col()
-        x1 = self.get_col_x(col) + LINE_WIDTH
-        y1 = self.get_row_y(row) + LINE_WIDTH
-        x2 = self.get_col_x(col+1) - LINE_WIDTH
-        y2 = self.get_row_y(row+1) - LINE_WIDTH
+        x1 = self.get_col_x(col) + (LINE_WIDTH - 1)
+        y1 = self.get_row_y(row) + (LINE_WIDTH - 1)
+        x2 = self.get_col_x(col+1) - (LINE_WIDTH)
+        y2 = self.get_row_y(row+1) - (LINE_WIDTH)
         self.window.canvas.create_rectangle(x1, y1, x2, y2, width=SELECTION_BUFFER, outline=colour)
 
     def circle_outline_space(self, space, colour: str) -> None:
         row = space.get_row()
         col = space.get_col()
-        x1 = self.get_col_x(col) + LINE_WIDTH * 2
-        y1 = self.get_row_y(row) + LINE_WIDTH * 2
-        x2 = self.get_col_x(col+1) - LINE_WIDTH * 2
-        y2 = self.get_row_y(row+1) - LINE_WIDTH * 2
+        x1 = self.get_col_x(col) + ((LINE_WIDTH * 2) - 1) 
+        y1 = self.get_row_y(row) + ((LINE_WIDTH * 2) - 1) 
+        x2 = self.get_col_x(col+1) - (LINE_WIDTH * 2)
+        y2 = self.get_row_y(row+1) - (LINE_WIDTH * 2)
         self.window.canvas.create_oval(x1, y1, x2, y2, width=SELECTION_BUFFER, outline=colour)
 
     def check_square(self, row: int, col: int):
@@ -334,6 +337,7 @@ class GameBoard:
         self.__attack_spaces = None
         self.__ability_spaces = None
         self.__action_confirmed = False
+        ### REMOVE COMBAT/ABILITY PREVIEW HERE
         self.draw_all_spaces()
 
     def move_unit(self, unit, space):
@@ -411,6 +415,7 @@ class GameBoard:
 
     def reset_target_spaces(self):
         self.__action_confirmed = False
+        ### REMOVE COMBAT/ABILITY PREVIEW HERE
         ability_spaces_reset = self.__ability_spaces
         self.__ability_spaces = None
         if ability_spaces_reset is not None:     
@@ -424,6 +429,7 @@ class GameBoard:
         if len(area_spaces_reset) > 0:
             for sp in area_spaces_reset:
                 self.draw_space(sp)
+        
 
 
         

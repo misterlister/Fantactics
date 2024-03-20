@@ -6,7 +6,7 @@ BG_COL = '#d9d9d9'
 WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
 # Width of divider lines
-LINE_WIDTH = 2
+LINE_WIDTH = 3
 
 # Number of pixels between a sprite and the border of its square
 SPRITE_BUFFER = 8
