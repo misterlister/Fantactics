@@ -159,16 +159,16 @@ class ControlBar(Panel):
             ) -> None:
         super().__init__(root, xPos, yPos, width, height, colour, bd, relief)
 
-        self.toggleKeys = []
-
         self.buttons = {
-            'red' : CanvasButton(self.frame, unpressed='Assets/Buttons/red_unpressed.png', pressed='Assets/Buttons/red_pressed.png'),
-            'yellow' : CanvasButton(self.frame, unpressed='Assets/Buttons/yellow_unpressed.png', pressed='Assets/Buttons/yellow_pressed.png'),
+            'red' : ToggleButton(self.frame, unpressed='Assets/Buttons/red_unpressed.png', pressed='Assets/Buttons/red_pressed.png'),
+            'yellow' : ToggleButton(self.frame, unpressed='Assets/Buttons/yellow_unpressed.png', pressed='Assets/Buttons/yellow_pressed.png'),
             'green' : CanvasButton(self.frame, unpressed='Assets/Buttons/green_unpressed.png', pressed='Assets/Buttons/green_pressed.png'),
             'grey' : CanvasButton(self.frame, unpressed='Assets/Buttons/grey_unpressed.png', pressed='Assets/Buttons/grey_pressed.png')
         }
 
-        self.toggleKeys.append(self.buttons['red'])
+        self.__actionToggleKeys = [self.buttons['red'], self.buttons['yellow']]
+        self.buttons['red'].set_key(self.__actionToggleKeys)
+        self.buttons['yellow'].set_key(self.__actionToggleKeys)
 
         self.labels = {
             'red' : Label(self.frame, text='Attack'),
@@ -187,7 +187,8 @@ class ControlBar(Panel):
             except Exception as e:
                 print(e)
             index += 1
-                   
+
+# Display text on top of screen             
 class InfoPanel(Panel):
     def __init__(
             self, 
@@ -282,10 +283,10 @@ class CanvasButton():
             self.button.itemconfig(self.currentImage, image=self.unpressed)
             self.__unclickFunc()
 
+# Buttons which can be toggled
 class ToggleButton(CanvasButton):
     def __init__(self,
                 frame: LabelFrame,
-                key: list,
                 xPos: int = 0,
                 yPos: int = 0,
                 unpressed: str = ERROR_UNPRESSED, 
@@ -294,11 +295,53 @@ class ToggleButton(CanvasButton):
                 unclickFunc: Callable = do_nothing, 
                 enabled: bool = True
                 ) -> None:
-        super().__init__(frame, xPos, yPos, unpressed, pressed, clickFunc, unclickFunc, enabled)
+        super().__init__(frame, xPos, yPos, unpressed, pressed, clickFunc, unclickFunc, enabled)    
+        self.toggled = False
 
-        
-    def check_key(self):
+    def check_keys(self):
+        for item in self.key:
+            try:
+                if isinstance(item, ToggleButton) and item != self:
+                    # If item is toggled, untoggle it
+                    if item.get_toggle_status() == True:
+                        item.untoggle()
+                        item.enable()
+                else:
+                    raise Exception
+                
+            except Exception as e:
+                print(e)
+
+            else:
+                print('ok')
+
+    def set_key(self, key) -> None:
+        self.key = key
+
+    def get_toggle_status(self):
+        return self.toggled
+    
+    def toggle(self):
+        self.toggled = True
+
+    def untoggle(self):
+        self.toggled = False
+        self.button.itemconfig(self.currentImage, image=self.unpressed)
+
+    def __click(self, event) -> None:
         pass
+
+    def __unclick(self, event) -> None:
+        if self.enabled:
+            self.check_keys()
+            if self.get_toggle_status() == False:
+                print(self.key)
+                self.button.itemconfig(self.currentImage, image=self.pressed)
+                self.toggle()
+                self.disable()
+            else:
+                pass
+
 
 class CombatLog():
     def __init__(
