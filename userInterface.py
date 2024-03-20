@@ -2,6 +2,7 @@ from tkinter import Tk, LabelFrame, Canvas, Text, Label, Scrollbar
 from PIL import ImageTk, Image
 from typing import Callable
 from constants import *
+from constants import ERROR_PRESSED, ERROR_UNPRESSED
 
 # It does nothing
 def do_nothing(): 
@@ -158,12 +159,16 @@ class ControlBar(Panel):
             ) -> None:
         super().__init__(root, xPos, yPos, width, height, colour, bd, relief)
 
+        self.toggleKeys = []
+
         self.buttons = {
-            'red' : CanvasButton(self.frame, toggleable=False, unpressed='Assets/Buttons/red_unpressed.png', pressed='Assets/Buttons/red_pressed.png'),
-            'yellow' : CanvasButton(self.frame, toggleable=False, unpressed='Assets/Buttons/yellow_unpressed.png', pressed='Assets/Buttons/yellow_pressed.png'),
+            'red' : CanvasButton(self.frame, unpressed='Assets/Buttons/red_unpressed.png', pressed='Assets/Buttons/red_pressed.png'),
+            'yellow' : CanvasButton(self.frame, unpressed='Assets/Buttons/yellow_unpressed.png', pressed='Assets/Buttons/yellow_pressed.png'),
             'green' : CanvasButton(self.frame, unpressed='Assets/Buttons/green_unpressed.png', pressed='Assets/Buttons/green_pressed.png'),
             'grey' : CanvasButton(self.frame, unpressed='Assets/Buttons/grey_unpressed.png', pressed='Assets/Buttons/grey_pressed.png')
         }
+
+        self.toggleKeys.append(self.buttons['red'])
 
         self.labels = {
             'red' : Label(self.frame, text='Attack'),
@@ -218,7 +223,6 @@ class CanvasButton():
             clickFunc: Callable = do_nothing,
             unclickFunc: Callable = do_nothing,
             enabled: bool = True,
-            toggleable: bool = False
             ) -> None:
         
         self.button = Canvas(frame, bg=UI_BG_COLOUR, bd=0, highlightthickness=0, cursor='hand2') # Create the button object
@@ -235,9 +239,6 @@ class CanvasButton():
         self.__unclickFunc = unclickFunc
     
         self.enabled = enabled
-        self.toggleable = toggleable
-        if self.toggleable:
-            self.toggled = False
 
     def change_image(
             self, 
@@ -255,14 +256,6 @@ class CanvasButton():
     def disable(self):
         self.enabled = False
         self.button.config(cursor='arrow')
-
-    def toggle(self):
-        if self.toggled:
-            self.toggled = False
-            self.button.config(cursor='hand2')
-        else:
-            self.toggled = True
-            self.button.config(cursor='arrow')
 
     def change_click_func(self, new: Callable = do_nothing):
         self.__clickFunc = new
@@ -286,18 +279,26 @@ class CanvasButton():
 
     def __unclick(self, event) -> None:
         if self.enabled:
-            if self.toggleable and self.toggled == False:
-                self.button.itemconfig(self.currentImage, image=self.pressed)
-                self.toggle()
-                self.__unclickFunc()
-                return None
-            elif self.toggleable and self.toggled == True:
-                self.button.itemconfig(self.currentImage, image=self.unpressed)
-                self.toggle()
-                self.__unclickFunc()
-                return None
             self.button.itemconfig(self.currentImage, image=self.unpressed)
             self.__unclickFunc()
+
+class ToggleButton(CanvasButton):
+    def __init__(self,
+                frame: LabelFrame,
+                key: list,
+                xPos: int = 0,
+                yPos: int = 0,
+                unpressed: str = ERROR_UNPRESSED, 
+                pressed: str = ERROR_PRESSED, 
+                clickFunc: Callable = do_nothing, 
+                unclickFunc: Callable = do_nothing, 
+                enabled: bool = True
+                ) -> None:
+        super().__init__(frame, xPos, yPos, unpressed, pressed, clickFunc, unclickFunc, enabled)
+
+        
+    def check_key(self):
+        pass
 
 class CombatLog():
     def __init__(
