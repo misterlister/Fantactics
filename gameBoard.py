@@ -45,14 +45,13 @@ class GameBoard:
     def draw_board(self) -> None:
         for i in range (BOARD_ROWS + 1):
             y_position = self.get_row_y(i)
-            self.rowLabel.append(Label(self.root, text=i, anchor='center', bg=BG_COL, font=(FONT, DEFAULT_FONT_SIZE)))
+            self.rowLabel.append(Label(self.root, text=i + 1, anchor='center', bg=BG_COL, font=(FONT, DEFAULT_FONT_SIZE)))
             self.rowLabel[i].place(x=330, y=(i * DEFAULT_SQUARE_SIZE) + 60)
             p1 = Point(self.x_start, y_position)
             p2 = Point(self.x_end, y_position)
             self.window.draw_line(p1, p2)
 
         for j in range(BOARD_COLS + 1):
-            
             x_position = self.get_col_x(j)
             self.colLabel.append(Label(self.root, text=chr(65 + j), anchor='center', bg=BG_COL, font=(FONT, DEFAULT_FONT_SIZE)))
             self.colLabel[j].place(x=(j * DEFAULT_SQUARE_SIZE) + 380, y=614)
@@ -130,6 +129,7 @@ class GameBoard:
         self.update_stats_panel(space.get_unit()) 
         self.move_unit(unit, self.__action_space)
         self.combat(unit, space.get_unit())
+        self.ui.controlBar.buttons['red'].untoggle_keys()
         self.end_turn()
         return
     
@@ -137,6 +137,7 @@ class GameBoard:
         self.move_unit(unit, self.__action_space)
         self.update_stats_panel(space.get_unit()) 
         self.activate_ability(unit, space)
+        self.ui.controlBar.buttons['red'].untoggle_keys()
         self.end_turn()
         return
 
@@ -360,6 +361,7 @@ class GameBoard:
         self.draw_all_spaces()
         self.deselect_space()
         self.clear_stats_panel()
+        self.ui.controlBar.buttons['red'].untoggle_keys()
 
     def get_col_x(self, col):
         x = self.x_start + (col * (self.square_size))
@@ -384,6 +386,7 @@ class GameBoard:
         self.__action_space = space
 
     def set_attack_spaces(self, unit, space):
+        self.ui.controlBar.buttons['red'].toggle()
         self.reset_target_spaces()
         self.draw_space(space)
         self.preview_sprite(unit, space)
@@ -491,6 +494,7 @@ class GameBoard:
         self.__game_state.next_turn()
 
     def move_and_wait(self, unit, space):
+        self.ui.controlBar.buttons['red'].untoggle_keys()
         self.move_unit(unit, space)
         self.end_turn()
 

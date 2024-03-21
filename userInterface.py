@@ -228,18 +228,19 @@ class CanvasButton():
         
         self.button = Canvas(frame, bg=UI_BG_COLOUR, bd=0, highlightthickness=0, cursor='hand2') # Create the button object
         self.button.pack_propagate(0) # Prevent the Canvas from shrinking
-        self.button.pack(expand=1, fill=None)
         self.button.place(x=xPos, y=yPos)
-        self.button.bind('<Button-1>', self.__click)
-        self.button.bind('<ButtonRelease-1>', self.__unclick)
-
+        self.bind(self.__click, self.__unclick)
         self.__create_image(unpressed, pressed)
         self.currentImage = self.button.create_image(0, 0, anchor = 'nw', image=self.unpressed)
 
-        self.__clickFunc = clickFunc
-        self.__unclickFunc = unclickFunc
+        self.clickFunc = clickFunc
+        self.unclickFunc = unclickFunc
     
         self.enabled = enabled
+
+    def bind(self, click: Callable, unclick: Callable):
+        self.button.bind('<Button-1>', click)
+        self.button.bind('<ButtonRelease-1>', unclick)
 
     def change_image(
             self, 
@@ -259,10 +260,10 @@ class CanvasButton():
         self.button.config(cursor='arrow')
 
     def change_click_func(self, new: Callable = do_nothing):
-        self.__clickFunc = new
+        self.clickFunc = new
 
     def change_unclick_func(self, new: Callable = do_nothing):
-        self.__unclickFunc = new
+        self.unclickFunc = new
 
     def get_button(self):
         return self.button
@@ -276,12 +277,13 @@ class CanvasButton():
     def __click(self, event) -> None:
         if self.enabled:
             self.button.itemconfig(self.currentImage, image=self.pressed)
-            self.__clickFunc()
+            self.clickFunc()
 
     def __unclick(self, event) -> None:
         if self.enabled:
             self.button.itemconfig(self.currentImage, image=self.unpressed)
-            self.__unclickFunc()
+            self.unclickFunc()
+
 
 # Buttons which can be toggled
 class ToggleButton(CanvasButton):
@@ -293,15 +295,22 @@ class ToggleButton(CanvasButton):
                 pressed: str = ERROR_PRESSED, 
                 clickFunc: Callable = do_nothing, 
                 unclickFunc: Callable = do_nothing, 
-                enabled: bool = True
+                enabled: bool = True,
+                toggled: bool = False
                 ) -> None:
-        super().__init__(frame, xPos, yPos, unpressed, pressed, clickFunc, unclickFunc, enabled)    
-        self.toggled = False
+        super().__init__(frame, xPos, yPos, unpressed, pressed, clickFunc, unclickFunc, enabled)
+        self.toggled = toggled
 
-    def check_keys(self):
+        # Must override parent class else it will behave like parent
+        self.bind(self.__click, self.__unclick)
+        self.change_click_func(clickFunc)
+        self.change_unclick_func(unclickFunc)
+        
+    # Check if there are any other buttons toggled in key list and untoggle them
+    def untoggle_keys(self):
         for item in self.key:
             try:
-                if isinstance(item, ToggleButton) and item != self:
+                if isinstance(item, ToggleButton):
                     # If item is toggled, untoggle it
                     if item.get_toggle_status() == True:
                         item.untoggle()
@@ -312,9 +321,6 @@ class ToggleButton(CanvasButton):
             except Exception as e:
                 print(e)
 
-            else:
-                print('ok')
-
     def set_key(self, key) -> None:
         self.key = key
 
@@ -323,24 +329,28 @@ class ToggleButton(CanvasButton):
     
     def toggle(self):
         self.toggled = True
+        self.button.itemconfig(self.currentImage, image=self.pressed)
+        self.disable()
 
     def untoggle(self):
         self.toggled = False
         self.button.itemconfig(self.currentImage, image=self.unpressed)
+        self.enable()
 
     def __click(self, event) -> None:
-        pass
+        if self.enabled:
+            self.clickFunc()
 
     def __unclick(self, event) -> None:
         if self.enabled:
-            self.check_keys()
+            self.untoggle_keys()
             if self.get_toggle_status() == False:
-                print(self.key)
-                self.button.itemconfig(self.currentImage, image=self.pressed)
                 self.toggle()
-                self.disable()
+                
+                self.unclickFunc()
             else:
                 pass
+
 
 
 class CombatLog():
