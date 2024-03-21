@@ -91,17 +91,18 @@ class receiver():
             coords = []
             for c in message:
                 if c.isnumeric():
-                    coords.append(c)
-            oldSpace = GameBoard.get_space(1,1)
-            newSpace = GameBoard.get_space(2,2)
-            #print("OLDSPACE: **********: ", type(oldSpace))
-            #print("OLDSPACE: **********: ", type(newSpace))
+                    coords.append(int(c))
+
+            oldSpace = self.gameboard.get_space(coords[0],coords[1])
+            newSpace = self.gameboard.get_space(coords[2],coords[3])
+            print("OLDSPACE: **********: ", type(oldSpace))
+            print("NEWSPACE: **********: ", type(newSpace))
 
             print("Coords: ", coords)
             print("Unit at: ", coords[0], ",", coords[1])
-            #Unit = oldSpace.get_unit()
+            unit = oldSpace.get_unit()
 
-            #GameBoard.move_unit(oldSpace.get_unit(), newSpace)
+            self.gameboard.move_unit(True,unit, newSpace)
 
         return True
 

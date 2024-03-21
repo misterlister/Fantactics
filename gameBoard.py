@@ -82,13 +82,13 @@ class GameBoard:
                         if self.__attack_spaces != None: # Attack range is active
                             if new_space in self.__attack_spaces: # A valid target is selected
                                 self.update_stats_panel(new_space.get_unit()) 
-                                self.move_unit(unit, self.action_space)
+                                self.move_unit(False, unit, self.action_space)
                                 self.combat(unit, new_space.get_unit())
                                 self.end_turn()
                                 return
                         if self.__ability_spaces != None: # Ability range is active
                             if new_space in self.__ability_spaces: # A valid target is selected
-                                self.move_unit(unit, self.action_space)
+                                self.move_unit(False, unit, self.action_space)
                                 self.update_stats_panel(new_space.get_unit()) 
                                 self.activate_ability(unit, new_space)
                                 self.end_turn()
@@ -266,12 +266,11 @@ class GameBoard:
                     self.draw_space(sp)
             self.__valid_moves = None
 
-    def move_unit(self, unit, space):
+    def move_unit(self, from_server, unit, space):
         old_space = unit.get_location()
         x1 = str(old_space.get_row())
         y1 = str(old_space.get_col())
 
-        print("Old Space: (",x1, ", ",y1)
         try:  
             unit.move(space)
             self.deselect_space()
@@ -284,7 +283,8 @@ class GameBoard:
                 y2 = str(space.get_col())
 
                 msg = "[Move:" + x1 + "," + y1 + ":" + x2 + "," + y2 + "]"
-                self.sender.send(msg)
+                if not from_server:
+                    self.sender.send(msg)
 
             else:
                 move_log = f"{unit.get_name()} stayed in place.\n"
@@ -373,7 +373,7 @@ class GameBoard:
         if target.is_dead(): # If the target is dead, remove them and take their place
             self.ui.logItems['text'].add_text(f"{unit_name} has slain {target_name}!\n")
             target_loc.assign_unit(None)
-            self.move_unit(unit, target_loc)
+            self.move_unit(False, unit, target_loc)
         else: # Otherwise, they will retaliate
             retaliation_log = target.retaliate(unit)
             self.update_stats_panel(unit)
@@ -417,7 +417,7 @@ class GameBoard:
         self.__game_state.next_turn()
 
     def move_and_wait(self, unit, space):
-        self.move_unit(unit, space)
+        self.move_unit(False, unit, space)
         self.end_turn()
 
 class Terrain:

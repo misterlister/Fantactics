@@ -15,27 +15,29 @@ sel = selectors.DefaultSelector()
 
 def receive(conn, mask):
     data = conn.recv(MAX_MESSAGE_SIZE)
-    sendingPlayer = None
-    otherPlayer = None
+    recvPlayer = None
     if data:
-        if conn.fileno() == p1ID:
-            sendingPlayer = bluePlayer
-            otherPlayer = redPlayer
-        if conn.fileno() == p2ID:
-            sendingPlayer = redPlayer
-            otherPlayer = bluePlayer
-        
         message = data.decode('ascii')
+
+
+        if conn.fileno() == bluePlayer.getID():
+            recvPlayer = redPlayer
+            print("***RECEIVED from BLUE: ", message)
+
+        if conn.fileno() == redPlayer.getID():
+            recvPlayer = bluePlayer
+            print("***RECEIVED from RED: ", message)
+
         msgs = message.split()
         for msg in msgs:
-            parse_message(sendingPlayer,otherPlayer,msg)
+            parse_message(recvPlayer,msg)
 
     else:
         sel.unregister(conn)
         conn.close()
 
 
-def parse_message(sendingPlayer,otherPlayer,msg):
+def parse_message(receivingPlayer,msg):
 
     instruction = ""
 
@@ -79,7 +81,7 @@ def parse_message(sendingPlayer,otherPlayer,msg):
         relayString += str(translatedCoords[2]) + ',' + str(translatedCoords[3])
         relayString += ']'
 
-        otherPlayer.sendString(relayString)
+        receivingPlayer.sendString(relayString)
 
 
 if __name__ == "__main__":
@@ -91,19 +93,17 @@ if __name__ == "__main__":
     print("Server listenining at hostname: ", IP, ", port: ", PORT)    
     p1Conn, p1Addr = listenSocket.accept()
     print("P1Conn type: ", type(p1Conn))
-    p1ID = p1Conn.fileno()
-    sel.register(p1Conn, selectors.EVENT_READ, receive)
     p1Active = True
 
     print("Welcome to Fantactics. Please wait for your opponent")
     p2Conn, p2Addr = listenSocket.accept()
-    p2ID = p2Conn.fileno()
-    sel.register(p2Conn, selectors.EVENT_READ, receive)
     p2Active = True
     print("Welcome to Fantactics.")
 
     bluePlayer, redPlayer = assignColours(p1Conn, p2Conn)
-    
+    sel.register(bluePlayer.getConn(), selectors.EVENT_READ, receive)
+    sel.register(redPlayer.getConn(), selectors.EVENT_READ, receive)
+
     if not (redPlayer.stopTurn() and bluePlayer.startTurn()):
         errorMessage(this_file,"Could not assign initial turns.")
     bluePlayer
