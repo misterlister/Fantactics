@@ -535,6 +535,12 @@ class Space:
             return None
         return self.__unit.get_sprite()
     
+    def contains_unit_type(self, unit_type) -> bool:
+        if self.__unit != None:
+            return self.__unit.is_unit_type(unit_type)
+        else:
+            return False
+    
     def get_terrain_sprite(self):
         pass
     

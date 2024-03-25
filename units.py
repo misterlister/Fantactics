@@ -245,6 +245,36 @@ class Unit:
             if down_space != None:
                 space_list.append(down_space)
         return space_list
+    
+    def adjacent_to(self, unit_type, ally: bool) -> bool:
+        location = self.get_location()
+        if self.adjacent_direction(location.get_up(), unit_type, ally):
+            return True
+        if self.adjacent_direction(location.get_left(), unit_type, ally):
+            return True
+        if self.adjacent_direction(location.get_right(), unit_type, ally):
+            return True
+        if self.adjacent_direction(location.get_down(), unit_type, ally):
+            return True
+        return False
+    
+    def adjacent_direction(self, space, unit_type, ally: bool) -> bool:
+        if space != None: # If a space in this direction exists
+            if space.contains_unit_type(unit_type): # And it contains a unit
+                if self.is_ally(space.get_unit()) == ally: # And that unit matches the ally specification
+                    return True
+        return False
+
+    def is_unit_type(self, unit_type) -> bool:
+        if isinstance(self, unit_type):
+            return True
+        return False
+
+    def is_ally(self, unit) -> bool:
+        if unit.get_player() == self.get_player():
+            return True
+        return False
+
         
 
 class Peasant(Unit):
