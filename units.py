@@ -1,5 +1,4 @@
 from math import ceil
-from gameBoard import Space
 from graphics import SpriteType
 from random import randint
 from names import Names, Titles
@@ -114,7 +113,7 @@ class Unit:
         del titles[title_index]
         return name
 
-    def move(self, space: Space):
+    def move(self, space):
         try:
             if space.get_unit() is None:
                 self.__location.assign_unit(None)
@@ -125,7 +124,7 @@ class Unit:
         except Exception as e:
             return e
         
-    def _place(self, space: Space):
+    def _place(self, space):
         self.__location = space
 
     def take_damage(self, damage: int):
@@ -186,9 +185,9 @@ class Unit:
     def choose_action(self):
         print("Choose Action!")
     
-    def find_target_spaces(self, space: Space, range: int, target_dict: dict, action = None, pass_dict: dict = TARGET_ALL) -> set:
+    def find_target_spaces(self, space, range: int, target_dict: dict, action = None, pass_dict: dict = TARGET_ALL) -> set:
         # Add this space if it is a valid target
-        if self.verify_target(space, target_dict, action):
+        if self.verify_target(space, target_dict):
             target_spaces = {space}
         else:
             target_spaces = set()
@@ -200,14 +199,14 @@ class Unit:
         target_spaces = target_spaces.union(self.check_target_spaces(space.get_down(), range, target_dict, action, pass_dict))
         return target_spaces
     
-    def check_target_spaces(self, space: Space, range: int, target_dict: dict, action, pass_dict: dict) -> set:
+    def check_target_spaces(self, space, range: int, target_dict: dict, action, pass_dict: dict) -> set:
         valid_spaces = set()
         if space != None: # If this space doesn't exist, return
             if self.verify_target(space, pass_dict):
                 valid_spaces = valid_spaces.union(self.find_target_spaces(space, range-1, target_dict, action, pass_dict))
         return valid_spaces
     
-    def verify_target(self, space: Space, target_dict: dict, action = None) -> bool:
+    def verify_target(self, space, target_dict: dict) -> bool:
         unit = space.get_unit()
         if unit == None: # Check if the space is empty
             if target_dict[TargetType.NONE] == True:
@@ -226,10 +225,6 @@ class Unit:
                 return False
         else: # The space must be occupied by an enemy
             if target_dict[TargetType.ENEMY] == True:
-                # If this is an ability, check if the target is guarded
-                if action == ActionType.ABILITY:
-                    if guarded_space(space, self):
-                        return False
                 return True
             else: 
                 return False
@@ -409,7 +404,7 @@ class Cavalry(Unit):
         self.set_ability_targets(TARGET_SELF)
     
     # Variation of movement calculation that allows for passing all units except Enemy-aligned Soldiers
-    def check_target_spaces(self, space: Space, range: int, target_dict: dict, action, pass_dict: dict) -> set:
+    def check_target_spaces(self, space, range: int, target_dict: dict, action, pass_dict: dict) -> set:
         valid_spaces = set()
         if space != None: # If this space doesn't exist, return
             target = space.get_unit()
@@ -455,7 +450,8 @@ class Sorcerer(Unit):
             left_target = left_space.get_unit()
             if left_target != None:
                 attack_log += (self.magic_power(left_target))
-        attack_log += (self.magic_power(target))
+        if target is not None:
+            attack_log += (self.magic_power(target))
         right_space = space.get_right()
         if right_space is not None:
             right_target = right_space.get_unit()
@@ -685,18 +681,3 @@ def weapon_matchup(weapon, armour):
             return Effect.STRONG
         
     return None
-
-def guarded_space(space: Space, unit: Unit) -> bool:
-    target = space.get_unit()
-    if target != None: # If there is a target
-        if not unit.is_ally(target): # And the target is an enemy
-            if is_guarded(target):
-                return True
-    return False
-
-def is_guarded(unit: Unit) -> bool:
-    if unit.is_unit_type(Soldier):
-        return False
-    if unit.adjacent_to(Soldier, True):
-        return True
-    return False

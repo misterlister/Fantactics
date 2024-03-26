@@ -3,6 +3,7 @@ from tkinter import Tk, Label
 from PIL import ImageTk, Image
 from userInterface import UserInterface, do_nothing
 from constants import *
+from units import Soldier
 
 
 class GameBoard:
@@ -216,6 +217,16 @@ class GameBoard:
         y2 = self.get_row_y(row+1) - (LINE_WIDTH * 2)
         self.window.canvas.create_oval(x1, y1, x2, y2, width=SELECTION_BUFFER, outline=colour)
 
+    def x_out_space(self, space, colour: str) -> None:
+        row = space.get_row()
+        col = space.get_col()
+        x1 = self.get_col_x(col) + ((LINE_WIDTH * 2) - 1) 
+        y1 = self.get_row_y(row) + ((LINE_WIDTH * 2) - 1) 
+        x2 = self.get_col_x(col+1) - (LINE_WIDTH * 2)
+        y2 = self.get_row_y(row+1) - (LINE_WIDTH * 2)
+        self.window.canvas.create_line(x1, y1, x2, y2, width=LINE_WIDTH, fill=colour)
+        self.window.canvas.create_line(x2, y1, x1, y2, width=LINE_WIDTH, fill=colour)
+
     def check_square(self, row: int, col: int):
         if row > BOARD_ROWS or col > BOARD_COLS:
             return "Outside Grid"
@@ -301,6 +312,12 @@ class GameBoard:
         if min_range > 1:
             invalid_spaces = unit.find_target_spaces(space, min_range-1, target_dict)
             valid_spaces = valid_spaces.difference(invalid_spaces)
+        if range > 1:
+            guarded_spaces = self.get_guarded_spaces(valid_spaces, unit)
+            valid_spaces = valid_spaces.difference(guarded_spaces)
+            print(guarded_spaces)
+            for sp in guarded_spaces:
+                self.x_out_space(sp, "grey")
         self.outline_spaces(valid_spaces, 'yellow')
         return valid_spaces
     
@@ -311,6 +328,18 @@ class GameBoard:
         valid_spaces = unit.find_target_spaces(space, range, target_dict, action)
         self.outline_spaces(valid_spaces, 'red')
         return valid_spaces
+    
+    def get_guarded_spaces(self, valid_spaces, unit):
+        guarded_spaces = set()
+        for space in valid_spaces:
+            target = space.get_unit()
+            if target != None:
+                if not target.is_ally(unit):
+                    if not target.is_unit_type(Soldier):
+                        if target.adjacent_to(Soldier, True):
+                            guarded_spaces.add(space)
+        return guarded_spaces
+
     
     def draw_space_list(self, spaces: list):
         for space in spaces:
@@ -435,11 +464,6 @@ class GameBoard:
         if len(area_spaces_reset) > 0:
             for sp in area_spaces_reset:
                 self.draw_space(sp)
-        
-
-
-        
-        
 
     def combat(self, unit, target):
         unit_name = unit.get_name()
