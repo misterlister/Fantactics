@@ -186,28 +186,28 @@ class Unit:
     def choose_action(self):
         print("Choose Action!")
     
-    def find_target_spaces(self, space: Space, range: int, target_dict: dict, pass_dict: dict = TARGET_ALL) -> set:
+    def find_target_spaces(self, space: Space, range: int, target_dict: dict, action = None, pass_dict: dict = TARGET_ALL) -> set:
         # Add this space if it is a valid target
-        if self.verify_target(space, target_dict):
+        if self.verify_target(space, target_dict, action):
             target_spaces = {space}
         else:
             target_spaces = set()
         if range <= 0:
             return target_spaces
-        target_spaces = target_spaces.union(self.check_target_spaces(space.get_left(), range, target_dict, pass_dict))
-        target_spaces = target_spaces.union(self.check_target_spaces(space.get_up(), range, target_dict, pass_dict))
-        target_spaces = target_spaces.union(self.check_target_spaces(space.get_right(), range, target_dict, pass_dict))
-        target_spaces = target_spaces.union(self.check_target_spaces(space.get_down(), range, target_dict, pass_dict))
+        target_spaces = target_spaces.union(self.check_target_spaces(space.get_left(), range, target_dict, action, pass_dict))
+        target_spaces = target_spaces.union(self.check_target_spaces(space.get_up(), range, target_dict, action, pass_dict))
+        target_spaces = target_spaces.union(self.check_target_spaces(space.get_right(), range, target_dict, action, pass_dict))
+        target_spaces = target_spaces.union(self.check_target_spaces(space.get_down(), range, target_dict, action, pass_dict))
         return target_spaces
     
-    def check_target_spaces(self, space: Space, range: int, target_dict: dict, pass_dict: dict) -> set:
+    def check_target_spaces(self, space: Space, range: int, target_dict: dict, action, pass_dict: dict) -> set:
         valid_spaces = set()
         if space != None: # If this space doesn't exist, return
             if self.verify_target(space, pass_dict):
-                valid_spaces = valid_spaces.union(self.find_target_spaces(space, range-1, target_dict, pass_dict))
+                valid_spaces = valid_spaces.union(self.find_target_spaces(space, range-1, target_dict, action, pass_dict))
         return valid_spaces
     
-    def verify_target(self, space: Space, target_dict: dict) -> bool:
+    def verify_target(self, space: Space, target_dict: dict, action = None) -> bool:
         unit = space.get_unit()
         if unit == None: # Check if the space is empty
             if target_dict[TargetType.NONE] == True:
@@ -226,6 +226,10 @@ class Unit:
                 return False
         else: # The space must be occupied by an enemy
             if target_dict[TargetType.ENEMY] == True:
+                # If this is an ability, check if the target is guarded
+                if action == ActionType.ABILITY:
+                    if guarded_space(space, self):
+                        return False
                 return True
             else: 
                 return False
@@ -254,9 +258,9 @@ class Unit:
     def adjacent_to(self, unit_type, ally: bool, range: int = 1) -> bool:
         location = self.get_location()
         if ally:
-            include = TargetType.ALLY
+            include = TARGET_ALLIES
         else:
-            include = TargetType.ENEMY
+            include = TARGET_ENEMIES
         spaces = self.find_target_spaces(location, range, include)
         for space in spaces:
             try:
@@ -405,16 +409,16 @@ class Cavalry(Unit):
         self.set_ability_targets(TARGET_SELF)
     
     # Variation of movement calculation that allows for passing all units except Enemy-aligned Soldiers
-    def check_target_spaces(self, space: Space, range: int, target_dict: dict, pass_dict: dict) -> set:
+    def check_target_spaces(self, space: Space, range: int, target_dict: dict, action, pass_dict: dict) -> set:
         valid_spaces = set()
         if space != None: # If this space doesn't exist, return
             target = space.get_unit()
-            if target_dict == TARGET_MOVE: # If this is a movement action
+            if action == ActionType.MOVE: # If this is a movement action
                 if target != None: # If there is a unit here
                     if target.get_player() != self.get_player(): # And this unit is an enemy
                         if isinstance(target, Soldier): # And that enemy is a Soldier Class
                             return valid_spaces # Do not proceed
-            valid_spaces = valid_spaces.union(self.find_target_spaces(space, range-1, target_dict, pass_dict))
+            valid_spaces = valid_spaces.union(self.find_target_spaces(space, range-1, target_dict, action, pass_dict))
         return valid_spaces
     
 class Sorcerer(Unit):
@@ -681,3 +685,18 @@ def weapon_matchup(weapon, armour):
             return Effect.STRONG
         
     return None
+
+def guarded_space(space: Space, unit: Unit) -> bool:
+    target = space.get_unit()
+    if target != None: # If there is a target
+        if not unit.is_ally(target): # And the target is an enemy
+            if is_guarded(target):
+                return True
+    return False
+
+def is_guarded(unit: Unit) -> bool:
+    if unit.is_unit_type(Soldier):
+        return False
+    if unit.adjacent_to(Soldier, True):
+        return True
+    return False

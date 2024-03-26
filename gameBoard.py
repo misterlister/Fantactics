@@ -287,7 +287,8 @@ class GameBoard:
         else:
             pass_dict = TARGET_MOVE
         target_dict = TARGET_MOVE
-        valid_spaces = unit.find_target_spaces(space, range, target_dict, pass_dict)
+        action = ActionType.MOVE
+        valid_spaces = unit.find_target_spaces(space, range, target_dict, action, pass_dict)
         self.outline_spaces(valid_spaces, 'green')
         return valid_spaces
     
@@ -295,7 +296,8 @@ class GameBoard:
         range = unit.get_ability_range()
         min_range = unit.get_ability_min_range()
         target_dict = unit.get_ability_targets()
-        valid_spaces = unit.find_target_spaces(space, range, target_dict)
+        action = ActionType.ABILITY
+        valid_spaces = unit.find_target_spaces(space, range, target_dict, action)
         if min_range > 1:
             invalid_spaces = unit.find_target_spaces(space, min_range-1, target_dict)
             valid_spaces = valid_spaces.difference(invalid_spaces)
@@ -305,7 +307,8 @@ class GameBoard:
     def get_attack_spaces(self, unit, space) -> set:
         range = 1
         target_dict = TARGET_ENEMIES
-        valid_spaces = unit.find_target_spaces(space, range, target_dict)
+        action = ActionType.ATTACK
+        valid_spaces = unit.find_target_spaces(space, range, target_dict, action)
         self.outline_spaces(valid_spaces, 'red')
         return valid_spaces
     
