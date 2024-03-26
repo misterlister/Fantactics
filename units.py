@@ -210,9 +210,17 @@ class Unit:
     def check_target_spaces(self, space, range: int, target_dict: dict, action, pass_dict: dict) -> set:
         valid_spaces = set()
         if space != None: # If this space doesn't exist, return
-            if self.verify_target(space, pass_dict):
+            if self.verify_space_pass(space, pass_dict, action):
                 valid_spaces = valid_spaces.union(self.find_target_spaces(space, range-1, target_dict, action, pass_dict))
         return valid_spaces
+    
+    def verify_space_pass(self, space, target_dict, action) -> bool:
+        if action == ActionType.MOVE:
+            unit = space.get_unit()
+            if unit != None:
+                if unit.get_move_type() == MoveType.FLY:
+                    return True
+        return self.verify_target(space, target_dict)
     
     def verify_target(self, space, target_dict: dict) -> bool:
         unit = space.get_unit()
@@ -411,18 +419,17 @@ class Cavalry(Unit):
                          sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
         self.set_ability_targets(TARGET_SELF)
     
-    # Variation of movement calculation that allows for passing all units except Enemy-aligned Soldiers
-    def check_target_spaces(self, space, range: int, target_dict: dict, action, pass_dict: dict) -> set:
-        valid_spaces = set()
-        if space != None: # If this space doesn't exist, return
-            target = space.get_unit()
-            if action == ActionType.MOVE: # If this is a movement action
-                if target != None: # If there is a unit here
-                    if target.get_player() != self.get_player(): # And this unit is an enemy
-                        if isinstance(target, Soldier): # And that enemy is a Soldier Class
-                            return valid_spaces # Do not proceed
-            valid_spaces = valid_spaces.union(self.find_target_spaces(space, range-1, target_dict, action, pass_dict))
-        return valid_spaces
+    # Variation of movement verification that can pass all units except Enemy-aligned Soldiers
+    def verify_space_pass(self, space, target_dict, action) -> bool:
+        if action == ActionType.MOVE:
+            unit = space.get_unit()
+            if unit != None:
+                if not self.is_ally(unit):
+                    if isinstance(unit, Soldier):
+                        return False
+            return True
+        else:
+            return self.verify_target(space, target_dict)
     
 class Sorcerer(Unit):
     def __init__(self, p1 = True) -> None:
