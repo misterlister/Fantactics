@@ -44,6 +44,8 @@ class Unit:
         self.__player = None
         self.__ability_targets = TARGET_NONE
         self._ability_area_of_effect = []
+        self.__damage_mod = 0
+        self.__defense_mod = 0
         
     def get_unit_type(self):
         return self.__unit_type
@@ -98,6 +100,12 @@ class Unit:
     
     def get_ability_targets(self):
         return self.__ability_targets
+    
+    def get_damage_mod(self):
+        return self.__damage_mod
+    
+    def get_defense_mod(self):
+        return self.__defense_mod
     
     def set_ability_targets(self, target_dict: dict):
         self.__ability_targets = target_dict
