@@ -21,6 +21,7 @@ class Unit:
             title_list,
             ability_name,
             ability_range,
+            ability_min_range,
             ability_value
             ) -> None:
         
@@ -37,6 +38,7 @@ class Unit:
         self.__name = self.make_name(name_list, title_list)
         self.__ability_name = ability_name
         self.__ability_range = ability_range
+        self.__ability_min_range = ability_min_range
         self.__ability_value = ability_value
         self.__location = None
         self.__dead = False
@@ -88,6 +90,9 @@ class Unit:
     
     def get_ability_range(self):
         return self.__ability_range
+    
+    def get_ability_min_range(self):
+        return self.__ability_min_range
     
     def get_ability_value(self):
         return self.__ability_value
@@ -184,7 +189,7 @@ class Unit:
     def find_target_spaces(self, space: Space, range: int, target_dict: dict, pass_dict: dict = TARGET_ALL) -> set:
         # Add this space if it is a valid target
         if self.verify_target(space, target_dict):
-            target_spaces = {(space.get_row(),space.get_col())}
+            target_spaces = {space}
         else:
             target_spaces = set()
         if range <= 0:
@@ -291,9 +296,10 @@ class Peasant(Unit):
         title_list = Titles.Peasant
         ability_name = "Surge of Bravery"
         ability_range = 0
+        ability_min_range = 0
         ability_value = 2
         super().__init__(unit_type, hp, dam_val, dam_type, arm_val, arm_type, move, move_type, 
-                         sprite, name_list, title_list, ability_name, ability_range, ability_value)
+                         sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
         self.set_ability_targets(TARGET_SELF)
         self.ability_used = False
 
@@ -315,9 +321,10 @@ class Soldier(Unit):
         title_list = Titles.Soldier
         ability_name = "Guarded Advance" 
         ability_range = 1
+        ability_min_range = 1
         ability_value = None
         super().__init__(unit_type, hp, dam_val, dam_type, arm_val, arm_type, move, move_type, 
-                         sprite, name_list, title_list, ability_name, ability_range, ability_value)
+                         sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
         self.set_ability_targets(TARGET_ALLIES)
 
     def special_ability(self, target, space):
@@ -352,9 +359,10 @@ class Archer(Unit):
         title_list = Titles.Archer
         ability_name = "Ranged Attack"
         ability_range = 5
+        ability_min_range = 2
         ability_value = 6
         super().__init__(unit_type, hp, dam_val, dam_type, arm_val, arm_type, move, move_type, 
-                         sprite, name_list, title_list, ability_name, ability_range, ability_value)
+                         sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
         self.set_ability_targets(TARGET_ENEMIES)
         self.__special_damage_type = DamageType.PIERCE
 
@@ -390,9 +398,10 @@ class Cavalry(Unit):
         title_list = Titles.Cavalry
         ability_name = "Harrying Strike"
         ability_range = 0
+        ability_min_range = 0
         ability_value = None
         super().__init__(unit_type, hp, dam_val, dam_type, arm_val, arm_type, move, move_type, 
-                         sprite, name_list, title_list, ability_name, ability_range, ability_value)
+                         sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
         self.set_ability_targets(TARGET_SELF)
     
     # Variation of movement calculation that allows for passing all units except Enemy-aligned Soldiers
@@ -400,7 +409,7 @@ class Cavalry(Unit):
         valid_spaces = set()
         if space != None: # If this space doesn't exist, return
             target = space.get_unit()
-            if target_dict != TARGET_ENEMIES: # If this is not an attack
+            if target_dict == TARGET_MOVE: # If this is a movement action
                 if target != None: # If there is a unit here
                     if target.get_player() != self.get_player(): # And this unit is an enemy
                         if isinstance(target, Soldier): # And that enemy is a Soldier Class
@@ -426,9 +435,10 @@ class Sorcerer(Unit):
         title_list = Titles.Sorcerer
         ability_name = "Sorcerous Assault"    
         ability_range = 4
+        ability_min_range = 0
         ability_value = 6
         super().__init__(unit_type, hp, dam_val, dam_type, arm_val, arm_type, move, move_type, 
-                         sprite, name_list, title_list, ability_name, ability_range, ability_value)
+                         sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
         self.set_ability_targets(TARGET_ALL)
         self.__special_damage_type = DamageType.MAGIC
         self._ability_area_of_effect.extend([Direction.LEFT, Direction.RIGHT])
@@ -486,9 +496,10 @@ class Healer(Unit):
         title_list = Titles.Healer
         ability_name = "Healing Radiance"
         ability_range = 0
+        ability_min_range = 0
         ability_value = 5
         super().__init__(unit_type, hp, dam_val, dam_type, arm_val, arm_type, move, move_type, 
-                         sprite, name_list, title_list, ability_name, ability_range, ability_value)
+                         sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
         self.set_ability_targets(TARGET_SELF)
         self._ability_area_of_effect.extend([Direction.UP, Direction.LEFT, Direction.RIGHT, Direction.DOWN])
 
@@ -549,9 +560,10 @@ class Archmage(Unit):
         title_list = Titles.Archmage
         ability_name = "Arcane Vortex"
         ability_range = 3
+        ability_min_range = 0
         ability_value = 7
         super().__init__(unit_type, hp, dam_val, dam_type, arm_val, arm_type, move, move_type, 
-                         sprite, name_list, title_list, ability_name, ability_range, ability_value)
+                         sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
         self.set_ability_targets(TARGET_ALL)
         self.__special_damage_type = DamageType.MAGIC
         self._ability_area_of_effect.extend([Direction.UP, Direction.LEFT, Direction.RIGHT, Direction.DOWN])
@@ -619,9 +631,10 @@ class General(Unit):
         title_list = Titles.General
         ability_name = "Inspirational Rally"
         ability_range = 0
+        ability_min_range = 0
         ability_value = 1
         super().__init__(unit_type, hp, dam_val, dam_type, arm_val, arm_type, move, move_type, 
-                         sprite, name_list, title_list, ability_name, ability_range, ability_value)
+                         sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
         self.set_ability_targets(TARGET_SELF)
         self.ability_used = False
 

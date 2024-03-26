@@ -203,6 +203,10 @@ class GameBoard:
         y2 = self.get_row_y(row+1) - (LINE_WIDTH)
         self.window.canvas.create_rectangle(x1, y1, x2, y2, width=SELECTION_BUFFER, outline=colour)
 
+    def outline_spaces(self, spaces: list, colour: str) -> None:
+        for space in spaces:
+            self.outline_space(space, colour)
+
     def circle_outline_space(self, space, colour: str) -> None:
         row = space.get_row()
         col = space.get_col()
@@ -283,30 +287,22 @@ class GameBoard:
         else:
             pass_dict = TARGET_MOVE
         target_dict = TARGET_MOVE
-        valid_coords = unit.find_target_spaces(space, range, target_dict, pass_dict)
-        valid_spaces = self.set_spaces(valid_coords, 'green')
+        valid_spaces = unit.find_target_spaces(space, range, target_dict, pass_dict)
+        self.outline_spaces(valid_spaces, 'green')
         return valid_spaces
     
-    def get_target_spaces(self, unit, space) -> set:
+    def get_ability_spaces(self, unit, space) -> set:
         range = unit.get_ability_range()
         target_dict = unit.get_ability_targets()
-        valid_coords = unit.find_target_spaces(space, range, target_dict)
-        valid_spaces = self.set_spaces(valid_coords, 'yellow')
+        valid_spaces = unit.find_target_spaces(space, range, target_dict)
+        self.outline_spaces(valid_spaces, 'yellow')
         return valid_spaces
     
     def get_attack_spaces(self, unit, space) -> set:
         range = 1
         target_dict = TARGET_ENEMIES
-        valid_coords = unit.find_target_spaces(space, range, target_dict)
-        valid_spaces = self.set_spaces(valid_coords, 'red')
-        return valid_spaces
-    
-    def set_spaces(self, coords, colour):
-        valid_spaces = []
-        for tuple in coords:
-            space = self.__spaces[tuple[0]][tuple[1]]
-            self.outline_space(space, colour)
-            valid_spaces.append(space)
+        valid_spaces = unit.find_target_spaces(space, range, target_dict)
+        self.outline_spaces(valid_spaces, 'red')
         return valid_spaces
     
     def draw_space_list(self, spaces: list):
@@ -400,7 +396,7 @@ class GameBoard:
         self.draw_space(space)
         self.preview_sprite(unit, space)
         try:
-            self.__ability_spaces = self.get_target_spaces(unit, space)
+            self.__ability_spaces = self.get_ability_spaces(unit, space)
         except Exception as e:
             print(e)
     
