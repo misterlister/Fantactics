@@ -293,8 +293,12 @@ class GameBoard:
     
     def get_ability_spaces(self, unit, space) -> set:
         range = unit.get_ability_range()
+        min_range = unit.get_ability_min_range()
         target_dict = unit.get_ability_targets()
         valid_spaces = unit.find_target_spaces(space, range, target_dict)
+        if min_range > 1:
+            invalid_spaces = unit.find_target_spaces(space, min_range-1, target_dict)
+            valid_spaces = valid_spaces.difference(invalid_spaces)
         self.outline_spaces(valid_spaces, 'yellow')
         return valid_spaces
     
