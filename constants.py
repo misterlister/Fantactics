@@ -111,6 +111,11 @@ class MoveType(IntEnum):
     HORSE = 2
     FLY = 3
 
+class ActionType(IntEnum):
+    MOVE = 1
+    ATTACK = 2
+    ABILITY = 3
+
 class TargetType(IntEnum):
     ITSELF = 1
     ALLY = 2
