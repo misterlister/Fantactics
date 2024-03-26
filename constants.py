@@ -145,6 +145,13 @@ TARGET_SELF = {
     TargetType.NONE: False
 }
 
+TARGET_OTHERS = {
+    TargetType.ITSELF: False,
+    TargetType.ALLY: True,
+    TargetType.ENEMY: True,
+    TargetType.NONE: False
+}
+
 TARGET_ALL = {
     TargetType.ITSELF: True,
     TargetType.ALLY: True,

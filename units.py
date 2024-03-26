@@ -195,6 +195,13 @@ class Unit:
         target_spaces = target_spaces.union(self.check_target_spaces(space.get_down(), range, target_dict, pass_dict))
         return target_spaces
     
+    def check_target_spaces(self, space: Space, range: int, target_dict: dict, pass_dict: dict) -> set:
+        valid_spaces = set()
+        if space != None: # If this space doesn't exist, return
+            if self.verify_target(space, pass_dict):
+                valid_spaces = valid_spaces.union(self.find_target_spaces(space, range-1, target_dict, pass_dict))
+        return valid_spaces
+    
     def verify_target(self, space: Space, target_dict: dict) -> bool:
         unit = space.get_unit()
         if unit == None: # Check if the space is empty
@@ -217,13 +224,6 @@ class Unit:
                 return True
             else: 
                 return False
-
-    def check_target_spaces(self, space: Space, range: int, target_dict: dict, pass_dict: dict) -> set:
-        valid_spaces = set()
-        if space != None: # If this space doesn't exist, return
-            if self.verify_target(space, pass_dict):
-                valid_spaces = valid_spaces.union(self.find_target_spaces(space, range-1, target_dict, pass_dict))
-        return valid_spaces
     
     def get_area_of_effect(self, space):
         space_list = []
@@ -246,23 +246,19 @@ class Unit:
                 space_list.append(down_space)
         return space_list
     
-    def adjacent_to(self, unit_type, ally: bool) -> bool:
+    def adjacent_to(self, unit_type, ally: bool, range: int = 1) -> bool:
         location = self.get_location()
-        if self.adjacent_direction(location.get_up(), unit_type, ally):
-            return True
-        if self.adjacent_direction(location.get_left(), unit_type, ally):
-            return True
-        if self.adjacent_direction(location.get_right(), unit_type, ally):
-            return True
-        if self.adjacent_direction(location.get_down(), unit_type, ally):
-            return True
-        return False
-    
-    def adjacent_direction(self, space, unit_type, ally: bool) -> bool:
-        if space != None: # If a space in this direction exists
-            if space.contains_unit_type(unit_type): # And it contains a unit
-                if self.is_ally(space.get_unit()) == ally: # And that unit matches the ally specification
+        if ally:
+            include = TargetType.ALLY
+        else:
+            include = TargetType.ENEMY
+        spaces = self.find_target_spaces(location, range, include)
+        for space in spaces:
+            try:
+                if space.get_unit().is_unit_type(unit_type):
                     return True
+            except Exception as e:
+                print(e)
         return False
 
     def is_unit_type(self, unit_type) -> bool:
