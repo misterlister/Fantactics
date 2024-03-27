@@ -148,9 +148,12 @@ class Unit:
 
     def is_dead(self):
         return self.__dead
+    
+    def first_strike_damage(self):
+        return ceil(self.__damage * FIRST_STRIKE_BOOST)
 
     def basic_attack(self, target):
-        first_strike_attack = ceil(self.__damage * FIRST_STRIKE_BOOST)
+        first_strike_attack = self.first_strike_damage()
         target_hp = target.get_curr_hp()
         self.attack(target, first_strike_attack, self.__damage_type)
         damage_dealt = target_hp - target.get_curr_hp()
@@ -159,18 +162,24 @@ class Unit:
     
     def attack_preview(self, target, first_strike = False):
         if first_strike:
-            attack_damage = ceil(self.__damage * FIRST_STRIKE_BOOST)
+            attack_damage = self.first_strike_damage()
         else:
             attack_damage = self.__damage
+        damage_dealt = self.calculate_preview(target, attack_damage, self.__damage_type)
+        return damage_dealt
+    
+    def calculate_preview(self, target, attack_damage, damage_type):
         target_hp = target.get_curr_hp()
-        damage = self.calculate_damage(target, attack_damage, self.__damage_type)
+        damage = self.calculate_damage(target, attack_damage, damage_type)
         if damage >= target_hp:
             damage_dealt = target_hp
-            deathblow = True
         else:
             damage_dealt = damage
-            deathblow = False
-        return damage_dealt, deathblow
+        return damage_dealt
+
+    
+    def ability_preview(self, target):
+        return None
 
     def retaliate(self, target):
         target_hp = target.get_curr_hp()
@@ -191,6 +200,7 @@ class Unit:
         atk_damage -= target.get_armour_val()
         if effectiveness == Effect.POOR:
             atk_damage = ceil(atk_damage * POOR_EFFECT_MOD)
+        return atk_damage
 
     def special_ability(self, target, space):
         # TEMP
@@ -393,7 +403,7 @@ class Archer(Unit):
         ability_name = "Ranged Attack"
         ability_range = 5
         ability_min_range = 2
-        ability_value = 6
+        ability_value = 8
         super().__init__(unit_type, hp, dam_val, dam_type, arm_val, arm_type, move, move_type, 
                          sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
         self.set_ability_targets(TARGET_ENEMIES)
@@ -403,15 +413,21 @@ class Archer(Unit):
         unit_name = self.get_name()
         target_name = target.get_name()
         attack_log = []
-        first_strike_attack = ceil(self.get_ability_value() * FIRST_STRIKE_BOOST)
+        attack_damage = self.get_ability_value()
         target_hp = target.get_curr_hp()
-        self.attack(target, first_strike_attack, self.__special_damage_type)
+        self.attack(target, attack_damage, self.__special_damage_type)
         damage_dealt = target_hp - target.get_curr_hp()
         attack_log.append(f"{unit_name} fires an arrow at {target_name}, dealing {damage_dealt} damage!\n")
         if target.is_dead():
             attack_log.append(f"{unit_name} has slain {target_name}!\n")
             target.get_location().assign_unit(None)
         return attack_log
+    
+    def ability_preview(self, target):
+        if target == None:
+            return None
+        damage_dealt = self.calculate_preview(target, self.get_ability_value, self.__special_damage_type)
+        return damage_dealt
 
 class Cavalry(Unit):
     def __init__(self, p1 = True) -> None:
@@ -510,6 +526,12 @@ class Sorcerer(Unit):
             attack_log.append(f"{unit_name} has slain {target_name}!\n")
             target.get_location().assign_unit(None)
         return attack_log
+    
+    def ability_preview(self, target):
+        if target == None:
+            return None
+        damage_dealt = self.calculate_preview(target, self.get_ability_value, self.__special_damage_type)
+        return damage_dealt
 
 class Healer(Unit):
     def __init__(self, p1 = True) -> None:
@@ -645,6 +667,12 @@ class Archmage(Unit):
             attack_log.append(f"{unit_name} has slain {target_name}!\n")
             target.get_location().assign_unit(None)
         return attack_log
+    
+    def ability_preview(self, target):
+        if target == None:
+            return None
+        damage_dealt = self.calculate_preview(target, self.get_ability_value, self.__special_damage_type)
+        return damage_dealt
 
 class General(Unit):
     def __init__(self, p1 = True) -> None:

@@ -150,25 +150,33 @@ class GameBoard:
         self.__target_space = space
         self.draw_space(self.__action_space)
         self.preview_sprite(unit, self.__action_space)
+        target = space.get_unit()
         self.ui.controlBar.buttons['green'].change_unclick_func(lambda: action(unit, space))
         if action == self.ability_action: # If this is an ability, highlight the area of effect
             self.__area_of_effect_spaces = unit.get_area_of_effect(space)
             for effect_space in self.__area_of_effect_spaces:
                 self.circle_outline_space(effect_space, colour)
+            self.ability_preview(unit, target)
         else: # Otherwise, highlight the target space
             self.circle_outline_space(space, colour)
             if action == self.attack_action:
-                target = space.get_unit()
                 self.combat_preview(unit, target)
 
     def combat_preview(self, unit, target):
-        target_damage, target_dead = unit.attack_preview(target, True)
-        if target_dead == False:
-            unit_damage, unit_dead = target.attack_preview(unit, False)
+        target_damage = unit.attack_preview(target, True)
+        if target_damage >= target.get_curr_hp():
+            unit_damage = target.attack_preview(unit, False)
         else:
             unit_damage = 0
         self.update_stats_panel(target, target_damage)
         self.update_stats_panel(unit, unit_damage)
+
+    def ability_preview(self, unit, target):
+        if target != None:
+            target_damage = unit.ability_preview(target)
+            if target_damage != None:
+                self.update_stats_panel(target, target_damage)
+                self.update_stats_panel(unit)
                 
     def connect_spaces(self, spaces):
         for i in range(BOARD_ROWS):
