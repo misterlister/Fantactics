@@ -157,7 +157,16 @@ class GameBoard:
                 self.circle_outline_space(effect_space, colour)
         else: # Otherwise, highlight the target space
             self.circle_outline_space(space, colour)
-        ### SHOW COMBAT/ABILITY PREVIEW HERE
+            if action == self.attack_action:
+                target = space.get_unit()
+                self.combat_preview(unit, target)
+
+                
+    def combat_preview(self, unit, target):
+        target_damage, target_dead = unit.attack_preview(target, True)
+        if target_dead == False:
+            unit_damage, unit_dead = target.attack_preview(unit, False)
+            
                 
     def connect_spaces(self, spaces):
         for i in range(BOARD_ROWS):
@@ -339,7 +348,6 @@ class GameBoard:
                         if target.adjacent_to(Soldier, True):
                             guarded_spaces.add(space)
         return guarded_spaces
-
     
     def draw_space_list(self, spaces: list):
         for space in spaces:

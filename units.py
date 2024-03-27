@@ -156,6 +156,21 @@ class Unit:
         damage_dealt = target_hp - target.get_curr_hp()
         attack_log = f"{self.get_name()} attacks {target.get_name()}, dealing {damage_dealt} damage!\n"
         return attack_log
+    
+    def attack_preview(self, target, first_strike = False):
+        if first_strike:
+            attack_damage = ceil(self.__damage * FIRST_STRIKE_BOOST)
+        else:
+            attack_damage = self.__damage
+        target_hp = target.get_curr_hp()
+        damage = self.calculate_damage(target, attack_damage, self.__damage_type)
+        if damage >= target_hp:
+            damage_dealt = target_hp
+            deathblow = True
+        else:
+            damage_dealt = damage
+            deathblow = False
+        return damage_dealt, deathblow
 
     def retaliate(self, target):
         target_hp = target.get_curr_hp()
@@ -165,6 +180,10 @@ class Unit:
         return retaliation_log
 
     def attack(self, target, damage: int, damage_type):
+        atk_damage = self.calculate_damage(target, damage, damage_type)
+        target.take_damage(atk_damage)
+
+    def calculate_damage(self, target, damage, damage_type) -> int:
         effectiveness = weapon_matchup(damage_type, target.get_armour_type())
         atk_damage = damage
         if effectiveness == Effect.STRONG:
@@ -172,7 +191,6 @@ class Unit:
         atk_damage -= target.get_armour_val()
         if effectiveness == Effect.POOR:
             atk_damage = ceil(atk_damage * POOR_EFFECT_MOD)
-        target.take_damage(atk_damage)
 
     def special_ability(self, target, space):
         # TEMP
