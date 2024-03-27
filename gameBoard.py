@@ -32,10 +32,10 @@ class GameBoard:
         self.__transparent_square = self.set_transparency()
         self.window.canvas.bind('<Button-1>', self.click)
         self.window.canvas.bind('<Button-3>', self.right_click)
-        self.root.bind('<z>', self.ui.controlBar.buttons['red'].unclick)
+        self.root.bind('<z>', self.ui.controlBar.buttons['attack'].unclick)
         self.root.bind('<x>', self.ui.controlBar.buttons['ability'].unclick)
-        self.root.bind('<space>', self.ui.controlBar.buttons['green'].unclick)
-        self.root.bind('<Shift-KeyPress>', self.ui.controlBar.buttons['grey'].unclick)
+        self.root.bind('<space>', self.ui.controlBar.buttons['confirm'].unclick)
+        self.root.bind('<Shift-KeyPress>', self.ui.controlBar.buttons['cancel'].unclick)
         self.__selected_space = None # Space currently selected
         self.__selected_unit = None # Unit currently selected
         self.__action_space = None # Location where selected unit will move to take an action
@@ -462,16 +462,16 @@ class GameBoard:
             print(e)
     
     def set_unit_buttons(self, unit, space):
-        self.ui.controlBar.buttons['red'].change_unclick_func(lambda: self.set_attack_spaces(unit, space))
+        self.ui.controlBar.buttons['attack'].change_unclick_func(lambda: self.set_attack_spaces(unit, space))
         self.ui.controlBar.buttons['ability'].change_unclick_func(lambda: self.set_ability_spaces(unit, space))
-        self.ui.controlBar.buttons['green'].change_unclick_func(lambda: self.move_and_wait(unit, space))
-        self.ui.controlBar.buttons['grey'].change_unclick_func(self.cancel_action)
+        self.ui.controlBar.buttons['confirm'].change_unclick_func(lambda: self.move_and_wait(unit, space))
+        self.ui.controlBar.buttons['cancel'].change_unclick_func(self.cancel_action)
 
     def unset_unit_buttons(self):
-        self.ui.controlBar.buttons['red'].change_unclick_func(do_nothing)
+        self.ui.controlBar.buttons['attack'].change_unclick_func(do_nothing)
         self.ui.controlBar.buttons['ability'].change_unclick_func(do_nothing)
-        self.ui.controlBar.buttons['green'].change_unclick_func(do_nothing)
-        self.ui.controlBar.buttons['grey'].change_unclick_func(do_nothing)
+        self.ui.controlBar.buttons['confirm'].change_unclick_func(do_nothing)
+        self.ui.controlBar.buttons['cancel'].change_unclick_func(do_nothing)
 
     def reset_target_spaces(self):
         self.__action_confirmed = False
