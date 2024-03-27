@@ -372,7 +372,10 @@ class GameBoard:
         if unit is not None:
             self.__valid_moves = self.get_movement_spaces(unit, space)
             self.set_action_space(unit, space)
-            self.set_attack_spaces(unit, space)
+            if self.ui.controlBar.buttons['ability'].get_toggle_status():
+                self.set_ability_spaces(unit, space)
+            else:
+                self.set_attack_spaces(unit, space)
 
     def deselect_space(self) -> None:
         space = self.__selected_space
@@ -456,13 +459,13 @@ class GameBoard:
     
     def set_unit_buttons(self, unit, space):
         self.ui.controlBar.buttons['red'].change_unclick_func(lambda: self.set_attack_spaces(unit, space))
-        self.ui.controlBar.buttons['yellow'].change_unclick_func(lambda: self.set_ability_spaces(unit, space))
+        self.ui.controlBar.buttons['ability'].change_unclick_func(lambda: self.set_ability_spaces(unit, space))
         self.ui.controlBar.buttons['green'].change_unclick_func(lambda: self.move_and_wait(unit, space))
         self.ui.controlBar.buttons['grey'].change_unclick_func(self.cancel_action)
 
     def unset_unit_buttons(self):
         self.ui.controlBar.buttons['red'].change_unclick_func(do_nothing)
-        self.ui.controlBar.buttons['yellow'].change_unclick_func(do_nothing)
+        self.ui.controlBar.buttons['ability'].change_unclick_func(do_nothing)
         self.ui.controlBar.buttons['green'].change_unclick_func(do_nothing)
         self.ui.controlBar.buttons['grey'].change_unclick_func(do_nothing)
 

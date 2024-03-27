@@ -127,7 +127,7 @@ class StatsPanel(Panel):
     def update_class(self, new: str = ' ') -> None:
         self.labels['class'].config(text= f" {new}")
 
-    # For "type" variable:
+    # For "diffType" variable:
     # 0 = damage
     # 1 = healing
     def update_health(self, new: str = '  ', max: str = '', diff: int = 0, diffType: bool = 0) -> None:
@@ -173,18 +173,18 @@ class ControlBar(Panel):
 
         self.buttons = {
             'red' : ToggleButton(self.frame, unpressed='Assets/Buttons/red_unpressed.png', pressed='Assets/Buttons/red_pressed.png'),
-            'yellow' : ToggleButton(self.frame, unpressed='Assets/Buttons/yellow_unpressed.png', pressed='Assets/Buttons/yellow_pressed.png'),
+            'ability' : ToggleButton(self.frame, unpressed='Assets/Buttons/yellow_unpressed.png', pressed='Assets/Buttons/yellow_pressed.png'),
             'green' : CanvasButton(self.frame, unpressed='Assets/Buttons/green_unpressed.png', pressed='Assets/Buttons/green_pressed.png'),
             'grey' : CanvasButton(self.frame, unpressed='Assets/Buttons/grey_unpressed.png', pressed='Assets/Buttons/grey_pressed.png')
         }
 
-        self.__actionToggleKeys = [self.buttons['red'], self.buttons['yellow']]
+        self.__actionToggleKeys = [self.buttons['red'], self.buttons['ability']]
         self.buttons['red'].set_key(self.__actionToggleKeys)
-        self.buttons['yellow'].set_key(self.__actionToggleKeys)
+        self.buttons['ability'].set_key(self.__actionToggleKeys)
 
         self.labels = {
             'red' : Label(self.frame, text='Attack'),
-            'yellow' : Label(self.frame, text='Ability'),
+            'ability' : Label(self.frame, text='Ability'),
             'green' : Label(self.frame, text='Confirm Move'),
             'grey' : Label(self.frame, text='Cancel')
         }
