@@ -161,12 +161,14 @@ class GameBoard:
                 target = space.get_unit()
                 self.combat_preview(unit, target)
 
-                
     def combat_preview(self, unit, target):
         target_damage, target_dead = unit.attack_preview(target, True)
         if target_dead == False:
             unit_damage, unit_dead = target.attack_preview(unit, False)
-            
+        else:
+            unit_damage = 0
+        self.update_stats_panel(target, target_damage)
+        self.update_stats_panel(unit, unit_damage)
                 
     def connect_spaces(self, spaces):
         for i in range(BOARD_ROWS):
@@ -183,7 +185,7 @@ class GameBoard:
 
     # Update the stats panel items
     # Should be called on selection of a unit
-    def update_stats_panel(self, unit):
+    def update_stats_panel(self, unit, damage_preview = 0):
         if unit is not None:
             if unit.get_player().is_current_turn():
                 panel = 'friendlyUnitPanel'
@@ -193,7 +195,7 @@ class GameBoard:
             self.ui.statsPanel[panel].update_image(self.window.get_sprite(sprite))
             self.ui.statsPanel[panel].update_class(unit.get_unit_type())
             self.ui.statsPanel[panel].update_name(unit.get_name())
-            self.ui.statsPanel[panel].update_health(unit.get_curr_hp(), unit.get_max_hp())
+            self.ui.statsPanel[panel].update_health(unit.get_curr_hp(), unit.get_max_hp(), damage_preview)
             self.ui.statsPanel[panel].update_damage(unit.get_damage_val())
             self.ui.statsPanel[panel].update_armour(unit.get_armour_val())
             self.ui.statsPanel[panel].update_movement(unit.get_movement())
