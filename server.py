@@ -1,161 +1,66 @@
 import socket
-import selectors
-from constants import *
-from serverConnection import *
-import time
 
+server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,1)
 
-this_file = "server.py"
+IP_address = socket.gethostname()
+Port = int(5000)
 
-IP = 'localhost'
-PORT = 5000  
-p1Active = False
-p2Active = False
-sel = selectors.DefaultSelector()
+server.bind((IP_address, Port))
 
-def receive(conn, mask):
-    data = conn.recv(MAX_MESSAGE_SIZE)
-    recvPlayer = None
-    if data:
-        message = data.decode('ascii')
+print("Accepting connections at "+IP_address+", port "+str(Port))
+server.listen(5)
 
+QUIT = "QUIT"
+command = None
 
-        if conn.fileno() == bluePlayer.getID():
-            recvPlayer = redPlayer
-            print("***RECEIVED from BLUE: ", message)
+rows = 3
+cols = 3
 
-        if conn.fileno() == redPlayer.getID():
-            recvPlayer = bluePlayer
-            print("***RECEIVED from RED: ", message)
+board = [["-"]*cols]*rows
 
-        msgs = message.split()
-        for msg in msgs:
-            parse_message(recvPlayer,msg)
+def get_position(message):
+   position = list(message)
+   print(position)
+   if len(position) > 2:
+      print("Bad Length")
+      return None, None
+   if position[0].isnumeric() and position[1].isnumeric():
+      row = int(position[0])
+      col = int(position[1])
+      if row >= 0 and row < rows and col >= 0 and col < cols:
+         return row, col
+   print("Bad datatype")
+   return None, None
 
-    else:
-        sel.unregister(conn)
-        conn.close()
+def update_board(row, col):
+   if row is None or col is None:
+      return False, "Invalid Coordinate"
+   if board[row][col] != "x":
+      board[row][col] = "x"
+      return True, "Updated Successfully"
+   else:
+      return False, "Already Occupied"
 
-
-def parse_message(receivingPlayer,msg):
-
-    instruction = ""
-
-    i = 0
-    while msg[i] != ':':
-        if msg[i] != '[':
-            instruction += msg[i]
-        i+=1
-
-    if msg == "[Turn:END]":
-       
-        if(bluePlayer.isMyTurn()):
-            bluePlayer.stopTurn()
-            redPlayer.startTurn()
-        
-        elif(redPlayer.isMyTurn):
-            redPlayer.stopTurn()
-            bluePlayer.startTurn()
-        
-        else:
-            errorMessage(this_file, "It is nobodies turn!")
-    
-    if instruction == "Move":
-
-        coords = []
-
-        for c in msg:
-            if c.isnumeric():
-                coords.append(str(c))
-
-        relayString = "[Move:"
-        translatedCoords = []
-        for n in coords:
-            tn = (abs(int(n)-7))
-            translatedCoords.append(tn)
-            
-        relayString += str(translatedCoords[0]) + ',' + str(translatedCoords[1])
-        relayString += ':'
-        relayString += str(translatedCoords[2]) + ',' + str(translatedCoords[3])
-        relayString += ']'
-
-        receivingPlayer.sendString(relayString)
-
-        
-    if instruction == "Kill":
-        coords = []
-        for c in msg:
-            if c.isnumeric():
-                coords.append(str(c))
-
-        relayString = "[Kill:"
-        translatedCoords = []
-        for n in coords:
-            tn = (abs(int(n)-7))
-            translatedCoords.append(tn)
-        relayString += str(translatedCoords[0]) + ',' + str(translatedCoords[1])
-        relayString += ']'
-
-        receivingPlayer.sendString(relayString)
-
-    if instruction == "Hp":
-
-        inputs = []
-
-        for c in msg:
-            if c.isnumeric():
-                inputs.append(str(c))
-
-        relayString = "[Hp:"
-        t_row = str((abs(int(inputs[0])-7)))
-        t_col = str((abs(int(inputs[1])-7)))
-        hp = inputs[2]
-
-        relayString += t_row + ',' + t_col
-        relayString += ':' + hp + ']'
-
-        receivingPlayer.sendString(relayString)
-
-
-if __name__ == "__main__":
-
-    listenSocket = socket.socket()
-    listenSocket.bind((IP,PORT))
-    listenSocket.listen()
-
-    print("Server listenining at hostname: ", IP, ", port: ", PORT)    
-    p1Conn, p1Addr = listenSocket.accept()
-    print("P1Conn type: ", type(p1Conn))
-    p1Active = True
-
-    print("Welcome to Fantactics. Please wait for your opponent")
-    p2Conn, p2Addr = listenSocket.accept()
-    p2Active = True
-    print("Welcome to Fantactics.")
-
-    bluePlayer, redPlayer = assignColours(p1Conn, p2Conn)
-    sel.register(bluePlayer.getConn(), selectors.EVENT_READ, receive)
-    sel.register(redPlayer.getConn(), selectors.EVENT_READ, receive)
-
-    if not (redPlayer.stopTurn() and bluePlayer.startTurn()):
-        errorMessage(this_file,"Could not assign initial turns.")
-    bluePlayer
-    
-    bluePlayer.initializeBoard()
-    redPlayer.initializeBoard()
-    
-    listenSocket.close() 
-
-    while p1Active or p2Active:
-        try:
-            events = sel.select()
-        except:
-            break
-        for key, mask in events:
-            callback = key.data
-            callback(key.fileobj, mask)
-        
-    p1Conn.close() 
-    p2Conn.close()
-
-    print ('Connection Closed')
+while command != QUIT:
+   conn, addr = server.accept()
+   try:
+      while command != QUIT:
+         try:
+            message = conn.recv(2048)
+            if message:
+               command = message.decode()
+            if command != QUIT:
+               row, col = get_position(command)
+               valid, result = update_board(row, col)
+               response = str(valid) + f" {row} {col} {result}"
+               response = bytes(response, 'utf-8')
+               conn.send(response)
+               message = None
+         except:
+            continue
+      if command == QUIT:
+         conn.close()
+   except:
+      continue
+print("Server Closed.")

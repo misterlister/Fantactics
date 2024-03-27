@@ -190,7 +190,6 @@ class Unit:
     def revive(self):
         self.__dead = False
 
-
     def choose_action(self):
         print("Choose Action!")
     
