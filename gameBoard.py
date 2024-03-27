@@ -138,7 +138,7 @@ class GameBoard:
         return
     
     def ability_action(self, unit, space):
-        self.move_unit(False, self.__action_space)
+        self.move_unit(False, unit, self.__action_space)
         self.update_stats_panel(space.get_unit()) 
         self.activate_ability(unit, space)
         self.ui.controlBar.buttons['red'].untoggle_keys()

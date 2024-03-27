@@ -13,8 +13,8 @@ this_file = "main.py"
 
 
 if __name__ == "__main__":
-
-    connResult, conn = establishConn("localhost", 5000)
+    h_serv = input("Please enter the host name: ")
+    connResult, conn = establishConn(h_serv, 5000)
     if not connResult:
         errorMessage(this_file, "Could not establish connection")
         exit()

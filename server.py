@@ -118,12 +118,14 @@ def parse_message(receivingPlayer,msg):
 
 
 if __name__ == "__main__":
-
+    IP_address = socket.gethostname()
+    
     listenSocket = socket.socket()
-    listenSocket.bind((IP,PORT))
+    listenSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,1)
+    listenSocket.bind((IP_address,PORT))
     listenSocket.listen()
 
-    print("Server listenining at hostname: ", IP, ", port: ", PORT)    
+    print("Server listenining at hostname: ", IP_address, ", port: ", PORT)    
     p1Conn, p1Addr = listenSocket.accept()
     print("P1Conn type: ", type(p1Conn))
     p1Active = True
