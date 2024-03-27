@@ -2,6 +2,7 @@ from tkinter import Tk, LabelFrame, Canvas, Text, Label, Scrollbar
 from PIL import ImageTk, Image
 from typing import Callable
 from constants import *
+from constants import ERROR_PRESSED, ERROR_UNPRESSED
 
 # It does nothing
 def do_nothing(): 
@@ -12,17 +13,19 @@ class UserInterface():
 
         # Create Stats Panel (left side panel)
         self.stats = Panel(root)
-        self.statsPanel = { # Stats panel is divided into 3 seperate subPanels
+        self.statsPanel = { # Stats panel is divided into 3 seperate sub panels
             'friendlyUnitPanel' : StatsPanel(self.stats.getFrame(), height=PANEL_HEIGHT / 3, bgColour='#754239'),
             'enemyUnitPanel' : StatsPanel(self.stats.getFrame(), yPos=PANEL_HEIGHT / 3, height=PANEL_HEIGHT / 3, bgColour='#57312a'),
             'terrainPanel' : Panel(self.stats.getFrame(), yPos=(PANEL_HEIGHT / 3) * 2, height=PANEL_HEIGHT / 3, colour='black')
         }
         
-        ### Create Log Panel (right side panel)
+        ### Create Log Panel (right side panel), multiple panels as for future additions
         self.log = Panel(root, WINDOW_WIDTH-PANEL_WIDTH, 0)
         self.logItems = {
             'text' : CombatLog(self.log.getFrame(), yPos= 50, height=PANEL_HEIGHT - CONTROL_PANEL_HEIGHT - 50)
         }
+
+        self.info = InfoPanel(root, PANEL_WIDTH, 0, width=WINDOW_WIDTH - (2 * PANEL_WIDTH), height=25, colour=BG_COL)
 
         self.controlBar = ControlBar(root, PANEL_WIDTH, PANEL_HEIGHT - CONTROL_PANEL_HEIGHT, width=WINDOW_WIDTH - (2 * PANEL_WIDTH), height=CONTROL_PANEL_HEIGHT)
         self.__game_state = None
@@ -39,7 +42,7 @@ class Panel():
             yPos: int = 0, 
             width: int = PANEL_WIDTH,
             height: int = PANEL_HEIGHT,
-            colour: str = BGCOLOUR,
+            colour: str = UI_BG_COLOUR,
             bd: int = 0,
             relief: str = 'solid'
             ) -> None:
@@ -63,7 +66,7 @@ class StatsPanel(Panel):
             yPos: int = 0, 
             width: int = PANEL_WIDTH, 
             height: int = PANEL_HEIGHT, 
-            bgColour: str = BGCOLOUR,
+            bgColour: str = UI_BG_COLOUR,
             bd: int = 0,
             relief: str = 'solid',
             textColour: str = 'white',
@@ -83,28 +86,31 @@ class StatsPanel(Panel):
 
         # Icons to be displayed alongside labels
         self.icons = {
+            'class' : ImageTk.PhotoImage(Image.open('Assets/Icons/class.png')),
             'health' : ImageTk.PhotoImage(Image.open('Assets/Icons/health.png')),
-            'damage' : ImageTk.PhotoImage(Image.open('Assets/Icons/damage.png'))
+            'damage' : ImageTk.PhotoImage(Image.open('Assets/Icons/damage.png')),
+            'armour' : ImageTk.PhotoImage(Image.open('Assets/Icons/armour.png')),
+            'movement' : ImageTk.PhotoImage(Image.open('Assets/Icons/movement.png')),
         }
         # Label fields for stats to be displayed
         self.labels = {
             'name' : Label(self.frame, text='Name:'),
-            'class' : Label(self.frame, text='Class:'),
-            'health' : Label(self.frame, text='', image=self.icons['health'], compound='left'),
-            'damage' : Label(self.frame, text='', image= self.icons['damage'], compound='left'),
-            'armour' : Label(self.frame, text='Armour:'),
-            'movement' : Label(self.frame, text='Movement:')
+            'class' : Label(self.frame, text=' ', image=self.icons['class'], compound='left'),
+            'health' : Label(self.frame, text='   ', image=self.icons['health'], compound='left'),
+            'damage' : Label(self.frame, text=' ', image=self.icons['damage'], compound='left'),
+            'armour' : Label(self.frame, text=' ', image=self.icons['armour'], compound='left'),
+            'movement' : Label(self.frame, text=' ', image=self.icons['movement'], compound='left')
         }
         
-        index = 0
+        index = -12
         for item in self.labels:
             self.labels[item].config(bg=bgColour, fg=textColour, font=(FONT, DEFAULT_FONT_SIZE))
-            #self.labels[item].pack()
             self.labels[item].place(x=STATS_IMAGE_SIZE + (2 * BORDER_WIDTH) + 1, y=index)
-            index += 30
+            index += 35
 
         self.labels['name'].place(x=0, y=0)
 
+    # Clear all data from stat display
     def clear(self) -> None:
         self.update_name()
         self.update_class()
@@ -114,23 +120,24 @@ class StatsPanel(Panel):
         self.update_movement()   
         self.update_image(self.empty)
 
-    def update_name(self, new: str = '') -> None:
+    # Update classes to be called during selection of a unit
+    def update_name(self, new: str = ' ') -> None:
         self.labels['name'].config(text= f"Name: {new}")
         
-    def update_class(self, new: str = '') -> None:
-        self.labels['class'].config(text= f"Class: {new}")
+    def update_class(self, new: str = ' ') -> None:
+        self.labels['class'].config(text= f" {new}")
 
-    def update_health(self, new: str = '', max: int = None) -> None:
+    def update_health(self, new: str = '  ', max: str = '') -> None:
         self.labels['health'].config(text= f" {new} / {max}")
 
-    def update_damage(self, new: str = '', type: int = None) -> None:
+    def update_damage(self, new: str = ' ', type: str = '') -> None:
         self.labels['damage'].config(text= f" {new} {type}")
     
-    def update_armour(self, new: str = '', type: int = None) -> None:
-        self.labels['armour'].config(text= f"Armour: {new} {type}")
+    def update_armour(self, new: str = ' ', type: str = '') -> None:
+        self.labels['armour'].config(text= f" {new} {type}")
 
-    def update_movement(self, new: str = '', type: int = None) -> None:
-        self.labels['movement'].config(text= f"Movement: {new} {type}")
+    def update_movement(self, new: str = ' ', type: str = '') -> None:
+        self.labels['movement'].config(text= f" {new} {type}")
     
     def update_image(self, image: ImageTk) -> None:
         #image = image.resize((2 * image.width(), 2 * image.height()))
@@ -146,18 +153,22 @@ class ControlBar(Panel):
             yPos: int = 0, 
             width: int = PANEL_WIDTH, 
             height: int = PANEL_HEIGHT, 
-            colour: str = BGCOLOUR,
+            colour: str = UI_BG_COLOUR,
             bd: int = 0,
             relief: str = 'solid'
             ) -> None:
         super().__init__(root, xPos, yPos, width, height, colour, bd, relief)
 
         self.buttons = {
-            'red' : CanvasButton(self.frame, toggleable=False, unpressed='Assets/Buttons/red_unpressed.png', pressed='Assets/Buttons/red_pressed.png'),
-            'yellow' : CanvasButton(self.frame, toggleable=False, unpressed='Assets/Buttons/yellow_unpressed.png', pressed='Assets/Buttons/yellow_pressed.png'),
+            'red' : ToggleButton(self.frame, unpressed='Assets/Buttons/red_unpressed.png', pressed='Assets/Buttons/red_pressed.png'),
+            'yellow' : ToggleButton(self.frame, unpressed='Assets/Buttons/yellow_unpressed.png', pressed='Assets/Buttons/yellow_pressed.png'),
             'green' : CanvasButton(self.frame, unpressed='Assets/Buttons/green_unpressed.png', pressed='Assets/Buttons/green_pressed.png'),
             'grey' : CanvasButton(self.frame, unpressed='Assets/Buttons/grey_unpressed.png', pressed='Assets/Buttons/grey_pressed.png')
         }
+
+        self.__actionToggleKeys = [self.buttons['red'], self.buttons['yellow']]
+        self.buttons['red'].set_key(self.__actionToggleKeys)
+        self.buttons['yellow'].set_key(self.__actionToggleKeys)
 
         self.labels = {
             'red' : Label(self.frame, text='Attack'),
@@ -176,7 +187,31 @@ class ControlBar(Panel):
             except Exception as e:
                 print(e)
             index += 1
-                   
+
+# Display text on top of screen             
+class InfoPanel(Panel):
+    def __init__(
+            self, 
+            root: Tk, 
+            xPos: int = 0, 
+            yPos: int = 0, 
+            width: int = PANEL_WIDTH,
+            height: int = PANEL_HEIGHT,
+            colour: str = UI_BG_COLOUR,
+            bd: int = 0,
+            relief: str = 'solid'
+            ) -> None:
+        super().__init__(root, xPos, yPos, width, height, colour, bd, relief)
+
+        self.label = Label(self.frame, text='Hello world', justify='center', bg=colour, fg='black', font=(FONT, DEFAULT_FONT_SIZE))
+        self.label.place(x=width/2, y=0, anchor='n')
+    
+    def update(self, new: str):
+        self.label.config(text=new)
+
+    def clear(self):
+        self.label.config(text='')
+
 # Base class for buttons with a sprite
 class CanvasButton():
     def __init__(
@@ -189,26 +224,23 @@ class CanvasButton():
             clickFunc: Callable = do_nothing,
             unclickFunc: Callable = do_nothing,
             enabled: bool = True,
-            toggleable: bool = False
             ) -> None:
         
-        self.button = Canvas(frame, bg=BGCOLOUR, bd=0, highlightthickness=0, cursor='hand2') # Create the button object
+        self.button = Canvas(frame, bg=UI_BG_COLOUR, bd=0, highlightthickness=0, cursor='hand2') # Create the button object
         self.button.pack_propagate(0) # Prevent the Canvas from shrinking
-        self.button.pack(expand=1, fill=None)
         self.button.place(x=xPos, y=yPos)
-        self.button.bind('<Button-1>', self.__click)
-        self.button.bind('<ButtonRelease-1>', self.__unclick)
-
+        self.bind(self.__click, self.__unclick)
         self.__create_image(unpressed, pressed)
         self.currentImage = self.button.create_image(0, 0, anchor = 'nw', image=self.unpressed)
 
-        self.__clickFunc = clickFunc
-        self.__unclickFunc = unclickFunc
+        self.clickFunc = clickFunc
+        self.unclickFunc = unclickFunc
     
         self.enabled = enabled
-        self.toggleable = toggleable
-        if self.toggleable:
-            self.toggled = False
+
+    def bind(self, click: Callable, unclick: Callable):
+        self.button.bind('<Button-1>', click)
+        self.button.bind('<ButtonRelease-1>', unclick)
 
     def change_image(
             self, 
@@ -227,19 +259,11 @@ class CanvasButton():
         self.enabled = False
         self.button.config(cursor='arrow')
 
-    def toggle(self):
-        if self.toggled:
-            self.toggled = False
-            self.button.config(cursor='hand2')
-        else:
-            self.toggled = True
-            self.button.config(cursor='arrow')
-
     def change_click_func(self, new: Callable = do_nothing):
-        self.__clickFunc = new
+        self.clickFunc = new
 
     def change_unclick_func(self, new: Callable = do_nothing):
-        self.__unclickFunc = new
+        self.unclickFunc = new
 
     def get_button(self):
         return self.button
@@ -253,22 +277,81 @@ class CanvasButton():
     def __click(self, event) -> None:
         if self.enabled:
             self.button.itemconfig(self.currentImage, image=self.pressed)
-            self.__clickFunc()
+            self.clickFunc()
 
     def __unclick(self, event) -> None:
         if self.enabled:
-            if self.toggleable and self.toggled == False:
-                self.button.itemconfig(self.currentImage, image=self.pressed)
-                self.toggle()
-                self.__unclickFunc()
-                return None
-            elif self.toggleable and self.toggled == True:
-                self.button.itemconfig(self.currentImage, image=self.unpressed)
-                self.toggle()
-                self.__unclickFunc()
-                return None
             self.button.itemconfig(self.currentImage, image=self.unpressed)
-            self.__unclickFunc()
+            self.unclickFunc()
+
+
+# Buttons which can be toggled
+class ToggleButton(CanvasButton):
+    def __init__(self,
+                frame: LabelFrame,
+                xPos: int = 0,
+                yPos: int = 0,
+                unpressed: str = ERROR_UNPRESSED, 
+                pressed: str = ERROR_PRESSED, 
+                clickFunc: Callable = do_nothing, 
+                unclickFunc: Callable = do_nothing, 
+                enabled: bool = True,
+                toggled: bool = False
+                ) -> None:
+        super().__init__(frame, xPos, yPos, unpressed, pressed, clickFunc, unclickFunc, enabled)
+        self.toggled = toggled
+
+        # Must override parent class else it will behave like parent
+        self.bind(self.__click, self.__unclick)
+        self.change_click_func(clickFunc)
+        self.change_unclick_func(unclickFunc)
+        
+    # Check if there are any other buttons toggled in key list and untoggle them
+    def untoggle_keys(self):
+        for item in self.key:
+            try:
+                if isinstance(item, ToggleButton):
+                    # If item is toggled, untoggle it
+                    if item.get_toggle_status() == True:
+                        item.untoggle()
+                        item.enable()
+                else:
+                    raise Exception
+                
+            except Exception as e:
+                print(e)
+
+    def set_key(self, key) -> None:
+        self.key = key
+
+    def get_toggle_status(self):
+        return self.toggled
+    
+    def toggle(self):
+        self.toggled = True
+        self.button.itemconfig(self.currentImage, image=self.pressed)
+        self.disable()
+
+    def untoggle(self):
+        self.toggled = False
+        self.button.itemconfig(self.currentImage, image=self.unpressed)
+        self.enable()
+
+    def __click(self, event) -> None:
+        if self.enabled:
+            self.clickFunc()
+
+    def __unclick(self, event) -> None:
+        if self.enabled:
+            self.untoggle_keys()
+            if self.get_toggle_status() == False:
+                self.toggle()
+                
+                self.unclickFunc()
+            else:
+                pass
+
+
 
 class CombatLog():
     def __init__(
@@ -278,7 +361,7 @@ class CombatLog():
             yPos: int = 0,
             width: int = PANEL_WIDTH,
             height: int = PANEL_HEIGHT,
-            colour: str = BGCOLOUR
+            colour: str = UI_BG_COLOUR
             ) -> None:
         
         #self.bar = Scrollbar(root, orient='vertical')
@@ -291,7 +374,7 @@ class CombatLog():
         self.text.insert('end', 'meow')
         self.__game_state = None
         self.lastTurn = 0
-        self.label = Label(root, text='', bg=BGCOLOUR, fg='white', font=(FONT, DEFAULT_FONT_SIZE))
+        self.label = Label(root, text='', bg=UI_BG_COLOUR, fg='white', font=(FONT, DEFAULT_FONT_SIZE))
         self.label.place(x=0, y=0)
 
     def update_label(self) -> None:

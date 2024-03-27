@@ -4,18 +4,17 @@ from gameBoard import GameBoard
 from gameState import Player, GameState
 from userInterface import UserInterface
 from constants import *
-import time
 from clientConnection import *
 from tkWrapper import *
-from errors import *
-from clientSend import Sender
+from errors import errorMessage
+from clientSender import Sender
 
 this_file = "main.py"
 
 
 if __name__ == "__main__":
 
-    connResult, conn = establishConn("localhost", 5000, 2)
+    connResult, conn = establishConn("localhost", 5000)
     if not connResult:
         errorMessage(this_file, "Could not establish connection")
         exit()

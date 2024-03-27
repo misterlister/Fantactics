@@ -6,7 +6,7 @@ from globals import *
 from errors import *
 from queue import Queue
 from gameState import Player
-from clientSend import *
+from clientSender import *
 from gameBoard import *
 
 this_file = "clientConnection.py"
@@ -95,16 +95,36 @@ class receiver():
 
             oldSpace = self.gameboard.get_space(coords[0],coords[1])
             newSpace = self.gameboard.get_space(coords[2],coords[3])
-            print("OLDSPACE: **********: ", type(oldSpace))
-            print("NEWSPACE: **********: ", type(newSpace))
-
-            print("Coords: ", coords)
-            print("Unit at: ", coords[0], ",", coords[1])
             unit = oldSpace.get_unit()
 
             self.gameboard.move_unit(True,unit, newSpace)
+            return True
+            
+        if instruction == "Kill":
+            coords = []
+            for c in message:
+                if c.isnumeric():
+                    coords.append(int(c))
 
-        return True
+            target_space = self.gameboard.get_space(coords[0],coords[1])
+            target = target_space.get_unit()
+            target.die()
+            target_space.assign_unit(None)
+            return True
+        
+            
+        if instruction == "Hp":
+            inputs = []
+            for c in message:
+                if c.isnumeric():
+                    inputs.append(int(c))
+
+            target_space = self.gameboard.get_space(inputs[0],inputs[1])
+            target = target_space.get_unit()
+            target.take_damage(inputs[2])
+            target.update_stats_panel(target) 
+
+            return True
 
     def setPlayerColours(self, playerColour: str, opponentColour: str):
                     
@@ -123,12 +143,12 @@ class receiver():
     
 
 
-def establishConn(ip, port, timeout) -> tuple[bool, socket.socket]:
+def establishConn(ip, port) -> tuple[bool, socket.socket]:
     
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
         sock.connect((ip, port))
-        sock.settimeout(timeout)
+        sock.settimeout(TIMEOUT_LENGTH)
 
     except:
         errorMessage(this_file, "Could not establish connection.")

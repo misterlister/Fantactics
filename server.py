@@ -47,7 +47,6 @@ def parse_message(receivingPlayer,msg):
             instruction += msg[i]
         i+=1
 
-    print(msg)
     if msg == "[Turn:END]":
        
         if(bluePlayer.isMyTurn()):
@@ -68,7 +67,6 @@ def parse_message(receivingPlayer,msg):
         for c in msg:
             if c.isnumeric():
                 coords.append(str(c))
-        print("coords: ", coords)
 
         relayString = "[Move:"
         translatedCoords = []
@@ -80,6 +78,41 @@ def parse_message(receivingPlayer,msg):
         relayString += ':'
         relayString += str(translatedCoords[2]) + ',' + str(translatedCoords[3])
         relayString += ']'
+
+        receivingPlayer.sendString(relayString)
+
+        
+    if instruction == "Kill":
+        coords = []
+        for c in msg:
+            if c.isnumeric():
+                coords.append(str(c))
+
+        relayString = "[Kill:"
+        translatedCoords = []
+        for n in coords:
+            tn = (abs(int(n)-7))
+            translatedCoords.append(tn)
+        relayString += str(translatedCoords[0]) + ',' + str(translatedCoords[1])
+        relayString += ']'
+
+        receivingPlayer.sendString(relayString)
+
+    if instruction == "Hp":
+
+        inputs = []
+
+        for c in msg:
+            if c.isnumeric():
+                inputs.append(str(c))
+
+        relayString = "[Hp:"
+        t_row = str((abs(int(inputs[0])-7)))
+        t_col = str((abs(int(inputs[1])-7)))
+        hp = inputs[2]
+
+        relayString += t_row + ',' + t_col
+        relayString += ':' + hp + ']'
 
         receivingPlayer.sendString(relayString)
 

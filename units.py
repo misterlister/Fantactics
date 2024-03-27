@@ -1,5 +1,4 @@
 from math import ceil
-from gameBoard import Space
 from graphics import SpriteType
 from random import randint
 from names import Names, Titles
@@ -21,6 +20,7 @@ class Unit:
             title_list,
             ability_name,
             ability_range,
+            ability_min_range,
             ability_value
             ) -> None:
         
@@ -37,11 +37,15 @@ class Unit:
         self.__name = self.make_name(name_list, title_list)
         self.__ability_name = ability_name
         self.__ability_range = ability_range
+        self.__ability_min_range = ability_min_range
         self.__ability_value = ability_value
         self.__location = None
         self.__dead = False
         self.__player = None
         self.__ability_targets = TARGET_NONE
+        self._ability_area_of_effect = []
+        self.__damage_mod = 0
+        self.__defense_mod = 0
         
     def get_unit_type(self):
         return self.__unit_type
@@ -88,11 +92,20 @@ class Unit:
     def get_ability_range(self):
         return self.__ability_range
     
+    def get_ability_min_range(self):
+        return self.__ability_min_range
+    
     def get_ability_value(self):
         return self.__ability_value
     
     def get_ability_targets(self):
         return self.__ability_targets
+    
+    def get_damage_mod(self):
+        return self.__damage_mod
+    
+    def get_defense_mod(self):
+        return self.__defense_mod
     
     def set_ability_targets(self, target_dict: dict):
         self.__ability_targets = target_dict
@@ -108,7 +121,7 @@ class Unit:
         del titles[title_index]
         return name
 
-    def move(self, space: Space):
+    def move(self, space):
         try:
             if space.get_unit() is None:
                 self.__location.assign_unit(None)
@@ -119,7 +132,7 @@ class Unit:
         except Exception as e:
             return e
         
-    def _place(self, space: Space):
+    def _place(self, space):
         self.__location = space
 
     def take_damage(self, damage: int):
@@ -177,24 +190,40 @@ class Unit:
     def revive(self):
         self.__dead = False
 
+
     def choose_action(self):
         print("Choose Action!")
     
-    def find_target_spaces(self, space: Space, range: int, target_dict: dict, pass_dict: dict = TARGET_ALL) -> set:
+    def find_target_spaces(self, space, range: int, target_dict: dict, action = None, pass_dict: dict = TARGET_ALL) -> set:
         # Add this space if it is a valid target
         if self.verify_target(space, target_dict):
-            target_spaces = {(space.get_row(),space.get_col())}
+            target_spaces = {space}
         else:
             target_spaces = set()
         if range <= 0:
             return target_spaces
-        target_spaces = target_spaces.union(self.check_target_spaces(space.get_left(), range, target_dict, pass_dict))
-        target_spaces = target_spaces.union(self.check_target_spaces(space.get_up(), range, target_dict, pass_dict))
-        target_spaces = target_spaces.union(self.check_target_spaces(space.get_right(), range, target_dict, pass_dict))
-        target_spaces = target_spaces.union(self.check_target_spaces(space.get_down(), range, target_dict, pass_dict))
+        target_spaces = target_spaces.union(self.check_target_spaces(space.get_left(), range, target_dict, action, pass_dict))
+        target_spaces = target_spaces.union(self.check_target_spaces(space.get_up(), range, target_dict, action, pass_dict))
+        target_spaces = target_spaces.union(self.check_target_spaces(space.get_right(), range, target_dict, action, pass_dict))
+        target_spaces = target_spaces.union(self.check_target_spaces(space.get_down(), range, target_dict, action, pass_dict))
         return target_spaces
     
-    def verify_target(self, space: Space, target_dict: dict) -> bool:
+    def check_target_spaces(self, space, range: int, target_dict: dict, action, pass_dict: dict) -> set:
+        valid_spaces = set()
+        if space != None: # If this space doesn't exist, return
+            if self.verify_space_pass(space, pass_dict, action):
+                valid_spaces = valid_spaces.union(self.find_target_spaces(space, range-1, target_dict, action, pass_dict))
+        return valid_spaces
+    
+    def verify_space_pass(self, space, target_dict, action) -> bool:
+        if action == ActionType.MOVE:
+            unit = space.get_unit()
+            if unit != None:
+                if unit.get_move_type() == MoveType.FLY:
+                    return True
+        return self.verify_target(space, target_dict)
+    
+    def verify_target(self, space, target_dict: dict) -> bool:
         unit = space.get_unit()
         if unit == None: # Check if the space is empty
             if target_dict[TargetType.NONE] == True:
@@ -216,14 +245,54 @@ class Unit:
                 return True
             else: 
                 return False
-
-    def check_target_spaces(self, space: Space, range: int, target_dict: dict, pass_dict: dict) -> set:
-        valid_spaces = set()
-        if space != None: # If this space doesn't exist, return
-            if self.verify_target(space, pass_dict):
-                valid_spaces = valid_spaces.union(self.find_target_spaces(space, range-1, target_dict, pass_dict))
-        return valid_spaces
     
+    def get_area_of_effect(self, space):
+        space_list = []
+        space_list.append(space)
+        if Direction.UP in self._ability_area_of_effect:
+            up_space = space.get_up()
+            if up_space != None:
+                space_list.append(up_space)
+        if Direction.LEFT in self._ability_area_of_effect:
+            left_space = space.get_left()
+            if left_space != None:
+                space_list.append(left_space)
+        if Direction.RIGHT in self._ability_area_of_effect:
+            right_space = space.get_right()
+            if right_space != None:
+                space_list.append(right_space)
+        if Direction.DOWN in self._ability_area_of_effect:
+            down_space = space.get_down()
+            if down_space != None:
+                space_list.append(down_space)
+        return space_list
+    
+    def adjacent_to(self, unit_type, ally: bool, range: int = 1) -> bool:
+        location = self.get_location()
+        if ally:
+            include = TARGET_ALLIES
+        else:
+            include = TARGET_ENEMIES
+        spaces = self.find_target_spaces(location, range, include)
+        for space in spaces:
+            try:
+                if space.get_unit().is_unit_type(unit_type):
+                    return True
+            except Exception as e:
+                print(e)
+        return False
+
+    def is_unit_type(self, unit_type) -> bool:
+        if isinstance(self, unit_type):
+            return True
+        return False
+
+    def is_ally(self, unit) -> bool:
+        if unit.get_player() == self.get_player():
+            return True
+        return False
+
+        
 
 class Peasant(Unit):
     def __init__(self, p1 = True) -> None:
@@ -243,9 +312,10 @@ class Peasant(Unit):
         title_list = Titles.Peasant
         ability_name = "Surge of Bravery"
         ability_range = 0
+        ability_min_range = 0
         ability_value = 2
         super().__init__(unit_type, hp, dam_val, dam_type, arm_val, arm_type, move, move_type, 
-                         sprite, name_list, title_list, ability_name, ability_range, ability_value)
+                         sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
         self.set_ability_targets(TARGET_SELF)
         self.ability_used = False
 
@@ -267,9 +337,10 @@ class Soldier(Unit):
         title_list = Titles.Soldier
         ability_name = "Guarded Advance" 
         ability_range = 1
+        ability_min_range = 1
         ability_value = None
         super().__init__(unit_type, hp, dam_val, dam_type, arm_val, arm_type, move, move_type, 
-                         sprite, name_list, title_list, ability_name, ability_range, ability_value)
+                         sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
         self.set_ability_targets(TARGET_ALLIES)
 
     def special_ability(self, target, space):
@@ -304,9 +375,10 @@ class Archer(Unit):
         title_list = Titles.Archer
         ability_name = "Ranged Attack"
         ability_range = 5
+        ability_min_range = 2
         ability_value = 6
         super().__init__(unit_type, hp, dam_val, dam_type, arm_val, arm_type, move, move_type, 
-                         sprite, name_list, title_list, ability_name, ability_range, ability_value)
+                         sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
         self.set_ability_targets(TARGET_ENEMIES)
         self.__special_damage_type = DamageType.PIERCE
 
@@ -342,23 +414,23 @@ class Cavalry(Unit):
         title_list = Titles.Cavalry
         ability_name = "Harrying Strike"
         ability_range = 0
+        ability_min_range = 0
         ability_value = None
         super().__init__(unit_type, hp, dam_val, dam_type, arm_val, arm_type, move, move_type, 
-                         sprite, name_list, title_list, ability_name, ability_range, ability_value)
+                         sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
         self.set_ability_targets(TARGET_SELF)
     
-    # Variation of movement calculation that allows for passing all units except Enemy-aligned Soldiers
-    def check_target_spaces(self, space: Space, range: int, target_dict: dict, pass_dict: dict) -> set:
-        valid_spaces = set()
-        if space != None: # If this space doesn't exist, return
-            target = space.get_unit()
-            if target_dict != TARGET_ENEMIES: # If this is not an attack
-                if target != None: # If there is a unit here
-                    if target.get_player() != self.get_player(): # And this unit is an enemy
-                        if isinstance(target, Soldier): # And that enemy is a Soldier Class
-                            return valid_spaces # Do not proceed
-            valid_spaces = valid_spaces.union(self.find_target_spaces(space, range-1, target_dict, pass_dict))
-        return valid_spaces
+    # Variation of movement verification that can pass all units except Enemy-aligned Soldiers
+    def verify_space_pass(self, space, target_dict, action) -> bool:
+        if action == ActionType.MOVE:
+            unit = space.get_unit()
+            if unit != None:
+                if not self.is_ally(unit):
+                    if isinstance(unit, Soldier):
+                        return False
+            return True
+        else:
+            return self.verify_target(space, target_dict)
     
 class Sorcerer(Unit):
     def __init__(self, p1 = True) -> None:
@@ -378,11 +450,13 @@ class Sorcerer(Unit):
         title_list = Titles.Sorcerer
         ability_name = "Sorcerous Assault"    
         ability_range = 4
+        ability_min_range = 0
         ability_value = 6
         super().__init__(unit_type, hp, dam_val, dam_type, arm_val, arm_type, move, move_type, 
-                         sprite, name_list, title_list, ability_name, ability_range, ability_value)
+                         sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
         self.set_ability_targets(TARGET_ALL)
         self.__special_damage_type = DamageType.MAGIC
+        self._ability_area_of_effect.extend([Direction.LEFT, Direction.RIGHT])
         
 
     def special_ability(self, target, space):
@@ -392,7 +466,8 @@ class Sorcerer(Unit):
             left_target = left_space.get_unit()
             if left_target != None:
                 attack_log += (self.magic_power(left_target))
-        attack_log += (self.magic_power(target))
+        if target is not None:
+            attack_log += (self.magic_power(target))
         right_space = space.get_right()
         if right_space is not None:
             right_target = right_space.get_unit()
@@ -437,10 +512,12 @@ class Healer(Unit):
         title_list = Titles.Healer
         ability_name = "Healing Radiance"
         ability_range = 0
+        ability_min_range = 0
         ability_value = 5
         super().__init__(unit_type, hp, dam_val, dam_type, arm_val, arm_type, move, move_type, 
-                         sprite, name_list, title_list, ability_name, ability_range, ability_value)
+                         sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
         self.set_ability_targets(TARGET_SELF)
+        self._ability_area_of_effect.extend([Direction.UP, Direction.LEFT, Direction.RIGHT, Direction.DOWN])
 
     def special_ability(self, target, space):
         attack_log = []
@@ -499,11 +576,13 @@ class Archmage(Unit):
         title_list = Titles.Archmage
         ability_name = "Arcane Vortex"
         ability_range = 3
+        ability_min_range = 0
         ability_value = 7
         super().__init__(unit_type, hp, dam_val, dam_type, arm_val, arm_type, move, move_type, 
-                         sprite, name_list, title_list, ability_name, ability_range, ability_value)
+                         sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
         self.set_ability_targets(TARGET_ALL)
         self.__special_damage_type = DamageType.MAGIC
+        self._ability_area_of_effect.extend([Direction.UP, Direction.LEFT, Direction.RIGHT, Direction.DOWN])
 
     def special_ability(self, target, space):
         attack_log = []
@@ -561,16 +640,17 @@ class General(Unit):
         move=MoveSpeed.SLOW
         move_type = MoveType.FOOT
         if p1:
-            sprite = SpriteType.PEASANT1
+            sprite = SpriteType.GENERAL1
         else:
-            sprite = SpriteType.PEASANT2
+            sprite = SpriteType.GENERAL2
         name_list = Names.Noble
         title_list = Titles.General
         ability_name = "Inspirational Rally"
         ability_range = 0
+        ability_min_range = 0
         ability_value = 1
         super().__init__(unit_type, hp, dam_val, dam_type, arm_val, arm_type, move, move_type, 
-                         sprite, name_list, title_list, ability_name, ability_range, ability_value)
+                         sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
         self.set_ability_targets(TARGET_SELF)
         self.ability_used = False
 

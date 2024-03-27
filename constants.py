@@ -6,7 +6,7 @@ BG_COL = '#d9d9d9'
 WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
 # Width of divider lines
-LINE_WIDTH = 2
+LINE_WIDTH = 3
 
 # Number of pixels between a sprite and the border of its square
 SPRITE_BUFFER = 8
@@ -21,7 +21,8 @@ FONT = 'consolas'
 # Default font size
 DEFAULT_FONT_SIZE = 12
 
-BGCOLOUR = '#5d4037'
+UI_BG_COLOUR = '#5d4037'
+DEFAULT_TEXT_COLOUR = '#ffffff'
 BORDER_WIDTH = 4
 PANEL_WIDTH, PANEL_HEIGHT = 320, 720 
 CONTROL_PANEL_HEIGHT = 80
@@ -42,8 +43,17 @@ BOARD_HEIGHT = DEFAULT_SQUARE_SIZE * BOARD_ROWS
 DEFAULT_X_POS = ((WINDOW_WIDTH - BOARD_WIDTH) // 2)
 DEFAULT_Y_POS = ((WINDOW_HEIGHT - BOARD_HEIGHT) // 4)
 
+MOVE_COL = "green"
+ATTACK_COL = "red"
+SELECT_COL = "blue"
+ACTION_COL = "purple"
+ABILITY_COL = "yellow"
+
 # Maximum length of message and size of message buffer
 MAX_MESSAGE_SIZE = 256
+
+#Receiver timeout length in seconds
+TIMEOUT_LENGTH = 2
 
 
 # Identifiers for unit sprites
@@ -54,12 +64,14 @@ class SpriteType:
     SORCERER1 = "Sorcerer1"
     HEALER1 = "Healer1"
     ARCHMAGE1 = "Archmage1"
+    GENERAL1 = "General1"
     ARCHER2 = "Archer2"
     PEASANT2 = "Peasant2"
     SOLDIER2 = "Soldier2"
     SORCERER2 = "Sorcerer2"
     HEALER2 = "Healer2"
     ARCHMAGE2 = "Archmage2"
+    GENERAL2 = "General2"
 
 # Damage multiplier for units initiating combat
 FIRST_STRIKE_BOOST = 1.2
@@ -67,6 +79,12 @@ FIRST_STRIKE_BOOST = 1.2
 POOR_EFFECT_MOD = 3/4
 # Damage multiplier for effective attacks
 STRONG_EFFECT_MOD = 4/3
+
+class Direction(IntEnum):
+    UP = 1
+    LEFT = 2
+    RIGHT = 3
+    DOWN = 4
 
 # Enums for attack damage types
 class DamageType(IntEnum):
@@ -100,6 +118,11 @@ class MoveType(IntEnum):
     HORSE = 2
     FLY = 3
 
+class ActionType(IntEnum):
+    MOVE = 1
+    ATTACK = 2
+    ABILITY = 3
+
 class TargetType(IntEnum):
     ITSELF = 1
     ALLY = 2
@@ -131,6 +154,13 @@ TARGET_SELF = {
     TargetType.ITSELF: True,
     TargetType.ALLY: False,
     TargetType.ENEMY: False,
+    TargetType.NONE: False
+}
+
+TARGET_OTHERS = {
+    TargetType.ITSELF: False,
+    TargetType.ALLY: True,
+    TargetType.ENEMY: True,
     TargetType.NONE: False
 }
 

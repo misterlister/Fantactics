@@ -146,7 +146,9 @@ class Titles:
         "Scout",
         "Ranger",
         "Marksman",
-        "Hunter"
+        "Hunter",
+        "Skirmisher",
+        "Sniper"
     ]
 
     Cavalry = [
@@ -161,7 +163,8 @@ class Titles:
         "Gallant",
         "Bulwark",
         "Mighty",
-        "Resolute"
+        "Resolute",
+        "Paladin"
     ]
 
     Sorcerer = [
@@ -175,17 +178,21 @@ class Titles:
         "Evoker",
         "Theurgist",
         "Trickster",
-        "Sage"
+        "Sage",
+        "Mage"
     ]
 
     Healer = [
         "Gentle",
-        "Protector",
         "Savior",
         "Guardian",
+        "Guiding Light",
+        "Beacon of Hope",
         "Lightbringer",
         "Prophet",
         "High Priest",
+        "Druid",
+        "Soulmender",
         "Dawnlight"
     ]
 
@@ -198,7 +205,10 @@ class Titles:
         "Skybreaker",
         "All-Seeing",
         "Eternal",
-        "Void-Bringer"
+        "High Magus",
+        "Soul-Flayer",
+        "Void-Bringer",
+        "Earth-Render"
     ]
 
     General = [
@@ -207,5 +217,6 @@ class Titles:
         "Glorious",
         "Dragonslayer",
         "Unstoppable",
-        "Unifier"
+        "Unifier",
+        "Champion"
     ]

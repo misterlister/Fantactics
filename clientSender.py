@@ -30,6 +30,21 @@ class Sender:
                 setConnClosed()
                 return False
             
+    def kill(self,row, col):
+        msg = "[Kill:" + str(row) + "," + str(col) +"]"
+        self.send(msg)
+    
+    def move(self,prev_row, prev_col,new_row,new_col):
+        msg = "[Move:" + prev_row + "," + prev_col + ":" 
+        msg += new_row + "," + new_col + "]"
+        self.send(msg)
+
+    def change_hp(self,row,col,hp):
+        msg = "[Hp:" + str(row) + "," + str(col) + ":"
+        msg += str(hp) + "]" 
+        self.send(msg)
+
+
     def endfGame(self,event,root):
         self.sender("[Game:END]")
         gameClosedEvent.set()

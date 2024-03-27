@@ -1,8 +1,7 @@
 from gameBoard import GameBoard
 from units import *
-from clientSend import Sender
+from clientSender import Sender
 from globals import *
-from tkinter import Tk
 
 class Player:
     def __init__(self) -> None:
@@ -89,9 +88,10 @@ class GameState:
             p1_units_r2 = [Peasant(player_blue), Peasant(player_blue), Soldier(player_blue), Soldier(player_blue), 
                            Soldier(player_blue), Soldier(player_blue), Peasant(), Peasant()]
             self.setup_row(6, 7, p1_units_r2, True) 
+
             self.player.assign_units(p1_units_r1+p1_units_r2)
             self.player.join_game(self)
-            self.board.draw_sprites()
+            self.board.draw_all_spaces()
 
             self.board.link_to_state(self)
             self.ui.link_to_state(self)

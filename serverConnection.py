@@ -41,12 +41,11 @@ class Player:
                     errorMessage(this_file, "Could not encode message into packet.")
                     return False
                 try:
-                    print("Sending: ", packet.decode("ascii"))
                     self.conn.send(packet)
                     time.sleep(.25)
                 
                 except: 
-                    errorMessage("Could not send message to ", self.colour, "player.")
+                    errorMessage("Could not send message to " + self.colour + "player.")
                     return False
             return True
                         
