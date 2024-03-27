@@ -127,12 +127,24 @@ class StatsPanel(Panel):
     def update_class(self, new: str = ' ') -> None:
         self.labels['class'].config(text= f" {new}")
 
-    def update_health(self, new: str = '  ', max: str = '') -> None:
-        self.labels['health'].config(text= f" {new} / {max}")
+    # For "type" variable:
+    # 0 = damage
+    # 1 = healing
+    def update_health(self, new: str = '  ', max: str = '', diff: int = 0, diffType: bool = 0) -> None:
+        if diff != 0:
+            if diffType == 0:
+                self.labels['health'].config(text= f" {new} (- {diff}) / {max}")
+            else:
+                self.labels['health'].config(text= f" {new} (+ {diff}) / {max}")
+        else:
+            self.labels['health'].config(text= f" {new} / {max}")
 
-    def update_damage(self, new: str = ' ', type: str = '') -> None:
-        self.labels['damage'].config(text= f" {new} {type}")
-    
+    def update_damage(self, new: str = ' ', type: str = '', diff: int = 0) -> None:
+        if diff != 0:
+            self.labels['damage'].config(text= f" {new} (+ {diff}) {type}")
+        else:
+            self.labels['damage'].config(text= f" {new} {type}")
+
     def update_armour(self, new: str = ' ', type: str = '') -> None:
         self.labels['armour'].config(text= f" {new} {type}")
 
@@ -284,7 +296,6 @@ class CanvasButton():
             self.button.itemconfig(self.currentImage, image=self.unpressed)
             self.unclickFunc()
 
-
 # Buttons which can be toggled
 class ToggleButton(CanvasButton):
     def __init__(self,
@@ -350,8 +361,6 @@ class ToggleButton(CanvasButton):
                 self.unclickFunc()
             else:
                 pass
-
-
 
 class CombatLog():
     def __init__(
