@@ -47,9 +47,11 @@ class GameState:
 
     def setup_board(self):
         try:
-            p2_units_r1 = [Archer(), Cavalry(), Healer(), Archmage(), General(), Sorcerer(), Cavalry(), Archer()]
+            p2_units_r1 = [Archer(False), Cavalry(False), Healer(False), Archmage(False), 
+                           General(False), Sorcerer(False), Cavalry(False), Archer(False)]
             self.setup_row(0, 0, p2_units_r1, False)        
-            p2_units_r2 = [Peasant(), Peasant(), Soldier(), Soldier(), Soldier(), Soldier(), Peasant(), Peasant()]
+            p2_units_r2 = [Peasant(False), Peasant(False), Soldier(False), Soldier(False), 
+                           Soldier(False), Soldier(False), Peasant(False), Peasant(False)]
             self.setup_row(1, 0, p2_units_r2, False) 
             self.player2.assign_units(p2_units_r1+p2_units_r2)
             self.player2.join_game(self)
@@ -60,7 +62,7 @@ class GameState:
             self.setup_row(6, 7, p1_units_r2, True) 
             self.player1.assign_units(p1_units_r1+p1_units_r2)
             self.player1.join_game(self)
-            self.board.draw_sprites()
+            self.board.draw_all_spaces()
 
             self.board.link_to_state(self)
             self.ui.link_to_state(self)

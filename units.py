@@ -1,45 +1,13 @@
-from enum import IntEnum
 from math import ceil
-from gameBoard import Space, BOARD_ROWS, BOARD_COLS
 from graphics import SpriteType
 from random import randint
 from names import Names, Titles
-
-FIRST_STRIKE_BOOST = 1.2
-POOR_EFFECT_MOD = 4/5
-STRONG_EFFECT_MOD = 5/4
-
-class DamageType(IntEnum):
-    SLASH = 1
-    PIERCE = 2
-    BLUDGEON = 3
-    MAGIC = 4
-
-class ArmourType(IntEnum):
-    ROBES = 1
-    PADDED = 2
-    CHAIN = 3
-    PLATE = 4
-
-class Effect(IntEnum):
-    POOR = 1
-    NEUTRAL = 2
-    STRONG = 3
-
-class MoveSpeed(IntEnum):
-    SLOW = 2
-    MED = 3
-    FAST = 4
-
-class MoveType(IntEnum):
-    FOOT = 1
-    HORSE = 2
-    FLY = 3
-
+from constants import *
 
 class Unit:
     def __init__(
             self, 
+            unit_type: str,
             hp: int, 
             dam_val: int, 
             dam_type: DamageType, 
@@ -51,9 +19,12 @@ class Unit:
             name_list,
             title_list,
             ability_name,
-            ability_range
+            ability_range,
+            ability_min_range,
+            ability_value
             ) -> None:
         
+        self.__unit_type = unit_type
         self.__max_hp = hp
         self.__curr_hp = hp
         self.__damage = dam_val
@@ -66,11 +37,19 @@ class Unit:
         self.__name = self.make_name(name_list, title_list)
         self.__ability_name = ability_name
         self.__ability_range = ability_range
+        self.__ability_min_range = ability_min_range
+        self.__ability_value = ability_value
         self.__location = None
         self.__dead = False
         self.__player = None
+        self.__ability_targets = TARGET_NONE
+        self._ability_area_of_effect = []
+        self.__damage_mod = 0
+        self.__defense_mod = 0
         
-        
+    def get_unit_type(self):
+        return self.__unit_type
+
     def get_max_hp(self):
         return self.__max_hp
 
@@ -113,6 +92,24 @@ class Unit:
     def get_ability_range(self):
         return self.__ability_range
     
+    def get_ability_min_range(self):
+        return self.__ability_min_range
+    
+    def get_ability_value(self):
+        return self.__ability_value
+    
+    def get_ability_targets(self):
+        return self.__ability_targets
+    
+    def get_damage_mod(self):
+        return self.__damage_mod
+    
+    def get_defense_mod(self):
+        return self.__defense_mod
+    
+    def set_ability_targets(self, target_dict: dict):
+        self.__ability_targets = target_dict
+    
     def set_player(self, player):
         self.__player = player
 
@@ -124,7 +121,7 @@ class Unit:
         del titles[title_index]
         return name
 
-    def move(self, space: Space):
+    def move(self, space):
         try:
             if space.get_unit() is None:
                 self.__location.assign_unit(None)
@@ -135,7 +132,7 @@ class Unit:
         except Exception as e:
             return e
         
-    def _place(self, space: Space):
+    def _place(self, space):
         self.__location = space
 
     def take_damage(self, damage: int):
@@ -177,7 +174,7 @@ class Unit:
             atk_damage = ceil(atk_damage * POOR_EFFECT_MOD)
         target.take_damage(atk_damage)
 
-    def special_ability(self, target, spaces):
+    def special_ability(self, target, space):
         # TEMP
         messages = []
         if target == None or target == self:
@@ -195,238 +192,200 @@ class Unit:
 
     def choose_action(self):
         print("Choose Action!")
-
-    def find_move_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
-        valid_spaces = set()
-        # Add this space if its empty, or it is this units current location
-        if space_list[i][j].get_unit() == None or space_list[i][j].get_unit() == self:
-            valid_spaces = {(i,j)}
-        if range <= 0:
-            return valid_spaces
-        valid_spaces = valid_spaces.union(self.check_move_spaces(i-1, j, range, space_list))
-        #valid_spaces = valid_spaces.union(self.check_move_spaces(i-1, j-1, range, space_list))
-        valid_spaces = valid_spaces.union(self.check_move_spaces(i, j-1, range, space_list))
-        #valid_spaces = valid_spaces.union(self.check_move_spaces(i+1, j-1, range, space_list))
-        valid_spaces = valid_spaces.union(self.check_move_spaces(i+1, j, range, space_list))
-        #valid_spaces = valid_spaces.union(self.check_move_spaces(i+1, j+1, range, space_list))
-        valid_spaces = valid_spaces.union(self.check_move_spaces(i, j+1, range, space_list))
-        #valid_spaces = valid_spaces.union(self.check_move_spaces(i-1, j+1, range, space_list))
-        return valid_spaces
-
-    def check_move_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
-        valid_spaces = set()
-        if i >= 0 and i < BOARD_ROWS and j >= 0 and j < BOARD_COLS:
-            if space_list[i][j].get_unit() != None:
-                if self.__move_type != MoveType.FLY:
-                    return valid_spaces
-            valid_spaces = valid_spaces.union(self.find_move_spaces(i, j, range-1, space_list))
-        return valid_spaces
-
-    def find_attack_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
-        target_spaces = set()
-        # Only add this space if there is an enemy here
-        if space_list[i][j].get_unit() != None:
-            if space_list[i][j].get_unit().get_player() != self.get_player():
-                target_spaces = {(i,j)}
+    
+    def find_target_spaces(self, space, range: int, target_dict: dict, action = None, pass_dict: dict = TARGET_ALL) -> set:
+        # Add this space if it is a valid target
+        if self.verify_target(space, target_dict):
+            target_spaces = {space}
+        else:
+            target_spaces = set()
         if range <= 0:
             return target_spaces
-        target_spaces = target_spaces.union(self.check_attack_spaces(i-1, j, range, space_list))
-        #target_spaces = target_spaces.union(self.check_attack_spaces(i-1, j-1, range, space_list))
-        target_spaces = target_spaces.union(self.check_attack_spaces(i, j-1, range, space_list))
-        #target_spaces = target_spaces.union(self.check_attack_spaces(i+1, j-1, range, space_list))
-        target_spaces = target_spaces.union(self.check_attack_spaces(i+1, j, range, space_list))
-        #target_spaces = target_spaces.union(self.check_attack_spaces(i+1, j+1, range, space_list))
-        target_spaces = target_spaces.union(self.check_attack_spaces(i, j+1, range, space_list))
-        #target_spaces = target_spaces.union(self.check_attack_spaces(i-1, j+1, range, space_list))
+        target_spaces = target_spaces.union(self.check_target_spaces(space.get_left(), range, target_dict, action, pass_dict))
+        target_spaces = target_spaces.union(self.check_target_spaces(space.get_up(), range, target_dict, action, pass_dict))
+        target_spaces = target_spaces.union(self.check_target_spaces(space.get_right(), range, target_dict, action, pass_dict))
+        target_spaces = target_spaces.union(self.check_target_spaces(space.get_down(), range, target_dict, action, pass_dict))
         return target_spaces
-
-    def check_attack_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
+    
+    def check_target_spaces(self, space, range: int, target_dict: dict, action, pass_dict: dict) -> set:
         valid_spaces = set()
-        if i >= 0 and i < BOARD_ROWS and j >= 0 and j < BOARD_COLS:
-            valid_spaces = valid_spaces.union(self.find_attack_spaces(i, j, range-1, space_list))
+        if space != None: # If this space doesn't exist, return
+            if self.verify_space_pass(space, pass_dict, action):
+                valid_spaces = valid_spaces.union(self.find_target_spaces(space, range-1, target_dict, action, pass_dict))
         return valid_spaces
     
-    def find_target_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
-        target_spaces = set()
-        # Only add this space if there is an enemy here
-        if space_list[i][j].get_unit() != None:
-            if space_list[i][j].get_unit().get_player() != self.get_player():
-                target_spaces = {(i,j)}
-        if range <= 0:
-            return target_spaces
-        target_spaces = target_spaces.union(self.check_target_spaces(i-1, j, range, space_list))
-        #target_spaces = target_spaces.union(self.check_target_spaces(i-1, j-1, range, space_list))
-        target_spaces = target_spaces.union(self.check_target_spaces(i, j-1, range, space_list))
-        #target_spaces = target_spaces.union(self.check_target_spaces(i+1, j-1, range, space_list))
-        target_spaces = target_spaces.union(self.check_target_spaces(i+1, j, range, space_list))
-        #target_spaces = target_spaces.union(self.check_target_spaces(i+1, j+1, range, space_list))
-        target_spaces = target_spaces.union(self.check_target_spaces(i, j+1, range, space_list))
-        #target_spaces = target_spaces.union(self.check_target_spaces(i-1, j+1, range, space_list))
-        return target_spaces
+    def verify_space_pass(self, space, target_dict, action) -> bool:
+        if action == ActionType.MOVE:
+            unit = space.get_unit()
+            if unit != None:
+                if unit.get_move_type() == MoveType.FLY:
+                    return True
+        return self.verify_target(space, target_dict)
+    
+    def verify_target(self, space, target_dict: dict) -> bool:
+        unit = space.get_unit()
+        if unit == None: # Check if the space is empty
+            if target_dict[TargetType.NONE] == True:
+                return True
+            else: 
+                return False
+        if unit == self: # Check if the space is occupied by this unit
+            if target_dict[TargetType.ITSELF] == True:
+                return True
+            else: 
+                return False
+        if unit.get_player() == self.get_player(): # Check if this space is occupied by an ally
+            if target_dict[TargetType.ALLY] == True:
+                return True
+            else: 
+                return False
+        else: # The space must be occupied by an enemy
+            if target_dict[TargetType.ENEMY] == True:
+                return True
+            else: 
+                return False
+    
+    def get_area_of_effect(self, space):
+        space_list = []
+        space_list.append(space)
+        if Direction.UP in self._ability_area_of_effect:
+            up_space = space.get_up()
+            if up_space != None:
+                space_list.append(up_space)
+        if Direction.LEFT in self._ability_area_of_effect:
+            left_space = space.get_left()
+            if left_space != None:
+                space_list.append(left_space)
+        if Direction.RIGHT in self._ability_area_of_effect:
+            right_space = space.get_right()
+            if right_space != None:
+                space_list.append(right_space)
+        if Direction.DOWN in self._ability_area_of_effect:
+            down_space = space.get_down()
+            if down_space != None:
+                space_list.append(down_space)
+        return space_list
+    
+    def adjacent_to(self, unit_type, ally: bool, range: int = 1) -> bool:
+        location = self.get_location()
+        if ally:
+            include = TARGET_ALLIES
+        else:
+            include = TARGET_ENEMIES
+        spaces = self.find_target_spaces(location, range, include)
+        for space in spaces:
+            try:
+                if space.get_unit().is_unit_type(unit_type):
+                    return True
+            except Exception as e:
+                print(e)
+        return False
 
-    def check_target_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
-        valid_spaces = set()
-        if i >= 0 and i < BOARD_ROWS and j >= 0 and j < BOARD_COLS:
-            valid_spaces = valid_spaces.union(self.find_target_spaces(i, j, range-1, space_list))
-        return valid_spaces
+    def is_unit_type(self, unit_type) -> bool:
+        if isinstance(self, unit_type):
+            return True
+        return False
+
+    def is_ally(self, unit) -> bool:
+        if unit.get_player() == self.get_player():
+            return True
+        return False
+
+        
 
 class Peasant(Unit):
-    def __init__(self) -> None:
-        hp=11
-        dam_val=6
+    def __init__(self, p1 = True) -> None:
+        unit_type = "Peasant"
+        hp=12
+        dam_val=5
         dam_type=DamageType.BLUDGEON
-        arm_val=2
+        arm_val=0
         arm_type=ArmourType.PADDED
         move=MoveSpeed.MED
         move_type = MoveType.FOOT
-        sprite = SpriteType.PEASANT
+        if p1:
+            sprite = SpriteType.PEASANT1
+        else:
+            sprite = SpriteType.PEASANT2
         name_list = Names.Commoner
         title_list = Titles.Peasant
         ability_name = "Surge of Bravery"
         ability_range = 0
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range)
+        ability_min_range = 0
+        ability_value = 2
+        super().__init__(unit_type, hp, dam_val, dam_type, arm_val, arm_type, move, move_type, 
+                         sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
+        self.set_ability_targets(TARGET_SELF)
         self.ability_used = False
 
 class Soldier(Unit):
-    def __init__(self) -> None:
+    def __init__(self, p1 = True) -> None:
+        unit_type = "Soldier"
         hp=16
-        dam_val=8
+        dam_val=6
         dam_type=DamageType.PIERCE
-        arm_val=3
+        arm_val=0#1
         arm_type=ArmourType.CHAIN
         move=MoveSpeed.MED
         move_type = MoveType.FOOT
-        sprite = SpriteType.SOLDIER
+        if p1:
+            sprite = SpriteType.SOLDIER1
+        else:
+            sprite = SpriteType.SOLDIER2
         name_list = Names.Commoner
         title_list = Titles.Soldier
         ability_name = "Guarded Advance" 
-        ability_range = 1        
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range)
+        ability_range = 1
+        ability_min_range = 1
+        ability_value = None
+        super().__init__(unit_type, hp, dam_val, dam_type, arm_val, arm_type, move, move_type, 
+                         sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
+        self.set_ability_targets(TARGET_ALLIES)
 
-    def find_target_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
-        target_spaces = set()
-        # Only add this space if there an ally here
-        if space_list[i][j].get_unit() != None:
-            if space_list[i][j].get_unit().get_player() == self.get_player():
-                if space_list[i][j].get_unit() != self:
-                    target_spaces = {(i,j)}
-        if range <= 0:
-            return target_spaces
-        target_spaces = target_spaces.union(self.check_target_spaces(i-1, j, range, space_list))
-        #target_spaces = target_spaces.union(self.check_target_spaces(i-1, j-1, range, space_list))
-        target_spaces = target_spaces.union(self.check_target_spaces(i, j-1, range, space_list))
-        #target_spaces = target_spaces.union(self.check_target_spaces(i+1, j-1, range, space_list))
-        target_spaces = target_spaces.union(self.check_target_spaces(i+1, j, range, space_list))
-        #target_spaces = target_spaces.union(self.check_target_spaces(i+1, j+1, range, space_list))
-        target_spaces = target_spaces.union(self.check_target_spaces(i, j+1, range, space_list))
-        #target_spaces = target_spaces.union(self.check_target_spaces(i-1, j+1, range, space_list))
-        return target_spaces
-
-class Sorcerer(Unit):
-    def __init__(self) -> None:
-        hp=14
-        dam_val=6
-        dam_type=DamageType.PIERCE
-        arm_val=1
-        arm_type=ArmourType.ROBES
-        move=MoveSpeed.MED
-        move_type = MoveType.FOOT
-        sprite = SpriteType.SORCERER
-        name_list = Names.Mage
-        title_list = Titles.Sorcerer
-        ability_name = "Sorcerous Assault"    
-        ability_range = 4    
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range)
-        self.__special_damage = 5
-        self.__special_damage_type = DamageType.MAGIC
-
-    def special_ability(self, target, spaces):
-        target_row = target.get_location().get_row()
-        target_col = target.get_location().get_col()
-        attack_log = []
-        if target_col - 1 >= 0:
-            left_target = spaces[target_row][target_col - 1].get_unit()
-            if left_target != None:
-                attack_log.append(self.magic_attack(left_target))
-        attack_log.append(self.magic_attack(target))
-        if target_col + 1 < BOARD_COLS:
-            right_target = spaces[target_row][target_col + 1].get_unit()
-            if right_target != None:
-                attack_log.append(self.magic_attack(right_target))
-        return attack_log
-        
-    def magic_attack(self, target):
+    def special_ability(self, target, space):
         unit_name = self.get_name()
         target_name = target.get_name()
         attack_log = []
-        first_strike_attack = ceil(self.__special_damage * FIRST_STRIKE_BOOST)
-        target_hp = target.get_curr_hp()
-        self.attack(target, first_strike_attack, self.__special_damage_type)
-        damage_dealt = target_hp - target.get_curr_hp()
-        attack_log.append(f"{unit_name} blasts {target_name} with arcane energy, dealing {damage_dealt} damage!\n")
-        if target.is_dead():
-            attack_log.append(f"{unit_name} has slain {target_name}!\n")
-            target.get_location().assign_unit(None)
+        current_space = self.get_location()
+        current_space.assign_unit(None)
+        target.move(current_space)
+        space.assign_unit(self)
+        self.move(space)
+        attack_log.append(f"{unit_name} moves to defend {target_name}, taking their place.\n")
+        attack_log.append(f"{unit_name} -> {space.get_row()},{space.get_col()}.\n")
+        attack_log.append(f"{target_name} -> {current_space.get_row()},{current_space.get_col()}.\n")
         return attack_log
 
-class Healer(Unit):
-    def __init__(self) -> None:
-        hp=15
-        dam_val=8
-        dam_type=DamageType.BLUDGEON
-        arm_val=3
-        arm_type=ArmourType.CHAIN
-        move=MoveSpeed.MED
-        move_type = MoveType.FOOT
-        sprite = SpriteType.HEALER
-        name_list = Names.Mage
-        title_list = Titles.Healer
-        ability_name = "Healing Radiance"
-        ability_range = 1
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range)
-
-    def find_target_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
-        target_spaces = set()
-        # Only add this space if there an ally here
-        if space_list[i][j].get_unit() != None:
-            if space_list[i][j].get_unit().get_player() == self.get_player():
-                if space_list[i][j].get_unit() != self:
-                    target_spaces = {(i,j)}
-        if range <= 0:
-            return target_spaces
-        target_spaces = target_spaces.union(self.check_target_spaces(i-1, j, range, space_list))
-        #target_spaces = target_spaces.union(self.check_target_spaces(i-1, j-1, range, space_list))
-        target_spaces = target_spaces.union(self.check_target_spaces(i, j-1, range, space_list))
-        #target_spaces = target_spaces.union(self.check_target_spaces(i+1, j-1, range, space_list))
-        target_spaces = target_spaces.union(self.check_target_spaces(i+1, j, range, space_list))
-        #target_spaces = target_spaces.union(self.check_target_spaces(i+1, j+1, range, space_list))
-        target_spaces = target_spaces.union(self.check_target_spaces(i, j+1, range, space_list))
-        #target_spaces = target_spaces.union(self.check_target_spaces(i-1, j+1, range, space_list))
-        return target_spaces
-
 class Archer(Unit):
-    def __init__(self) -> None:
+    def __init__(self, p1 = True) -> None:
+        unit_type = "Archer"
         hp=15
-        dam_val=6
+        dam_val=4
         dam_type=DamageType.PIERCE
-        arm_val=2
+        arm_val=0
         arm_type=ArmourType.PADDED
         move=MoveSpeed.MED
         move_type = MoveType.FOOT
-        sprite = SpriteType.ARCHER
+        if p1:
+            sprite = SpriteType.ARCHER1
+        else:
+            sprite = SpriteType.ARCHER2
         name_list = Names.Commoner
         title_list = Titles.Archer
         ability_name = "Ranged Attack"
         ability_range = 5
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range)
-        self.__special_damage = 7
+        ability_min_range = 2
+        ability_value = 6
+        super().__init__(unit_type, hp, dam_val, dam_type, arm_val, arm_type, move, move_type, 
+                         sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
+        self.set_ability_targets(TARGET_ENEMIES)
         self.__special_damage_type = DamageType.PIERCE
 
-    def special_ability(self, target, spaces):
+    def special_ability(self, target, space):
         unit_name = self.get_name()
         target_name = target.get_name()
         attack_log = []
-        first_strike_attack = ceil(self.__special_damage * FIRST_STRIKE_BOOST)
+        first_strike_attack = ceil(self.get_ability_value() * FIRST_STRIKE_BOOST)
         target_hp = target.get_curr_hp()
         self.attack(target, first_strike_attack, self.__special_damage_type)
         damage_dealt = target_hp - target.get_curr_hp()
@@ -437,81 +396,231 @@ class Archer(Unit):
         return attack_log
 
 class Cavalry(Unit):
-    def __init__(self) -> None:
-        hp=20
-        dam_val=9
+    def __init__(self, p1 = True) -> None:
+        unit_type = "Cavalry"
+        hp=18
+        dam_val=7
         dam_type=DamageType.SLASH
-        arm_val=4
+        arm_val=0#1
         arm_type=ArmourType.PLATE
         move=MoveSpeed.FAST
         move_type = MoveType.HORSE
-        sprite = SpriteType.PEASANT
+        if p1:
+            sprite = SpriteType.PEASANT1
+        else:
+            sprite = SpriteType.PEASANT2
         name_list = Names.Noble
         title_list = Titles.Cavalry
         ability_name = "Harrying Strike"
-        ability_range = 1
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range)
+        ability_range = 0
+        ability_min_range = 0
+        ability_value = None
+        super().__init__(unit_type, hp, dam_val, dam_type, arm_val, arm_type, move, move_type, 
+                         sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
+        self.set_ability_targets(TARGET_SELF)
     
-    def check_move_spaces(self, i: int, j: int, range: int, space_list: list) -> set:
-        valid_spaces = set()
-        if i >= 0 and i < BOARD_ROWS and j >= 0 and j < BOARD_COLS:
-            # If there is a solder in the space which doesn't belong to this player, return
-            if isinstance(space_list[i][j].get_unit(), Soldier): 
-                    if space_list[i][j].get_unit().get_player() != self.get_player():
-                        return valid_spaces 
-            # Otherwise proceed
-            valid_spaces = valid_spaces.union(self.find_move_spaces(i, j, range-1, space_list))
-        return valid_spaces
+    # Variation of movement verification that can pass all units except Enemy-aligned Soldiers
+    def verify_space_pass(self, space, target_dict, action) -> bool:
+        if action == ActionType.MOVE:
+            unit = space.get_unit()
+            if unit != None:
+                if not self.is_ally(unit):
+                    if isinstance(unit, Soldier):
+                        return False
+            return True
+        else:
+            return self.verify_target(space, target_dict)
     
+class Sorcerer(Unit):
+    def __init__(self, p1 = True) -> None:
+        unit_type = "Sorcerer"
+        hp=14
+        dam_val=4
+        dam_type=DamageType.PIERCE
+        arm_val=0
+        arm_type=ArmourType.ROBES
+        move=MoveSpeed.MED
+        move_type = MoveType.FOOT
+        if p1:
+            sprite = SpriteType.SORCERER1
+        else:
+            sprite = SpriteType.SORCERER2
+        name_list = Names.Mage
+        title_list = Titles.Sorcerer
+        ability_name = "Sorcerous Assault"    
+        ability_range = 4
+        ability_min_range = 0
+        ability_value = 6
+        super().__init__(unit_type, hp, dam_val, dam_type, arm_val, arm_type, move, move_type, 
+                         sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
+        self.set_ability_targets(TARGET_ALL)
+        self.__special_damage_type = DamageType.MAGIC
+        self._ability_area_of_effect.extend([Direction.LEFT, Direction.RIGHT])
+        
+
+    def special_ability(self, target, space):
+        attack_log = []
+        left_space = space.get_left()
+        if left_space is not None:
+            left_target = left_space.get_unit()
+            if left_target != None:
+                attack_log += (self.magic_power(left_target))
+        if target is not None:
+            attack_log += (self.magic_power(target))
+        right_space = space.get_right()
+        if right_space is not None:
+            right_target = right_space.get_unit()
+            if right_target != None:
+                attack_log += (self.magic_power(right_target))
+        if len(attack_log) == 0:
+            attack_log.append(f"{self.get_name()} blasts the darkness with arcane energy. It has no effect!\n")
+        return attack_log
+        
+    def magic_power(self, target):
+        unit_name = self.get_name()
+        if target is self:
+            target_name = "themself"
+        else:
+            target_name = target.get_name()
+        attack_log = []
+        damage = self.get_ability_value()
+        target_hp = target.get_curr_hp()
+        self.attack(target, damage, self.__special_damage_type)
+        damage_dealt = target_hp - target.get_curr_hp()
+        attack_log.append(f"{unit_name} blasts {target_name} with arcane energy, dealing {damage_dealt} damage!\n")
+        if target.is_dead():
+            attack_log.append(f"{unit_name} has slain {target_name}!\n")
+            target.get_location().assign_unit(None)
+        return attack_log
+
+class Healer(Unit):
+    def __init__(self, p1 = True) -> None:
+        unit_type = "Healer"
+        hp=15
+        dam_val=6
+        dam_type=DamageType.BLUDGEON
+        arm_val=0#1
+        arm_type=ArmourType.CHAIN
+        move=MoveSpeed.MED
+        move_type = MoveType.FOOT
+        if p1:
+            sprite = SpriteType.HEALER1
+        else:
+            sprite = SpriteType.HEALER2
+        name_list = Names.Mage
+        title_list = Titles.Healer
+        ability_name = "Healing Radiance"
+        ability_range = 0
+        ability_min_range = 0
+        ability_value = 5
+        super().__init__(unit_type, hp, dam_val, dam_type, arm_val, arm_type, move, move_type, 
+                         sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
+        self.set_ability_targets(TARGET_SELF)
+        self._ability_area_of_effect.extend([Direction.UP, Direction.LEFT, Direction.RIGHT, Direction.DOWN])
+
+    def special_ability(self, target, space):
+        attack_log = []
+        top_space = space.get_up()
+        if top_space is not None:
+            top_target = top_space.get_unit()
+            if top_target != None:
+                attack_log += (self.magic_power(top_target))
+        left_space = space.get_left()
+        if left_space is not None:
+            left_target = left_space.get_unit()
+            if left_target != None:
+                attack_log += (self.magic_power(left_target))
+        attack_log += (self.magic_power(target))
+        right_space = space.get_right()
+        if right_space is not None:
+            right_target = right_space.get_unit()
+            if right_target != None:
+                attack_log += (self.magic_power(right_target))
+        down_space = space.get_down()
+        if down_space is not None:
+            down_target = down_space.get_unit()
+            if down_target != None:
+                attack_log += (self.magic_power(down_target))
+        if len(attack_log) == 0:
+            attack_log.append(f"{self.get_name()} infuses their surroundings with healing magic. The warmth is pleasant, but it has no effect!\n")
+        return attack_log
+        
+    def magic_power(self, target):
+        if self.get_player() == target.get_player():
+            unit_name = self.get_name()
+            target_name = target.get_name()
+            attack_log = []
+            target_hp = target.get_curr_hp()
+            target.heal(self.get_ability_value())
+            damage_healed = target.get_curr_hp() - target_hp
+            if damage_healed > 0:
+                attack_log.append(f"{unit_name} infuses {target_name} with mystical energy, healing {damage_healed} damage!\n")
+        return attack_log
 
 class Archmage(Unit):
-    def __init__(self) -> None:
+    def __init__(self, p1 = True) -> None:
+        unit_type = "Archmage"
         hp=22
-        dam_val=7
+        dam_val=5
         dam_type=DamageType.BLUDGEON
-        arm_val=1
+        arm_val=0
         arm_type=ArmourType.ROBES
         move=MoveSpeed.MED
         move_type = MoveType.FLY
-        sprite = SpriteType.ARCHMAGE
+        if p1:
+            sprite = SpriteType.ARCHMAGE1
+        else:
+            sprite = SpriteType.ARCHMAGE2
         name_list = Names.Mage
         title_list = Titles.Archmage
         ability_name = "Arcane Vortex"
         ability_range = 3
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range)
-        self.__special_damage = 6
+        ability_min_range = 0
+        ability_value = 7
+        super().__init__(unit_type, hp, dam_val, dam_type, arm_val, arm_type, move, move_type, 
+                         sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
+        self.set_ability_targets(TARGET_ALL)
         self.__special_damage_type = DamageType.MAGIC
+        self._ability_area_of_effect.extend([Direction.UP, Direction.LEFT, Direction.RIGHT, Direction.DOWN])
 
-    def special_ability(self, target, spaces):
-        target_row = target.get_location().get_row()
-        target_col = target.get_location().get_col()
+    def special_ability(self, target, space):
         attack_log = []
-        if target_row - 1 >= 0:
-            top_target = spaces[target_row - 1][target_col].get_unit()
-            if top_target != None:
-                attack_log.append(self.magic_attack(top_target))
-        if target_col - 1 >= 0:
-            left_target = spaces[target_row][target_col - 1].get_unit()
-            if left_target != None:
-                attack_log.append(self.magic_attack(left_target))
-        attack_log.append(self.magic_attack(target))
-        if target_col + 1 < BOARD_COLS:
-            right_target = spaces[target_row][target_col + 1].get_unit()
+        top_space = space.get_up()
+        if top_space is not None:
+            top_target = top_space.get_unit()
+            if top_target is not None:
+                attack_log += (self.magic_power(top_target))
+        left_space = space.get_left()
+        if left_space is not None:
+            left_target = left_space.get_unit()
+            if left_target is not None:
+                attack_log += (self.magic_power(left_target))
+        if target is not None:
+            attack_log += (self.magic_power(target))
+        right_space = space.get_right()
+        if right_space is not None:
+            right_target = right_space.get_unit()
             if right_target != None:
-                attack_log.append(self.magic_attack(right_target))
-        if target_row + 1 < BOARD_ROWS:
-            bottom_target = spaces[target_row + 1][target_col].get_unit()
-            if bottom_target != None:
-                attack_log.append(self.magic_attack(bottom_target))
+                attack_log += (self.magic_power(right_target))
+        down_space = space.get_down()
+        if down_space is not None:
+            down_target = down_space.get_unit()
+            if down_target != None:
+                attack_log += (self.magic_power(down_target))
+        if len(attack_log) == 0:
+            attack_log.append(f"{self.get_name()} blasts the darkness with arcane energy. It has no effect!\n")
         return attack_log
         
-    def magic_attack(self, target):
+    def magic_power(self, target):
         unit_name = self.get_name()
-        target_name = target.get_name()
+        if target is self:
+            target_name = "themself"
+        else:
+            target_name = target.get_name()
         attack_log = []
-        first_strike_attack = ceil(self.__special_damage * FIRST_STRIKE_BOOST)
+        damage = self.get_ability_value()
         target_hp = target.get_curr_hp()
-        self.attack(target, first_strike_attack, self.__special_damage_type)
+        self.attack(target, damage, self.__special_damage_type)
         damage_dealt = target_hp - target.get_curr_hp()
         attack_log.append(f"{unit_name} blasts {target_name} with arcane energy, dealing {damage_dealt} damage!\n")
         if target.is_dead():
@@ -520,20 +629,28 @@ class Archmage(Unit):
         return attack_log
 
 class General(Unit):
-    def __init__(self) -> None:
+    def __init__(self, p1 = True) -> None:
+        unit_type = "General"
         hp=24
-        dam_val=10
+        dam_val=8
         dam_type=DamageType.SLASH
-        arm_val=4
+        arm_val=0#2
         arm_type=ArmourType.PLATE
         move=MoveSpeed.SLOW
         move_type = MoveType.FOOT
-        sprite = SpriteType.PEASANT
+        if p1:
+            sprite = SpriteType.GENERAL1
+        else:
+            sprite = SpriteType.GENERAL2
         name_list = Names.Noble
         title_list = Titles.General
         ability_name = "Inspirational Rally"
         ability_range = 0
-        super().__init__(hp, dam_val, dam_type, arm_val, arm_type, move, move_type, sprite, name_list, title_list, ability_name, ability_range)
+        ability_min_range = 0
+        ability_value = 1
+        super().__init__(unit_type, hp, dam_val, dam_type, arm_val, arm_type, move, move_type, 
+                         sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
+        self.set_ability_targets(TARGET_SELF)
         self.ability_used = False
 
 
@@ -566,7 +683,7 @@ def weapon_matchup(weapon, armour):
         elif armour == ArmourType.CHAIN:
             return Effect.NEUTRAL
         elif armour == ArmourType.PLATE:
-            return Effect.STRONG
+            return Effect.NEUTRAL
         
     elif weapon == DamageType.MAGIC:
         if armour == ArmourType.ROBES:
@@ -574,7 +691,7 @@ def weapon_matchup(weapon, armour):
         elif armour == ArmourType.PADDED:
             return Effect.NEUTRAL
         elif armour == ArmourType.CHAIN:
-            return Effect.STRONG
+            return Effect.NEUTRAL
         elif armour == ArmourType.PLATE:
             return Effect.STRONG
         
