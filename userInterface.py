@@ -172,21 +172,21 @@ class ControlBar(Panel):
         super().__init__(root, xPos, yPos, width, height, colour, bd, relief)
 
         self.buttons = {
-            'red' : ToggleButton(self.frame, unpressed='Assets/Buttons/red_unpressed.png', pressed='Assets/Buttons/red_pressed.png'),
+            'attack' : ToggleButton(self.frame, unpressed='Assets/Buttons/red_unpressed.png', pressed='Assets/Buttons/red_pressed.png'),
             'ability' : ToggleButton(self.frame, unpressed='Assets/Buttons/yellow_unpressed.png', pressed='Assets/Buttons/yellow_pressed.png'),
-            'green' : CanvasButton(self.frame, unpressed='Assets/Buttons/green_unpressed.png', pressed='Assets/Buttons/green_pressed.png'),
-            'grey' : CanvasButton(self.frame, unpressed='Assets/Buttons/grey_unpressed.png', pressed='Assets/Buttons/grey_pressed.png')
+            'confirm' : CanvasButton(self.frame, unpressed='Assets/Buttons/green_unpressed.png', pressed='Assets/Buttons/green_pressed.png'),
+            'cancel' : CanvasButton(self.frame, unpressed='Assets/Buttons/grey_unpressed.png', pressed='Assets/Buttons/grey_pressed.png')
         }
 
-        self.__actionToggleKeys = [self.buttons['red'], self.buttons['ability']]
-        self.buttons['red'].set_key(self.__actionToggleKeys)
+        self.__actionToggleKeys = [self.buttons['attack'], self.buttons['ability']]
+        self.buttons['attack'].set_key(self.__actionToggleKeys)
         self.buttons['ability'].set_key(self.__actionToggleKeys)
 
         self.labels = {
-            'red' : Label(self.frame, text='Attack'),
+            'attack' : Label(self.frame, text='Attack'),
             'ability' : Label(self.frame, text='Ability'),
-            'green' : Label(self.frame, text='Confirm Move'),
-            'grey' : Label(self.frame, text='Cancel')
+            'confirm' : Label(self.frame, text='Confirm Move'),
+            'cancel' : Label(self.frame, text='Cancel')
         }
 
         spacing = 16
@@ -241,7 +241,7 @@ class CanvasButton():
         self.button = Canvas(frame, bg=UI_BG_COLOUR, bd=0, highlightthickness=0, cursor='hand2') # Create the button object
         self.button.pack_propagate(0) # Prevent the Canvas from shrinking
         self.button.place(x=xPos, y=yPos)
-        self.bind(self.__click, self.__unclick)
+        self.bind(self.click, self.unclick)
         self.__create_image(unpressed, pressed)
         self.currentImage = self.button.create_image(0, 0, anchor = 'nw', image=self.unpressed)
 
@@ -286,12 +286,12 @@ class CanvasButton():
         width, height = self.unpressed.width(), self.unpressed.height()
         self.button.config(self.button, width=width, height=height)
 
-    def __click(self, event) -> None:
+    def click(self, event) -> None:
         if self.enabled:
             self.button.itemconfig(self.currentImage, image=self.pressed)
             self.clickFunc()
 
-    def __unclick(self, event) -> None:
+    def unclick(self, event) -> None:
         if self.enabled:
             self.button.itemconfig(self.currentImage, image=self.unpressed)
             self.unclickFunc()
@@ -313,7 +313,7 @@ class ToggleButton(CanvasButton):
         self.toggled = toggled
 
         # Must override parent class else it will behave like parent
-        self.bind(self.__click, self.__unclick)
+        self.bind(self.click, self.unclick)
         self.change_click_func(clickFunc)
         self.change_unclick_func(unclickFunc)
         
@@ -348,11 +348,11 @@ class ToggleButton(CanvasButton):
         self.button.itemconfig(self.currentImage, image=self.unpressed)
         self.enable()
 
-    def __click(self, event) -> None:
+    def click(self, event) -> None:
         if self.enabled:
             self.clickFunc()
 
-    def __unclick(self, event) -> None:
+    def unclick(self, event) -> None:
         if self.enabled:
             self.untoggle_keys()
             if self.get_toggle_status() == False:
