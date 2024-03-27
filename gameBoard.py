@@ -32,6 +32,10 @@ class GameBoard:
         self.__transparent_square = self.set_transparency()
         self.window.canvas.bind('<Button-1>', self.click)
         self.window.canvas.bind('<Button-3>', self.right_click)
+        self.root.bind('<z>', self.ui.controlBar.buttons['red'].unclick)
+        self.root.bind('<x>', self.ui.controlBar.buttons['ability'].unclick)
+        self.root.bind('<space>', self.ui.controlBar.buttons['green'].unclick)
+        self.root.bind('<Shift-KeyPress>', self.ui.controlBar.buttons['grey'].unclick)
         self.__selected_space = None # Space currently selected
         self.__selected_unit = None # Unit currently selected
         self.__action_space = None # Location where selected unit will move to take an action
