@@ -49,6 +49,13 @@ SELECT_COL = "blue"
 ACTION_COL = "purple"
 ABILITY_COL = "yellow"
 
+# Maximum length of message and size of message buffer
+MAX_MESSAGE_SIZE = 256
+
+#Receiver timeout length in seconds
+TIMEOUT_LENGTH = 2
+
+
 # Identifiers for unit sprites
 class SpriteType:
     ARCHER1 = "Archer1"

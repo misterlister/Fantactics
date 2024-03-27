@@ -4,6 +4,7 @@ from PIL import ImageTk, Image
 from userInterface import UserInterface, do_nothing
 from constants import *
 from units import Soldier
+from clientSender import Sender
 
 
 class GameBoard:
@@ -11,6 +12,7 @@ class GameBoard:
             self,
             window: Window,
             root: Tk,
+            sender,
             ui: UserInterface,
             x_start: int = DEFAULT_X_POS,
             y_start: int = DEFAULT_Y_POS,
@@ -42,7 +44,8 @@ class GameBoard:
         self.__ability_spaces = None # Spaces the selected unit can target with their ability from the selected action space
         self.__action_confirmed = False # Keeps track of if the current action has been confirmed
         self.__game_state = None
-        
+        self.sender = sender
+    
     def draw_board(self) -> None:
         for i in range (BOARD_ROWS + 1):
             y_position = self.get_row_y(i)
@@ -128,14 +131,14 @@ class GameBoard:
 
     def attack_action(self, unit, space):
         self.update_stats_panel(space.get_unit()) 
-        self.move_unit(unit, self.__action_space)
+        self.move_unit(False,unit, self.__action_space)
         self.combat(unit, space.get_unit())
         self.ui.controlBar.buttons['red'].untoggle_keys()
         self.end_turn()
         return
     
     def ability_action(self, unit, space):
-        self.move_unit(unit, self.__action_space)
+        self.move_unit(False, self.__action_space)
         self.update_stats_panel(space.get_unit()) 
         self.activate_ability(unit, space)
         self.ui.controlBar.buttons['red'].untoggle_keys()
@@ -373,8 +376,11 @@ class GameBoard:
         ### REMOVE COMBAT/ABILITY PREVIEW HERE
         self.draw_all_spaces()
 
-    def move_unit(self, unit, space):
+    def move_unit(self, from_server, unit, space):
         old_space = unit.get_location()
+        x1 = str(old_space.get_row())
+        y1 = str(old_space.get_col())
+
         try:  
             unit.move(space)
             self.deselect_space()
@@ -382,9 +388,17 @@ class GameBoard:
             self.draw_space(space)
             if old_space != space:
                 move_log = f"{unit.get_name()} -> {space.get_row()},{space.get_col()}.\n"
+                print("MOVE LOG:", move_log)
+                x2 = str(space.get_row())
+                y2 = str(space.get_col())
+
+                if not from_server:
+                    self.sender.move(x1,y1,x2,y2)
+
             else:
                 move_log = f"{unit.get_name()} stayed in place.\n"
             self.ui.logItems['text'].add_text(move_log) # Send movement to combat log
+
         except Exception as e:
             print(e)
 
@@ -472,13 +486,20 @@ class GameBoard:
         target_loc = target.get_location()
         attack_log = unit.basic_attack(target)
         self.update_stats_panel(target) 
+        unit_row = unit.get_location().get_row()
+        unit_col = unit.get_location().get_col()
+        target_row = target.get_location().get_row()
+        target_col = target.get_location().get_col()
+
         # Send attack details to combat log
         self.ui.logItems['text'].add_text(attack_log) 
         if target.is_dead(): # If the target is dead, remove them and take their place
             self.ui.logItems['text'].add_text(f"{unit_name} has slain {target_name}!\n")
             target_loc.assign_unit(None)
-            self.move_unit(unit, target_loc)
+            self.sender.kill(target_row,target_col)
+            self.move_unit(False, unit, target_loc)
         else: # Otherwise, they will retaliate
+            self.sender.change_hp(target_row, target_col, target.get_curr_hp())
             retaliation_log = target.retaliate(unit)
             self.update_stats_panel(unit)
             # Send retaliation details to combat log
@@ -489,7 +510,11 @@ class GameBoard:
                 self.__action_space = None
                 self.draw_all_spaces()
                 self.deselect_space()
-        
+                self.sender.kill(target_row,target_col)
+            else:
+                self.sender.change_hp(unit_row, unit_col, unit.get_curr_hp())
+
+    
     def preview_sprite(self, unit, space):
         preview = unit.get_sprite()
         x = self.get_col_x(space.get_col())
@@ -522,10 +547,8 @@ class GameBoard:
 
     def move_and_wait(self, unit, space):
         self.ui.controlBar.buttons['red'].untoggle_keys()
-        self.move_unit(unit, space)
+        self.move_unit(False, unit, space)
         self.end_turn()
-
-
 
 class Terrain:
     def __init__(self) -> None:
