@@ -172,21 +172,21 @@ class ControlBar(Panel):
         super().__init__(root, xPos, yPos, width, height, colour, bd, relief)
 
         self.buttons = {
-            'red' : ToggleButton(self.frame, unpressed='Assets/Buttons/red_unpressed.png', pressed='Assets/Buttons/red_pressed.png'),
+            'attack' : ToggleButton(self.frame, unpressed='Assets/Buttons/red_unpressed.png', pressed='Assets/Buttons/red_pressed.png'),
             'ability' : ToggleButton(self.frame, unpressed='Assets/Buttons/yellow_unpressed.png', pressed='Assets/Buttons/yellow_pressed.png'),
-            'green' : CanvasButton(self.frame, unpressed='Assets/Buttons/green_unpressed.png', pressed='Assets/Buttons/green_pressed.png'),
-            'grey' : CanvasButton(self.frame, unpressed='Assets/Buttons/grey_unpressed.png', pressed='Assets/Buttons/grey_pressed.png')
+            'confirm' : CanvasButton(self.frame, unpressed='Assets/Buttons/green_unpressed.png', pressed='Assets/Buttons/green_pressed.png'),
+            'cancel' : CanvasButton(self.frame, unpressed='Assets/Buttons/grey_unpressed.png', pressed='Assets/Buttons/grey_pressed.png')
         }
 
-        self.__actionToggleKeys = [self.buttons['red'], self.buttons['ability']]
-        self.buttons['red'].set_key(self.__actionToggleKeys)
+        self.__actionToggleKeys = [self.buttons['attack'], self.buttons['ability']]
+        self.buttons['attack'].set_key(self.__actionToggleKeys)
         self.buttons['ability'].set_key(self.__actionToggleKeys)
 
         self.labels = {
-            'red' : Label(self.frame, text='Attack'),
+            'attack' : Label(self.frame, text='Attack'),
             'ability' : Label(self.frame, text='Ability'),
-            'green' : Label(self.frame, text='Confirm Move'),
-            'grey' : Label(self.frame, text='Cancel')
+            'confirm' : Label(self.frame, text='Confirm Move'),
+            'cancel' : Label(self.frame, text='Cancel')
         }
 
         spacing = 16

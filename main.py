@@ -3,6 +3,7 @@ from graphics import Window
 from gameBoard import GameBoard
 from gameState import Player, GameState
 from userInterface import UserInterface
+from mainMenu import MainMenu
 from constants import *
 
 if __name__ == "__main__":
@@ -13,4 +14,5 @@ if __name__ == "__main__":
     player1 = Player()
     player2 = Player()
     gameState = GameState(player1, player2, board, userInterface)
+    #mainMenu = MainMenu(root)
     root.mainloop()
