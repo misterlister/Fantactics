@@ -164,7 +164,7 @@ class GameBoard:
 
     def combat_preview(self, unit, target):
         target_damage = unit.attack_preview(target, True)
-        if target_damage >= target.get_curr_hp():
+        if target_damage < target.get_curr_hp():
             unit_damage = target.attack_preview(unit, False)
         else:
             unit_damage = 0

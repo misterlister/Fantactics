@@ -426,7 +426,7 @@ class Archer(Unit):
     def ability_preview(self, target):
         if target == None:
             return None
-        damage_dealt = self.calculate_preview(target, self.get_ability_value, self.__special_damage_type)
+        damage_dealt = self.calculate_preview(target, self.get_ability_value(), self.__special_damage_type)
         return damage_dealt
 
 class Cavalry(Unit):
@@ -530,7 +530,7 @@ class Sorcerer(Unit):
     def ability_preview(self, target):
         if target == None:
             return None
-        damage_dealt = self.calculate_preview(target, self.get_ability_value, self.__special_damage_type)
+        damage_dealt = self.calculate_preview(target, self.get_ability_value(), self.__special_damage_type)
         return damage_dealt
 
 class Healer(Unit):
@@ -671,7 +671,7 @@ class Archmage(Unit):
     def ability_preview(self, target):
         if target == None:
             return None
-        damage_dealt = self.calculate_preview(target, self.get_ability_value, self.__special_damage_type)
+        damage_dealt = self.calculate_preview(target, self.get_ability_value(), self.__special_damage_type)
         return damage_dealt
 
 class General(Unit):
