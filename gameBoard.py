@@ -134,7 +134,7 @@ class GameBoard:
         self.update_stats_panel(space.get_unit()) 
         self.move_unit(unit, self.__action_space)
         self.combat(unit, space.get_unit())
-        self.ui.controlBar.buttons['red'].untoggle_keys()
+        self.ui.controlBar.buttons['attack'].untoggle_keys()
         self.end_turn()
         return
     
@@ -142,7 +142,7 @@ class GameBoard:
         self.move_unit(unit, self.__action_space)
         self.update_stats_panel(space.get_unit()) 
         self.activate_ability(unit, space)
-        self.ui.controlBar.buttons['red'].untoggle_keys()
+        self.ui.controlBar.buttons['attack'].untoggle_keys()
         self.end_turn()
         return
 
@@ -155,7 +155,7 @@ class GameBoard:
         self.draw_space(self.__action_space)
         self.preview_sprite(unit, self.__action_space)
         target = space.get_unit()
-        self.ui.controlBar.buttons['green'].change_unclick_func(lambda: action(unit, space))
+        self.ui.controlBar.buttons['confirm'].change_unclick_func(lambda: action(unit, space))
         if action == self.ability_action: # If this is an ability, highlight the area of effect
             self.__area_of_effect_spaces = unit.get_area_of_effect(space)
             for effect_space in self.__area_of_effect_spaces:
@@ -418,7 +418,7 @@ class GameBoard:
         self.draw_all_spaces()
         self.deselect_space()
         self.clear_stats_panel()
-        self.ui.controlBar.buttons['red'].untoggle_keys()
+        self.ui.controlBar.buttons['attack'].untoggle_keys()
 
     def get_col_x(self, col):
         x = self.x_start + (col * (self.square_size))
@@ -443,7 +443,7 @@ class GameBoard:
         self.__action_space = space
 
     def set_attack_spaces(self, unit, space):
-        self.ui.controlBar.buttons['red'].toggle()
+        self.ui.controlBar.buttons['attack'].toggle()
         self.reset_target_spaces()
         self.draw_space(space)
         self.preview_sprite(unit, space)
@@ -546,7 +546,7 @@ class GameBoard:
         self.__game_state.next_turn()
 
     def move_and_wait(self, unit, space):
-        self.ui.controlBar.buttons['red'].untoggle_keys()
+        self.ui.controlBar.buttons['attack'].untoggle_keys()
         self.move_unit(unit, space)
         self.end_turn()
 
