@@ -440,9 +440,9 @@ class Cavalry(Unit):
         move=MoveSpeed.FAST
         move_type = MoveType.HORSE
         if p1:
-            sprite = SpriteType.PEASANT1
+            sprite = SpriteType.CAVALRY1
         else:
-            sprite = SpriteType.PEASANT2
+            sprite = SpriteType.CAVALRY2
         name_list = Names.Noble
         title_list = Titles.Cavalry
         ability_name = "Harrying Strike"
