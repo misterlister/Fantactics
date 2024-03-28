@@ -55,6 +55,11 @@ MAX_MESSAGE_SIZE = 256
 #Receiver timeout length in seconds
 TIMEOUT_LENGTH = 2
 
+#IP Address of Host:
+IP = "localhost"
+
+#Port used for server listen socket.
+PORT = 5000
 
 # Identifiers for unit sprites
 class SpriteType:

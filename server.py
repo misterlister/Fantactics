@@ -7,8 +7,7 @@ import time
 
 this_file = "server.py"
 
-IP = 'localhost'
-PORT = 5000  
+    
 p1Active = False
 p2Active = False
 sel = selectors.DefaultSelector()
@@ -118,14 +117,15 @@ def parse_message(receivingPlayer,msg):
 
 
 if __name__ == "__main__":
-    IP_address = socket.gethostname()
     
+
     listenSocket = socket.socket()
     listenSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,1)
-    listenSocket.bind((IP_address,PORT))
+    
+    listenSocket.bind((IP, PORT))
     listenSocket.listen()
 
-    print("Server listenining at hostname: ", IP_address, ", port: ", PORT)    
+    print("Server listenining at hostname: ", IP, ", port: ", PORT)    
     p1Conn, p1Addr = listenSocket.accept()
     print("P1Conn type: ", type(p1Conn))
     p1Active = True
