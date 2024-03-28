@@ -1,7 +1,7 @@
 from enum import IntEnum
 
 # Background colour for the game window
-BG_COL = '#d9d9d9'
+BG_COL = '#a9a9a9'
 # Width and height of the game window
 WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
