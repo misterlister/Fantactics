@@ -35,6 +35,10 @@ class Sender:
         self.send(msg)
     
     def move(self,prev_row, prev_col,new_row,new_col):
+        prev_row = str(prev_row)
+        prev_col = str(prev_col)
+        new_row = str(new_row)
+        new_col = str(new_col)
         msg = "[Move:" + prev_row + "," + prev_col + ":" 
         msg += new_row + "," + new_col + "]"
         self.send(msg)

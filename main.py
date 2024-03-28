@@ -30,8 +30,6 @@ if __name__ == "__main__":
     root.bind('<Escape>', lambda a: endfGame(a,root))
 
     root.mainloop()
-    print("After Mainloop")
-    print("After Destroy")
 
     gameClosedEvent.set()
     connClosedEvent.set()

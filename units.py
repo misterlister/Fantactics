@@ -3,6 +3,7 @@ from graphics import SpriteType
 from random import randint
 from names import Names, Titles
 from constants import *
+from clientSender import Sender
 
 class Unit:
     def __init__(
@@ -348,17 +349,20 @@ class Soldier(Unit):
         target_name = target.get_name()
         attack_log = []
         current_space = self.get_location()
-        current_space.assign_unit(None)
-        target.move(current_space)
-        space.assign_unit(self)
-        self.move(space)
-        attack_log.append(f"{unit_name} moves to defend {target_name}, taking their place.\n")
-        attack_log.append(f"{unit_name} -> {space.get_row()},{space.get_col()}.\n")
-        attack_log.append(f"{target_name} -> {current_space.get_row()},{current_space.get_col()}.\n")
+        ## ToDO:
+        
+        #current_space.assign_unit(None)
+        #target.move(current_space)
+        #space.assign_unit(self)
+        #self.move(space)
+        attack_log.append(f"Soldier special not yet implemented.")
+        #attack_log.append(f"{unit_name} moves to defend {target_name}, taking their place.\n")
+        #attack_log.append(f"{unit_name} -> {space.get_row()},{space.get_col()}.\n")
+        #attack_log.append(f"{target_name} -> {current_space.get_row()},{current_space.get_col()}.\n")
         return attack_log
 
 class Archer(Unit):
-    def __init__(self, p1 = True) -> None:
+    def __init__(self, sender , p1 = True) -> None:
         unit_type = "Archer"
         hp=15
         dam_val=4
@@ -381,6 +385,7 @@ class Archer(Unit):
                          sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
         self.set_ability_targets(TARGET_ENEMIES)
         self.__special_damage_type = DamageType.PIERCE
+        self.sender = sender
 
     def special_ability(self, target, space):
         unit_name = self.get_name()
@@ -391,9 +396,16 @@ class Archer(Unit):
         self.attack(target, first_strike_attack, self.__special_damage_type)
         damage_dealt = target_hp - target.get_curr_hp()
         attack_log.append(f"{unit_name} fires an arrow at {target_name}, dealing {damage_dealt} damage!\n")
+        tspace = target.get_location()
+        trow = tspace.get_row()
+        tcol = tspace.get_col()
+
         if target.is_dead():
             attack_log.append(f"{unit_name} has slain {target_name}!\n")
             target.get_location().assign_unit(None)
+            self.sender.kill(trow,tcol)
+        else:
+            self.sender.change_hp(trow,tcol, damage_dealt)
         return attack_log
 
 class Cavalry(Unit):
@@ -433,7 +445,7 @@ class Cavalry(Unit):
             return self.verify_target(space, target_dict)
     
 class Sorcerer(Unit):
-    def __init__(self, p1 = True) -> None:
+    def __init__(self, sender:Sender, p1 = True) -> None:
         unit_type = "Sorcerer"
         hp=14
         dam_val=4
@@ -457,6 +469,7 @@ class Sorcerer(Unit):
         self.set_ability_targets(TARGET_ALL)
         self.__special_damage_type = DamageType.MAGIC
         self._ability_area_of_effect.extend([Direction.LEFT, Direction.RIGHT])
+        self.sender = sender
         
 
     def special_ability(self, target, space):
@@ -486,12 +499,19 @@ class Sorcerer(Unit):
         attack_log = []
         damage = self.get_ability_value()
         target_hp = target.get_curr_hp()
+        tspace = target.get_location()
+        trow = tspace.get_row()
+        tcol = tspace.get_col()
+
         self.attack(target, damage, self.__special_damage_type)
         damage_dealt = target_hp - target.get_curr_hp()
         attack_log.append(f"{unit_name} blasts {target_name} with arcane energy, dealing {damage_dealt} damage!\n")
         if target.is_dead():
             attack_log.append(f"{unit_name} has slain {target_name}!\n")
+            self.sender.kill(trow,tcol)
             target.get_location().assign_unit(None)
+        else:
+            self.sender.change_hp(trow,tcol,damage_dealt)
         return attack_log
 
 class Healer(Unit):
@@ -525,25 +545,30 @@ class Healer(Unit):
         if top_space is not None:
             top_target = top_space.get_unit()
             if top_target != None:
-                attack_log += (self.magic_power(top_target))
+                pass
+                #attack_log += (self.magic_power(top_target))
         left_space = space.get_left()
         if left_space is not None:
             left_target = left_space.get_unit()
             if left_target != None:
-                attack_log += (self.magic_power(left_target))
+                pass
+                #attack_log += (self.magic_power(left_target))
         attack_log += (self.magic_power(target))
         right_space = space.get_right()
         if right_space is not None:
             right_target = right_space.get_unit()
             if right_target != None:
-                attack_log += (self.magic_power(right_target))
+                pass
+                #attack_log += (self.magic_power(right_target))
         down_space = space.get_down()
         if down_space is not None:
             down_target = down_space.get_unit()
             if down_target != None:
-                attack_log += (self.magic_power(down_target))
+                pass
+                #attack_log += (self.magic_power(down_target))
         if len(attack_log) == 0:
-            attack_log.append(f"{self.get_name()} infuses their surroundings with healing magic. The warmth is pleasant, but it has no effect!\n")
+            attack_log.append(f"Healer special not implemented yet.")
+            #attack_log.append(f"{self.get_name()} infuses their surroundings with healing magic. The warmth is pleasant, but it has no effect!\n")
         return attack_log
         
     def magic_power(self, target):
@@ -559,7 +584,7 @@ class Healer(Unit):
         return attack_log
 
 class Archmage(Unit):
-    def __init__(self, p1 = True) -> None:
+    def __init__(self, sender:Sender , p1 = True) -> None:
         unit_type = "Archmage"
         hp=22
         dam_val=5
@@ -583,6 +608,7 @@ class Archmage(Unit):
         self.set_ability_targets(TARGET_ALL)
         self.__special_damage_type = DamageType.MAGIC
         self._ability_area_of_effect.extend([Direction.UP, Direction.LEFT, Direction.RIGHT, Direction.DOWN])
+        self.sender = sender
 
     def special_ability(self, target, space):
         attack_log = []
@@ -621,12 +647,18 @@ class Archmage(Unit):
         attack_log = []
         damage = self.get_ability_value()
         target_hp = target.get_curr_hp()
+        tspace = target.get_location()
+        trow = tspace.get_row()
+        tcol = tspace.get_col()
         self.attack(target, damage, self.__special_damage_type)
         damage_dealt = target_hp - target.get_curr_hp()
         attack_log.append(f"{unit_name} blasts {target_name} with arcane energy, dealing {damage_dealt} damage!\n")
         if target.is_dead():
             attack_log.append(f"{unit_name} has slain {target_name}!\n")
             target.get_location().assign_unit(None)
+            self.sender.kill(trow,tcol)
+        else:
+            self.sender.change_hp(trow,tcol,damage_dealt)
         return attack_log
 
 class General(Unit):

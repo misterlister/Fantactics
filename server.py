@@ -7,7 +7,6 @@ import time
 
 this_file = "server.py"
 
-    
 p1Active = False
 p2Active = False
 sel = selectors.DefaultSelector()

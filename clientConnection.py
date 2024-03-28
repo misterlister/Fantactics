@@ -110,6 +110,7 @@ class receiver():
             target = target_space.get_unit()
             target.die()
             target_space.assign_unit(None)
+            self.gameboard.cancel_action()
             return True
         
             

@@ -378,8 +378,9 @@ class GameBoard:
 
     def move_unit(self, from_server, unit, space):
         old_space = unit.get_location()
-        x1 = str(old_space.get_row())
-        y1 = str(old_space.get_col())
+        r1 = old_space.get_row()
+        print("*** PREVIOUS ROW SPACE: ", r1)
+        c1 = old_space.get_col()
 
         try:  
             unit.move(space)
@@ -389,11 +390,10 @@ class GameBoard:
             if old_space != space:
                 move_log = f"{unit.get_name()} -> {space.get_row()},{space.get_col()}.\n"
                 print("MOVE LOG:", move_log)
-                x2 = str(space.get_row())
-                y2 = str(space.get_col())
-
+                r2 = space.get_row()
+                c2 = space.get_col()
                 if not from_server:
-                    self.sender.move(x1,y1,x2,y2)
+                    self.sender.move(r1,c1,r2,c2)
 
             else:
                 move_log = f"{unit.get_name()} stayed in place.\n"

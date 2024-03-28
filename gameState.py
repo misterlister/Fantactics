@@ -73,8 +73,8 @@ class GameState:
             player_blue = (self.player.get_colour() == "blue")
             opponent_blue = not player_blue
 
-            p2_units_r1 = [Archer(opponent_blue), Cavalry(opponent_blue), Healer(opponent_blue), Archmage(opponent_blue), 
-                           General(opponent_blue), Sorcerer(opponent_blue), Cavalry(opponent_blue), Archer(opponent_blue)]
+            p2_units_r1 = [Archer(self.sender, opponent_blue), Cavalry(opponent_blue), Healer(opponent_blue), Archmage(self.sender,opponent_blue), 
+                           General(opponent_blue), Sorcerer(self.sender,opponent_blue), Cavalry(opponent_blue), Archer(self.sender, opponent_blue)]
             self.setup_row(0, 0, p2_units_r1, False)        
             p2_units_r2 = [Peasant(opponent_blue), Peasant(opponent_blue), Soldier(opponent_blue), Soldier(opponent_blue), 
                            Soldier(opponent_blue), Soldier(opponent_blue), Peasant(opponent_blue), Peasant(opponent_blue)]
@@ -82,11 +82,11 @@ class GameState:
             self.opponent.assign_units(p2_units_r1+p2_units_r2)
             self.opponent.join_game(self)
 
-            p1_units_r1 = [Archer(player_blue), Cavalry(player_blue), Healer(player_blue), Archmage(player_blue), 
-                           General(player_blue), Sorcerer(player_blue), Cavalry(player_blue), Archer(player_blue)]
+            p1_units_r1 = [Archer(self.sender,player_blue), Cavalry(player_blue), Healer(player_blue), Archmage(self.sender,player_blue), 
+                           General(player_blue), Sorcerer(self.sender,player_blue), Cavalry(player_blue), Archer(self.sender,player_blue)]
             self.setup_row(7, 7, p1_units_r1, True)          
             p1_units_r2 = [Peasant(player_blue), Peasant(player_blue), Soldier(player_blue), Soldier(player_blue), 
-                           Soldier(player_blue), Soldier(player_blue), Peasant(), Peasant()]
+                           Soldier(player_blue), Soldier(player_blue), Peasant(player_blue), Peasant(player_blue)]
             self.setup_row(6, 7, p1_units_r2, True) 
 
             self.player.assign_units(p1_units_r1+p1_units_r2)
@@ -127,9 +127,9 @@ class GameState:
     
     def get_current_player_num(self):
         if self.__current_player == self.player:
-            return 1
+            return "1"
         if self.__current_player == self.opponent:
-            return 2
+            return "2"
         else:
             return "No Current Player"
     
