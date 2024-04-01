@@ -387,6 +387,8 @@ class GameBoard:
             space.deselect()
         self.unset_unit_buttons()
         self.__selected_space = None
+        if self.__selected_unit != None:
+            self.__selected_unit.reset_action_space()
         self.__selected_unit = None
         self.__action_space = None
         self.__target_space = None
@@ -437,9 +439,12 @@ class GameBoard:
                 self.draw_space(self.__action_space)
                 self.outline_space(self.__action_space, 'green')
         self.reset_target_spaces()
+        unit.set_action_space(space)
+        self.update_stats_panel(unit)
         self.set_unit_buttons(unit, space)
         self.outline_space(space, 'purple')
         self.preview_sprite(unit, space)
+        
         self.__action_space = space
 
     def set_attack_spaces(self, unit, space):
