@@ -44,6 +44,7 @@ class GameBoard:
         self.__valid_moves = None # Spaces where the selected unit can move to
         self.__attack_spaces = None # Spaces the selected unit can attack from the selected action space
         self.__ability_spaces = None # Spaces the selected unit can target with their ability from the selected action space
+        self.__guarded_spaces = [] # Spaces which are guarded by soldiers, and cannot be targeted with ranged abilities
         self.__action_confirmed = False # Keeps track of if the current action has been confirmed
         self.__game_state = None # Links to game state object
         
@@ -107,6 +108,10 @@ class GameBoard:
                         self.setup_action(self.attack_action, unit, space, "red")
                     return
             elif self.__ability_spaces != None: # Ability range is active
+                if space in self.__guarded_spaces:
+                    self.update_info_panel("This unit is guarded by an enemy soldier. It cannot be targeted.")
+                    self.unconfirm_action()
+                    return
                 if space in self.__ability_spaces: # A valid target is selected
                     if space == self.__target_space and self.__action_confirmed:
                         self.ability_action(unit, space)
@@ -166,6 +171,12 @@ class GameBoard:
             self.circle_outline_space(space, colour)
             if action == self.attack_action:
                 self.combat_preview(unit, target)
+                
+    def unconfirm_action(self):
+        self.__action_confirmed = False
+        if self.__target_space != None:
+            self.draw_space(self.__target_space)
+            self.__target_space = None
 
     def combat_preview(self, unit, target):
         target_damage = unit.attack_preview(target, True)
@@ -349,10 +360,9 @@ class GameBoard:
                 invalid_spaces = unit.find_target_spaces(space, min_range-1, target_dict)
                 valid_spaces = valid_spaces.difference(invalid_spaces)
             if range > 1:
-                guarded_spaces = self.get_guarded_spaces(valid_spaces, unit)
-                valid_spaces = valid_spaces.difference(guarded_spaces)
-                print(guarded_spaces)
-                for sp in guarded_spaces:
+                self.update_guarded_spaces(valid_spaces, unit)
+                valid_spaces = valid_spaces.difference(self.__guarded_spaces)
+                for sp in self.__guarded_spaces:
                     self.x_out_space(sp, "grey")
         self.outline_spaces(valid_spaces, 'yellow')
         return valid_spaces
@@ -365,7 +375,7 @@ class GameBoard:
         self.outline_spaces(valid_spaces, 'red')
         return valid_spaces
     
-    def get_guarded_spaces(self, valid_spaces, unit):
+    def update_guarded_spaces(self, valid_spaces, unit):
         guarded_spaces = set()
         for space in valid_spaces:
             target = space.get_unit()
@@ -374,7 +384,7 @@ class GameBoard:
                     if not target.is_unit_type(Soldier):
                         if target.adjacent_to(Soldier, True):
                             guarded_spaces.add(space)
-        return guarded_spaces
+        self.__guarded_spaces = guarded_spaces
     
     def draw_space_list(self, spaces: list):
         for space in spaces:
@@ -409,6 +419,7 @@ class GameBoard:
         self.__valid_moves = None
         self.__attack_spaces = None
         self.__ability_spaces = None
+        self.__guarded_spaces = []
         self.__action_confirmed = False
         ### REMOVE COMBAT/ABILITY PREVIEW HERE
         self.draw_all_spaces()
@@ -492,12 +503,16 @@ class GameBoard:
         self.ui.controlBar.buttons['cancel'].change_unclick_func(do_nothing)
 
     def reset_target_spaces(self):
-        self.__action_confirmed = False
+        self.clear_info_panel()
+        self.unconfirm_action()
         ### REMOVE COMBAT/ABILITY PREVIEW HERE
         ability_spaces_reset = self.__ability_spaces
         self.__ability_spaces = None
         if ability_spaces_reset is not None:     
             self.draw_space_list(ability_spaces_reset)
+        guarded_spaces_reset = self.__guarded_spaces
+        self.__guarded_spaces = []
+        self.draw_space_list(guarded_spaces_reset)
         attack_spaces_reset = self.__attack_spaces
         self.__attack_spaces = None
         if attack_spaces_reset is not None:
