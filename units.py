@@ -39,7 +39,8 @@ class Unit:
         self.__ability_range = ability_range
         self.__ability_min_range = ability_min_range
         self.__ability_value = ability_value
-        self.__location = None
+        self.__space = None
+        self.__action_space = None
         self.__dead = False
         self.__player = None
         self.__ability_targets = TARGET_NONE
@@ -82,7 +83,10 @@ class Unit:
         return self.__name
     
     def get_space(self):
-        return self.__location
+        return self.__space
+    
+    def get_action_space(self):
+        return self.__action_space
     
     def get_ability_name(self):
         return self.__ability_name
@@ -100,17 +104,25 @@ class Unit:
         return self.__ability_targets
     
     def get_damage_mod(self):
+        mod_total = 0
         mod_total += get_aura_damage_mods(self)
         if mod_total < 0:
             mod_total = 0
         return mod_total
     
     def get_defense_mod(self):
+        mod_total = 0
         mod_total += get_aura_defense_mods(self)
-        mod_total += self.get_space.get_defense_mod()
+        mod_total += self.__action_space.get_defense_mod()
         if mod_total < 0:
             mod_total = 0
         return mod_total
+    
+    def set_action_space(self, space):
+        self.__action_space = space
+        
+    def reset_action_space(self):
+        self.__action_space = self.__space
     
     def set_ability_targets(self, target_dict: dict):
         self.__ability_targets = target_dict
@@ -129,8 +141,9 @@ class Unit:
     def move(self, space):
         try:
             if space.get_unit() is None:
-                self.__location.assign_unit(None)
-                self.__location = space
+                self.__space.assign_unit(None)
+                self.__space = space
+                self.__action_space = space
                 space.assign_unit(self)
             else:
                 raise Exception("Error: Cannot move unit into another unit's space")
@@ -138,7 +151,8 @@ class Unit:
             return e
         
     def _place(self, space):
-        self.__location = space
+        self.__space = space
+        self.__action_space = space
 
     def take_damage(self, damage: int):
         self.__curr_hp -= damage
@@ -155,7 +169,7 @@ class Unit:
         return self.__dead
     
     def first_strike_damage(self):
-        damage = self.__damage + self.__damage_mod
+        damage = self.__damage + self.get_damage_mod()
         return ceil(damage * FIRST_STRIKE_BOOST)
 
     def basic_attack(self, target):
@@ -170,7 +184,7 @@ class Unit:
         if first_strike:
             attack_damage = self.first_strike_damage()
         else:
-            attack_damage = self.__damage + self.__damage_mod
+            attack_damage = self.__damage + self.get_damage_mod()
         damage_dealt = self.calculate_preview(target, attack_damage, self.__damage_type)
         return damage_dealt
     
@@ -188,7 +202,7 @@ class Unit:
 
     def retaliate(self, target):
         target_hp = target.get_curr_hp()
-        damage = self.__damage + self.__damage_mod
+        damage = self.__damage + self.get_damage_mod()
         self.attack(target, damage, self.__damage_type)
         damage_dealt = target_hp - target.get_curr_hp()
         retaliation_log = f"{self.get_name()} retaliates against {target.get_name()}, dealing {damage_dealt} damage!\n"
@@ -302,12 +316,12 @@ class Unit:
         return space_list
     
     def adjacent_to(self, unit_type, ally: bool, range: int = 1) -> bool:
-        location = self.get_space()
+        space = self.get_action_space()
         if ally:
             include = TARGET_ALLIES
         else:
             include = TARGET_ENEMIES
-        spaces = self.find_target_spaces(location, range, include)
+        spaces = self.find_target_spaces(space, range, include)
         for space in spaces:
             try:
                 if space.get_unit().is_unit_type(unit_type):
