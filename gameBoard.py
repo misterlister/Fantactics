@@ -209,7 +209,7 @@ class GameBoard:
             self.ui.statsPanel[panel].update_name(unit.get_name())
             self.ui.statsPanel[panel].update_health(unit.get_curr_hp(), unit.get_max_hp(), damage_preview)
             self.ui.statsPanel[panel].update_damage(unit.get_damage_val(), '', unit.get_damage_mod())
-            self.ui.statsPanel[panel].update_armour(unit.get_armour_val(), '', unit.get_defense_mod())
+            self.ui.statsPanel[panel].update_defense(unit.get_defense_val(), '', unit.get_defense_mod())
             self.ui.statsPanel[panel].update_movement(unit.get_movement())
         else:
             self.clear_stats_panel()
@@ -581,6 +581,9 @@ class Space:
 
     def get_terrain(self):
         return self.__terrain
+    
+    def get_defense_mod(self):
+        return 0 # self.__terrain.get_defense_mod()
     
     def get_unit_sprite(self):
         if self.__unit == None:
