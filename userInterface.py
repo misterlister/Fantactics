@@ -141,12 +141,23 @@ class StatsPanel(Panel):
 
     def update_damage(self, new: str = ' ', type: str = '', diff: int = 0) -> None:
         if diff != 0:
-            self.labels['damage'].config(text= f" {new} (+ {diff}) {type}")
+            if diff > 0:
+                sign = "+"
+            else:
+                sign = "-"
+            self.labels['damage'].config(text= f" {new} ({sign} {diff}) {type}")
         else:
             self.labels['damage'].config(text= f" {new} {type}")
 
-    def update_defense(self, new: str = ' ', type: str = '') -> None:
-        self.labels['defense'].config(text= f" {new} {type}")
+    def update_defense(self, new: str = ' ', type: str = '', diff: int = 0) -> None:
+        if diff != 0:
+            if diff > 0:
+                sign = "+"
+            else:
+                sign = "-"
+            self.labels['defense'].config(text= f" {new} ({sign} {diff}) {type}")
+        else:
+            self.labels['defense'].config(text= f" {new} {type}")
 
     def update_movement(self, new: str = ' ', type: str = '') -> None:
         self.labels['movement'].config(text= f" {new} {type}")
