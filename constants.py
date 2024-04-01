@@ -75,6 +75,11 @@ POOR_EFFECT_MOD = 3/4
 # Damage multiplier for effective attacks
 STRONG_EFFECT_MOD = 4/3
 
+# Modifier bonus for aura abilities
+AURA_MOD = 1
+# Range for aura abilities
+AURA_RANGE = 2
+
 class Direction(IntEnum):
     UP = 1
     LEFT = 2
