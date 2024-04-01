@@ -177,6 +177,9 @@ class GameBoard:
         if self.__target_space != None:
             self.draw_space(self.__target_space)
             self.__target_space = None
+        if len(self.__area_of_effect_spaces) > 0:
+            self.draw_space_list(self.__area_of_effect_spaces)
+            self.__area_of_effect_spaces = []
 
     def combat_preview(self, unit, target):
         target_damage = unit.attack_preview(target, True)
@@ -316,6 +319,9 @@ class GameBoard:
         if self.__ability_spaces != None:
             if space in self.__ability_spaces:
                 self.outline_space(space, 'yellow')
+        if space in self.__guarded_spaces:
+            for sp in self.__guarded_spaces:
+                self.x_out_space(sp, "grey")
 
     def draw_all_spaces(self):
         for i in range(BOARD_ROWS):
@@ -362,8 +368,7 @@ class GameBoard:
             if range > 1:
                 self.update_guarded_spaces(valid_spaces, unit)
                 valid_spaces = valid_spaces.difference(self.__guarded_spaces)
-                for sp in self.__guarded_spaces:
-                    self.x_out_space(sp, "grey")
+                self.draw_space_list(self.__guarded_spaces)
         self.outline_spaces(valid_spaces, 'yellow')
         return valid_spaces
     
