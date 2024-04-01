@@ -45,7 +45,7 @@ class GameBoard:
         self.__attack_spaces = None # Spaces the selected unit can attack from the selected action space
         self.__ability_spaces = None # Spaces the selected unit can target with their ability from the selected action space
         self.__action_confirmed = False # Keeps track of if the current action has been confirmed
-        self.__game_state = None
+        self.__game_state = None # Links to game state object
         
     def draw_board(self) -> None:
         for i in range (BOARD_ROWS + 1):
@@ -208,8 +208,8 @@ class GameBoard:
             self.ui.statsPanel[panel].update_class(unit.get_unit_type())
             self.ui.statsPanel[panel].update_name(unit.get_name())
             self.ui.statsPanel[panel].update_health(unit.get_curr_hp(), unit.get_max_hp(), damage_preview)
-            self.ui.statsPanel[panel].update_damage(unit.get_damage_val())
-            self.ui.statsPanel[panel].update_armour(unit.get_armour_val())
+            self.ui.statsPanel[panel].update_damage(unit.get_damage_val(), '', unit.get_damage_mod())
+            self.ui.statsPanel[panel].update_armour(unit.get_armour_val(), '', unit.get_defense_mod())
             self.ui.statsPanel[panel].update_movement(unit.get_movement())
         else:
             self.clear_stats_panel()
@@ -399,7 +399,7 @@ class GameBoard:
         self.draw_all_spaces()
 
     def move_unit(self, unit, space):
-        old_space = unit.get_location()
+        old_space = unit.get_space()
         try:  
             unit.move(space)
             self.deselect_space()
@@ -431,7 +431,7 @@ class GameBoard:
     def set_action_space(self, unit, space):
         if self.__action_space is not None: # If a new action space is being selected, overriding another
             self.draw_space(self.__selected_space)
-            if self.__action_space == self.__selected_unit.get_location(): # If the old space was the current unit's space
+            if self.__action_space == self.__selected_unit.get_space(): # If the old space was the current unit's space
                 self.outline_space(self.__action_space, 'blue')
             else: # Otherwise, this is another space in the current unit's range
                 self.draw_space(self.__action_space)
@@ -493,8 +493,8 @@ class GameBoard:
     def combat(self, unit, target):
         unit_name = unit.get_name()
         target_name = target.get_name()
-        unit_loc = unit.get_location()
-        target_loc = target.get_location()
+        unit_loc = unit.get_space()
+        target_loc = target.get_space()
         attack_log = unit.basic_attack(target)
         self.update_stats_panel(target) 
         # Send attack details to combat log
