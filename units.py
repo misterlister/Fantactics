@@ -39,6 +39,7 @@ class Unit:
         self.__ability_range = ability_range
         self.__ability_min_range = ability_min_range
         self.__ability_value = ability_value
+        self.__ability_used = False
         self.__space = None
         self.__action_space = None
         self.__dead = False
@@ -117,6 +118,12 @@ class Unit:
         if mod_total < 0:
             mod_total = 0
         return mod_total
+    
+    def expend_ability(self):
+        self.__ability_used = True
+    
+    def ability_expended(self):
+        return self.__ability_used
     
     def set_action_space(self, space):
         self.__action_space = space
@@ -365,15 +372,40 @@ class Peasant(Unit):
         super().__init__(unit_type, hp, dam_val, dam_type, def_val, arm_type, move, move_type, 
                          sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
         self.set_ability_targets(TARGET_SELF)
-        self.ability_used = False
-        self.brave_turn = 0
+        self.__brave_turn = None
         
     def special_ability(self, target, space):
+        self.expend_ability()
         unit_name = self.get_name()
         attack_log = []
-        self.brave_turn = self.get_player().get_state().get_turn()
+        self.__brave_turn = self.get_player().get_state().get_turn()
         attack_log.append(f"{unit_name} has a surge of bravery! They have temporarily unlocked unexpected strength.\n")
         return attack_log
+    
+    def get_damage_mod(self):
+        mod_total = 0
+        mod_total += get_aura_damage_mods(self)
+        mod_total += self.check_bravery()
+        if mod_total < 0:
+            mod_total = 0
+        return mod_total
+    
+    def get_defense_mod(self):
+        mod_total = 0
+        mod_total += get_aura_defense_mods(self)
+        mod_total += self.get_action_space().get_defense_mod()
+        mod_total += self.check_bravery()
+        if mod_total < 0:
+            mod_total = 0
+        return mod_total
+
+    def check_bravery(self):
+        if self.__brave_turn != None:
+            current_turn = self.get_player().get_state().get_turn()
+            if current_turn - self.__brave_turn < 2:
+                return self.get_ability_value()
+            self.__brave_turn = None
+        return 0  
 
 class Soldier(Unit):
     def __init__(self, p1 = True) -> None:
@@ -726,7 +758,6 @@ class General(Unit):
         super().__init__(unit_type, hp, dam_val, dam_type, def_val, arm_type, move, move_type, 
                          sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
         self.set_ability_targets(TARGET_SELF)
-        self.ability_used = False
 
 
 def weapon_matchup(weapon, armour):
