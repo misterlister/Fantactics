@@ -89,7 +89,7 @@ class StatsPanel(Panel):
             'class' : ImageTk.PhotoImage(Image.open('Assets/Icons/class.png')),
             'health' : ImageTk.PhotoImage(Image.open('Assets/Icons/health.png')),
             'damage' : ImageTk.PhotoImage(Image.open('Assets/Icons/damage.png')),
-            'armour' : ImageTk.PhotoImage(Image.open('Assets/Icons/armour.png')),
+            'defense' : ImageTk.PhotoImage(Image.open('Assets/Icons/armour.png')),
             'movement' : ImageTk.PhotoImage(Image.open('Assets/Icons/movement.png')),
         }
         # Label fields for stats to be displayed
@@ -98,7 +98,7 @@ class StatsPanel(Panel):
             'class' : Label(self.frame, text=' ', image=self.icons['class'], compound='left'),
             'health' : Label(self.frame, text='   ', image=self.icons['health'], compound='left'),
             'damage' : Label(self.frame, text=' ', image=self.icons['damage'], compound='left'),
-            'armour' : Label(self.frame, text=' ', image=self.icons['armour'], compound='left'),
+            'defense' : Label(self.frame, text=' ', image=self.icons['defense'], compound='left'),
             'movement' : Label(self.frame, text=' ', image=self.icons['movement'], compound='left')
         }
         
@@ -116,7 +116,7 @@ class StatsPanel(Panel):
         self.update_class()
         self.update_health()
         self.update_damage()
-        self.update_armour()
+        self.update_defense()
         self.update_movement()   
         self.update_image(self.empty)
 
@@ -145,8 +145,8 @@ class StatsPanel(Panel):
         else:
             self.labels['damage'].config(text= f" {new} {type}")
 
-    def update_armour(self, new: str = ' ', type: str = '') -> None:
-        self.labels['armour'].config(text= f" {new} {type}")
+    def update_defense(self, new: str = ' ', type: str = '') -> None:
+        self.labels['defense'].config(text= f" {new} {type}")
 
     def update_movement(self, new: str = ' ', type: str = '') -> None:
         self.labels['movement'].config(text= f" {new} {type}")
