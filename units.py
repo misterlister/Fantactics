@@ -11,7 +11,7 @@ class Unit:
             hp: int, 
             dam_val: int, 
             dam_type: DamageType, 
-            arm_val: int, 
+            def_val: int, 
             arm_type: ArmourType, 
             move: MoveSpeed, 
             move_type: MoveType,
@@ -29,7 +29,7 @@ class Unit:
         self.__curr_hp = hp
         self.__damage = dam_val
         self.__damage_type = dam_type
-        self.__armour = arm_val
+        self.__defense = def_val
         self.__armour_type = arm_type
         self.__movement = move
         self.__move_type = move_type
@@ -44,8 +44,6 @@ class Unit:
         self.__player = None
         self.__ability_targets = TARGET_NONE
         self._ability_area_of_effect = []
-        self.__damage_mod = 0
-        self.__defense_mod = 0
         
     def get_unit_type(self):
         return self.__unit_type
@@ -62,8 +60,8 @@ class Unit:
     def get_damage_type(self):
         return self.__damage_type
     
-    def get_armour_val(self):
-        return self.__armour
+    def get_defense_val(self):
+        return self.__defense
     
     def get_armour_type(self):
         return self.__armour_type
@@ -83,7 +81,7 @@ class Unit:
     def get_name(self):
         return self.__name
     
-    def get_location(self):
+    def get_space(self):
         return self.__location
     
     def get_ability_name(self):
@@ -102,10 +100,17 @@ class Unit:
         return self.__ability_targets
     
     def get_damage_mod(self):
-        return self.__damage_mod
+        mod_total += get_aura_damage_mods(self)
+        if mod_total < 0:
+            mod_total = 0
+        return mod_total
     
     def get_defense_mod(self):
-        return self.__defense_mod
+        mod_total += get_aura_defense_mods(self)
+        mod_total += self.get_space.get_defense_mod()
+        if mod_total < 0:
+            mod_total = 0
+        return mod_total
     
     def set_ability_targets(self, target_dict: dict):
         self.__ability_targets = target_dict
@@ -150,7 +155,8 @@ class Unit:
         return self.__dead
     
     def first_strike_damage(self):
-        return ceil(self.__damage * FIRST_STRIKE_BOOST)
+        damage = self.__damage + self.__damage_mod
+        return ceil(damage * FIRST_STRIKE_BOOST)
 
     def basic_attack(self, target):
         first_strike_attack = self.first_strike_damage()
@@ -164,7 +170,7 @@ class Unit:
         if first_strike:
             attack_damage = self.first_strike_damage()
         else:
-            attack_damage = self.__damage
+            attack_damage = self.__damage + self.__damage_mod
         damage_dealt = self.calculate_preview(target, attack_damage, self.__damage_type)
         return damage_dealt
     
@@ -177,13 +183,13 @@ class Unit:
             damage_dealt = damage
         return damage_dealt
 
-    
     def ability_preview(self, target):
         return None
 
     def retaliate(self, target):
         target_hp = target.get_curr_hp()
-        self.attack(target, self.__damage, self.__damage_type)
+        damage = self.__damage + self.__damage_mod
+        self.attack(target, damage, self.__damage_type)
         damage_dealt = target_hp - target.get_curr_hp()
         retaliation_log = f"{self.get_name()} retaliates against {target.get_name()}, dealing {damage_dealt} damage!\n"
         return retaliation_log
@@ -197,7 +203,8 @@ class Unit:
         atk_damage = damage
         if effectiveness == Effect.STRONG:
             atk_damage = ceil(atk_damage * STRONG_EFFECT_MOD)
-        atk_damage -= target.get_armour_val()
+        target_defense = target.get_defense_val() + target.get_defense_mod()
+        atk_damage -= target_defense
         if effectiveness == Effect.POOR:
             atk_damage = ceil(atk_damage * POOR_EFFECT_MOD)
         return atk_damage
@@ -295,7 +302,7 @@ class Unit:
         return space_list
     
     def adjacent_to(self, unit_type, ally: bool, range: int = 1) -> bool:
-        location = self.get_location()
+        location = self.get_space()
         if ally:
             include = TARGET_ALLIES
         else:
@@ -327,7 +334,7 @@ class Peasant(Unit):
         hp=12
         dam_val=5
         dam_type=DamageType.BLUDGEON
-        arm_val=0
+        def_val=0
         arm_type=ArmourType.PADDED
         move=MoveSpeed.MED
         move_type = MoveType.FOOT
@@ -340,11 +347,19 @@ class Peasant(Unit):
         ability_name = "Surge of Bravery"
         ability_range = 0
         ability_min_range = 0
-        ability_value = 2
-        super().__init__(unit_type, hp, dam_val, dam_type, arm_val, arm_type, move, move_type, 
+        ability_value = 1
+        super().__init__(unit_type, hp, dam_val, dam_type, def_val, arm_type, move, move_type, 
                          sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
         self.set_ability_targets(TARGET_SELF)
         self.ability_used = False
+        self.brave_turn = 0
+        
+    def special_ability(self, target, space):
+        unit_name = self.get_name()
+        attack_log = []
+        self.brave_turn = self.get_player().get_state().get_turn()
+        attack_log.append(f"{unit_name} has a surge of bravery! They have temporarily unlocked unexpected strength.\n")
+        return attack_log
 
 class Soldier(Unit):
     def __init__(self, p1 = True) -> None:
@@ -352,7 +367,7 @@ class Soldier(Unit):
         hp=16
         dam_val=6
         dam_type=DamageType.PIERCE
-        arm_val=0#1
+        def_val=0#1
         arm_type=ArmourType.CHAIN
         move=MoveSpeed.MED
         move_type = MoveType.FOOT
@@ -366,7 +381,7 @@ class Soldier(Unit):
         ability_range = 1
         ability_min_range = 1
         ability_value = None
-        super().__init__(unit_type, hp, dam_val, dam_type, arm_val, arm_type, move, move_type, 
+        super().__init__(unit_type, hp, dam_val, dam_type, def_val, arm_type, move, move_type, 
                          sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
         self.set_ability_targets(TARGET_ALLIES)
 
@@ -374,7 +389,7 @@ class Soldier(Unit):
         unit_name = self.get_name()
         target_name = target.get_name()
         attack_log = []
-        current_space = self.get_location()
+        current_space = self.get_space()
         current_space.assign_unit(None)
         target.move(current_space)
         space.assign_unit(self)
@@ -388,9 +403,9 @@ class Archer(Unit):
     def __init__(self, p1 = True) -> None:
         unit_type = "Archer"
         hp=15
-        dam_val=4
+        dam_val=5
         dam_type=DamageType.PIERCE
-        arm_val=0
+        def_val=0
         arm_type=ArmourType.PADDED
         move=MoveSpeed.MED
         move_type = MoveType.FOOT
@@ -404,7 +419,7 @@ class Archer(Unit):
         ability_range = 5
         ability_min_range = 2
         ability_value = 8
-        super().__init__(unit_type, hp, dam_val, dam_type, arm_val, arm_type, move, move_type, 
+        super().__init__(unit_type, hp, dam_val, dam_type, def_val, arm_type, move, move_type, 
                          sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
         self.set_ability_targets(TARGET_ENEMIES)
         self.__special_damage_type = DamageType.PIERCE
@@ -420,7 +435,7 @@ class Archer(Unit):
         attack_log.append(f"{unit_name} fires an arrow at {target_name}, dealing {damage_dealt} damage!\n")
         if target.is_dead():
             attack_log.append(f"{unit_name} has slain {target_name}!\n")
-            target.get_location().assign_unit(None)
+            target.get_space().assign_unit(None)
         return attack_log
     
     def ability_preview(self, target):
@@ -435,7 +450,7 @@ class Cavalry(Unit):
         hp=18
         dam_val=7
         dam_type=DamageType.SLASH
-        arm_val=0#1
+        def_val=0#1
         arm_type=ArmourType.PLATE
         move=MoveSpeed.FAST
         move_type = MoveType.HORSE
@@ -449,7 +464,7 @@ class Cavalry(Unit):
         ability_range = 0
         ability_min_range = 0
         ability_value = None
-        super().__init__(unit_type, hp, dam_val, dam_type, arm_val, arm_type, move, move_type, 
+        super().__init__(unit_type, hp, dam_val, dam_type, def_val, arm_type, move, move_type, 
                          sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
         self.set_ability_targets(TARGET_SELF)
     
@@ -471,7 +486,7 @@ class Sorcerer(Unit):
         hp=14
         dam_val=4
         dam_type=DamageType.PIERCE
-        arm_val=0
+        def_val=0
         arm_type=ArmourType.ROBES
         move=MoveSpeed.MED
         move_type = MoveType.FOOT
@@ -485,7 +500,7 @@ class Sorcerer(Unit):
         ability_range = 4
         ability_min_range = 0
         ability_value = 6
-        super().__init__(unit_type, hp, dam_val, dam_type, arm_val, arm_type, move, move_type, 
+        super().__init__(unit_type, hp, dam_val, dam_type, def_val, arm_type, move, move_type, 
                          sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
         self.set_ability_targets(TARGET_ALL)
         self.__special_damage_type = DamageType.MAGIC
@@ -524,7 +539,7 @@ class Sorcerer(Unit):
         attack_log.append(f"{unit_name} blasts {target_name} with arcane energy, dealing {damage_dealt} damage!\n")
         if target.is_dead():
             attack_log.append(f"{unit_name} has slain {target_name}!\n")
-            target.get_location().assign_unit(None)
+            target.get_space().assign_unit(None)
         return attack_log
     
     def ability_preview(self, target):
@@ -539,7 +554,7 @@ class Healer(Unit):
         hp=15
         dam_val=6
         dam_type=DamageType.BLUDGEON
-        arm_val=0#1
+        def_val=0#1
         arm_type=ArmourType.CHAIN
         move=MoveSpeed.MED
         move_type = MoveType.FOOT
@@ -553,7 +568,7 @@ class Healer(Unit):
         ability_range = 0
         ability_min_range = 0
         ability_value = 5
-        super().__init__(unit_type, hp, dam_val, dam_type, arm_val, arm_type, move, move_type, 
+        super().__init__(unit_type, hp, dam_val, dam_type, def_val, arm_type, move, move_type, 
                          sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
         self.set_ability_targets(TARGET_SELF)
         self._ability_area_of_effect.extend([Direction.UP, Direction.LEFT, Direction.RIGHT, Direction.DOWN])
@@ -603,7 +618,7 @@ class Archmage(Unit):
         hp=22
         dam_val=5
         dam_type=DamageType.BLUDGEON
-        arm_val=0
+        def_val=0
         arm_type=ArmourType.ROBES
         move=MoveSpeed.MED
         move_type = MoveType.FLY
@@ -617,7 +632,7 @@ class Archmage(Unit):
         ability_range = 3
         ability_min_range = 0
         ability_value = 7
-        super().__init__(unit_type, hp, dam_val, dam_type, arm_val, arm_type, move, move_type, 
+        super().__init__(unit_type, hp, dam_val, dam_type, def_val, arm_type, move, move_type, 
                          sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
         self.set_ability_targets(TARGET_ALL)
         self.__special_damage_type = DamageType.MAGIC
@@ -665,7 +680,7 @@ class Archmage(Unit):
         attack_log.append(f"{unit_name} blasts {target_name} with arcane energy, dealing {damage_dealt} damage!\n")
         if target.is_dead():
             attack_log.append(f"{unit_name} has slain {target_name}!\n")
-            target.get_location().assign_unit(None)
+            target.get_space().assign_unit(None)
         return attack_log
     
     def ability_preview(self, target):
@@ -680,7 +695,7 @@ class General(Unit):
         hp=24
         dam_val=8
         dam_type=DamageType.SLASH
-        arm_val=0#2
+        def_val=0#2
         arm_type=ArmourType.PLATE
         move=MoveSpeed.SLOW
         move_type = MoveType.FOOT
@@ -694,7 +709,7 @@ class General(Unit):
         ability_range = 0
         ability_min_range = 0
         ability_value = 1
-        super().__init__(unit_type, hp, dam_val, dam_type, arm_val, arm_type, move, move_type, 
+        super().__init__(unit_type, hp, dam_val, dam_type, def_val, arm_type, move, move_type, 
                          sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
         self.set_ability_targets(TARGET_SELF)
         self.ability_used = False
@@ -742,3 +757,20 @@ def weapon_matchup(weapon, armour):
             return Effect.STRONG
         
     return None
+
+def get_aura_damage_mods(unit: Unit):
+    mod = 0
+    # Add damage bonus if the unit is close to their General
+    if unit.adjacent_to(General, True, AURA_RANGE):
+        mod += AURA_MOD
+    return mod
+    
+def get_aura_defense_mods(unit: Unit):
+    mod = 0
+    # Add defense bonus if the unit is close to their Healer
+    if unit.adjacent_to(Healer, True, AURA_RANGE):
+        mod += AURA_MOD
+    # Reduce defense bonus if the unit is close to the enemy Archmage
+    if unit.adjacent_to(Archmage, False, AURA_RANGE):
+        mod -= AURA_MOD
+    return mod
