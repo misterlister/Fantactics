@@ -7,6 +7,9 @@ class Player:
         self.__game_state = None
         self.__turn = False
         self.__extra_turn = False
+        
+    def get_state(self):
+        return self.__game_state
 
     def assign_units(self, unit_list: list):
         self.__units = unit_list
