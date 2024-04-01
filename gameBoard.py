@@ -72,6 +72,7 @@ class GameBoard:
         self.__game_state = state
 
     def click(self, event):
+        self.clear_info_panel()
         if event.x > self.x_start and event.x < self.x_end:
             if event.y > self.y_start and event.y < self.y_end:
                 row = (event.y-self.y_start) // self.square_size
@@ -213,6 +214,12 @@ class GameBoard:
             self.ui.statsPanel[panel].update_movement(unit.get_movement())
         else:
             self.clear_stats_panel()
+            
+    def update_info_panel(self, message):
+        self.ui.info.update(message)
+        
+    def clear_info_panel(self):
+        self.ui.info.update('')
 
     def clear_stats_panel(self):
         for panel in self.ui.statsPanel:
@@ -327,20 +334,26 @@ class GameBoard:
         return valid_spaces
     
     def get_ability_spaces(self, unit, space) -> set:
+        if unit.ability_expended():
+            self.update_info_panel("This unit's ability cannot be used again")
+            return []
         range = unit.get_ability_range()
-        min_range = unit.get_ability_min_range()
-        target_dict = unit.get_ability_targets()
-        action = ActionType.ABILITY
-        valid_spaces = unit.find_target_spaces(space, range, target_dict, action)
-        if min_range > 1:
-            invalid_spaces = unit.find_target_spaces(space, min_range-1, target_dict)
-            valid_spaces = valid_spaces.difference(invalid_spaces)
-        if range > 1:
-            guarded_spaces = self.get_guarded_spaces(valid_spaces, unit)
-            valid_spaces = valid_spaces.difference(guarded_spaces)
-            print(guarded_spaces)
-            for sp in guarded_spaces:
-                self.x_out_space(sp, "grey")
+        if range == 0:
+            valid_spaces = [self.__action_space]
+        else:
+            min_range = unit.get_ability_min_range()
+            target_dict = unit.get_ability_targets()
+            action = ActionType.ABILITY
+            valid_spaces = unit.find_target_spaces(space, range, target_dict, action)
+            if min_range > 1:
+                invalid_spaces = unit.find_target_spaces(space, min_range-1, target_dict)
+                valid_spaces = valid_spaces.difference(invalid_spaces)
+            if range > 1:
+                guarded_spaces = self.get_guarded_spaces(valid_spaces, unit)
+                valid_spaces = valid_spaces.difference(guarded_spaces)
+                print(guarded_spaces)
+                for sp in guarded_spaces:
+                    self.x_out_space(sp, "grey")
         self.outline_spaces(valid_spaces, 'yellow')
         return valid_spaces
     
