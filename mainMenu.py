@@ -25,12 +25,27 @@ class MainMenu(Panel):
 
         self.buttons = {
             'play' : CanvasButton(self.frame, unpressed='Assets/Text/play_unpressed.png', pressed='Assets/Text/play_pressed.png'),
-            'options' : CanvasButton(self.frame, unpressed='Assets/Text/options_unpressed.png'), #unpressed='Assets/Text/options_pressed.png'),
+            'options' : CanvasButton(self.frame, unpressed='Assets/Text/options_unpressed.png'), #pressed='Assets/Text/options_pressed.png'),
             'exit' : CanvasButton(self.frame, unpressed='Assets/Text/exit_unpressed.png') #, self.assets['exit_pressed'])
         }
 
         index = 160
+        # Bind clicks to buttons & set their position
         for item in self.buttons:
-            self.buttons[item].get_button().config(bg=bgColour)
-            self.buttons[item].get_button().place(x=width / 2, y=(height / 8) + index, anchor='n')
+            item = self.buttons[item]
+            item.bind(item.click, item.unclick)
+            item.get_button().config(bg=bgColour)
+            item.get_button().place(x=width / 2, y=(height / 8) + index, anchor='n')
             index += 90
+
+        self.buttons['exit'].change_unclick_func(self.exit)
+
+    def exit(self):
+        self.root.destroy()
+
+    def play(self):
+        pass
+
+    def options(self):
+        pass
+
