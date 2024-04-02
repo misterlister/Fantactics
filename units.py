@@ -551,26 +551,48 @@ class Sorcerer(Unit):
         self.set_ability_targets(TARGET_ALL)
         self.__special_damage_type = DamageType.MAGIC
         self._ability_area_of_effect.extend([Direction.LEFT, Direction.RIGHT])
-        
+        self.__heal_value = 1
+    
+    def attack(self, target, damage: int, damage_type):
+        self.heal(self.__heal_value)
+        return super().attack(target, damage, damage_type)
 
+    def retaliate(self, target):
+        attack_log = super().retaliate(target)
+        return attack_log + "\n" + self.siphon_message()
+    
+    def basic_attack(self, target):
+        attack_log = super().basic_attack(target)
+        return attack_log + "\n" + self.siphon_message()
+    
+    def siphon_message(self, mul = 1):
+        healing = self.__heal_value * mul
+        return f"{self.get_name()} heals {healing} hp by siphoning life force\n"
+        
     def special_ability(self, target, space):
         attack_log = []
+        siphon_targets = 0
         left_space = space.get_left()
         if left_space is not None:
             left_target = left_space.get_unit()
             if left_target != None:
+                siphon_targets += 1
                 attack_log += (self.magic_power(left_target))
         if target is not None:
+            siphon_targets += 1
             attack_log += (self.magic_power(target))
         right_space = space.get_right()
         if right_space is not None:
             right_target = right_space.get_unit()
             if right_target != None:
+                siphon_targets += 1
                 attack_log += (self.magic_power(right_target))
-        if len(attack_log) == 0:
-            attack_log.append(f"{self.get_name()} blasts the darkness with arcane energy. It has no effect!\n")
+        if siphon_targets == 0:
+            return [f"{self.get_name()} blasts the darkness with arcane energy. It has no effect!\n"]
+        attack_log.append(self.siphon_message(siphon_targets))
+        print(attack_log)
         return attack_log
-        
+    
     def magic_power(self, target):
         unit_name = self.get_name()
         if target is self:
