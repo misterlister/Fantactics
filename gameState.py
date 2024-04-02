@@ -126,5 +126,5 @@ class GameState:
                 self.player2.end_turn()
                 self.set_turn(self.player1)
         self.ui.logItems['text'].update_label()
-        for panel in self.ui.statsPanel:
-                self.ui.statsPanel[panel].clear()
+        #for panel in self.ui.statsPanel:
+                #self.ui.statsPanel[panel].clear()
