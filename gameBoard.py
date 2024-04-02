@@ -78,8 +78,8 @@ class GameBoard:
             if event.y > self.y_start and event.y < self.y_end:
                 row = (event.y-self.y_start) // self.square_size
                 col = (event.x-self.x_start) // self.square_size
-                contents = self.check_square(row, col)
-                print(f"Clicked square {row},{col}. Contents: {contents}")
+                #contents = self.check_square(row, col)
+                #print(f"Clicked square {row},{col}. Contents: {contents}")
                 new_space = self.__spaces[row][col]
                 if self.__selected_unit is None: # No unit is currently selected
                     self.click_no_unit_selected(new_space)
@@ -129,8 +129,7 @@ class GameBoard:
                 self.set_attack_spaces(unit, space)
                 return
         else:
-            print("You cannot move enemy units")
-        print("Cancelled Action.")
+            self.update_info_panel("You cannot move enemy units")
         self.cancel_action()
 
     def right_click(self, event):
@@ -445,6 +444,7 @@ class GameBoard:
             print(e)
 
     def cancel_action(self):
+        self.update_info_panel("Cancelled action")
         self.__action_space = None
         self.draw_all_spaces()
         self.deselect_space()
