@@ -547,7 +547,7 @@ class Sorcerer(Unit):
         ability_name = "Sorcerous Assault"    
         ability_range = 4
         ability_min_range = 0
-        ability_value = 6
+        ability_value = 7
         super().__init__(unit_type, hp, dam_val, dam_type, def_val, arm_type, move, move_type, 
                          sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
         self.set_ability_targets(TARGET_ALL)
@@ -574,35 +574,36 @@ class Sorcerer(Unit):
     def special_ability(self, target, space):
         attack_log = []
         siphon_targets = 0
+        main_damage = self.get_ability_value()
+        splash_damage = ceil(main_damage/2)
         left_space = space.get_left()
         if left_space is not None:
             left_target = left_space.get_unit()
             if left_target != None:
                 siphon_targets += 1
-                attack_log += (self.magic_power(left_target))
+                attack_log += (self.magic_power(left_target, splash_damage))
         if target is not None:
             siphon_targets += 1
-            attack_log += (self.magic_power(target))
+            attack_log += (self.magic_power(target, main_damage))
         right_space = space.get_right()
         if right_space is not None:
             right_target = right_space.get_unit()
             if right_target != None:
                 siphon_targets += 1
-                attack_log += (self.magic_power(right_target))
+                attack_log += (self.magic_power(right_target, splash_damage))
         if siphon_targets == 0:
             return [f"{self.get_name()} blasts the darkness with arcane energy. It has no effect!\n"]
         attack_log.append(self.siphon_message(siphon_targets))
         print(attack_log)
         return attack_log
     
-    def magic_power(self, target):
+    def magic_power(self, target, damage):
         unit_name = self.get_name()
         if target is self:
             target_name = "themself"
         else:
             target_name = target.get_name()
         attack_log = []
-        damage = self.get_ability_value()
         target_hp = target.get_curr_hp()
         self.attack(target, damage, self.__special_damage_type)
         damage_dealt = target_hp - target.get_curr_hp()
@@ -701,7 +702,7 @@ class Archmage(Unit):
         ability_name = "Arcane Vortex"
         ability_range = 3
         ability_min_range = 0
-        ability_value = 7
+        ability_value = 8
         super().__init__(unit_type, hp, dam_val, dam_type, def_val, arm_type, move, move_type, 
                          sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
         self.set_ability_targets(TARGET_ALL)
@@ -710,40 +711,41 @@ class Archmage(Unit):
 
     def special_ability(self, target, space):
         attack_log = []
+        main_damage = self.get_ability_value()
+        splash_damage = ceil(main_damage/2)
         top_space = space.get_up()
         if top_space is not None:
             top_target = top_space.get_unit()
             if top_target is not None:
-                attack_log += (self.magic_power(top_target))
+                attack_log += (self.magic_power(top_target, splash_damage))
         left_space = space.get_left()
         if left_space is not None:
             left_target = left_space.get_unit()
             if left_target is not None:
-                attack_log += (self.magic_power(left_target))
+                attack_log += (self.magic_power(left_target, splash_damage))
         if target is not None:
-            attack_log += (self.magic_power(target))
+            attack_log += (self.magic_power(target, main_damage))
         right_space = space.get_right()
         if right_space is not None:
             right_target = right_space.get_unit()
             if right_target != None:
-                attack_log += (self.magic_power(right_target))
+                attack_log += (self.magic_power(right_target, splash_damage))
         down_space = space.get_down()
         if down_space is not None:
             down_target = down_space.get_unit()
             if down_target != None:
-                attack_log += (self.magic_power(down_target))
+                attack_log += (self.magic_power(down_target, splash_damage))
         if len(attack_log) == 0:
             attack_log.append(f"{self.get_name()} blasts the darkness with arcane energy. It has no effect!\n")
         return attack_log
         
-    def magic_power(self, target):
+    def magic_power(self, target, damage):
         unit_name = self.get_name()
         if target is self:
             target_name = "themself"
         else:
             target_name = target.get_name()
         attack_log = []
-        damage = self.get_ability_value()
         target_hp = target.get_curr_hp()
         self.attack(target, damage, self.__special_damage_type)
         damage_dealt = target_hp - target.get_curr_hp()
