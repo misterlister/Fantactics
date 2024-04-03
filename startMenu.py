@@ -1,13 +1,24 @@
-from graphics import Window, Point
 from tkinter import Tk, Label
 from PIL import ImageTk, Image
 from userInterface import Panel, CanvasButton
 from constants import *
+from graphics import Window
+from gameBoard import GameBoard
+from gameState import Player, GameState
+from userInterface import UserInterface
+
+def create_game(root, window):
+    userInterface = UserInterface(root)
+    board = GameBoard(window, root, userInterface)
+    player1 = Player()
+    player2 = Player()
+    gameState = GameState(player1, player2, board, userInterface)
 
 class MainMenu(Panel):
     def __init__(
             self, 
-            root: Tk, 
+            root: Tk,
+            window: Window, 
             xPos: int = 0, 
             yPos: int = 0, 
             width: int = WINDOW_WIDTH, 
@@ -18,7 +29,7 @@ class MainMenu(Panel):
             textColour: str = 'white',
             ) -> None:
         super().__init__(root, xPos, yPos, width, height, bgColour, bd, relief)
-
+        self.window = window
         self.titleImg = ImageTk.PhotoImage(Image.open('Assets/Text/fantactics_title.png'))
         self.title = Label(self.frame, image=self.titleImg, bg=bgColour)
         self.title.place(x=width/2, y=height/8, anchor='n')
@@ -42,12 +53,16 @@ class MainMenu(Panel):
         self.buttons['exit'].change_unclick_func(self.exit)
         
 
-    def exit(self):
-        self.root.destroy()
-
     def play(self):
+        create_game(self.root, self.window)
         self.frame.destroy()
 
     def options(self):
         pass
+
+    def exit(self):
+
+        self.root.destroy()
+
+    
 

@@ -252,7 +252,6 @@ class TerrainPanel(Panel):
         else:
             self.labels['healing'].config(text=f" ")
 
-
 # Attack, special ability, wait, cancel
 # Class for bottom side control bar
 class ControlBar(Panel):
