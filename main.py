@@ -14,7 +14,6 @@ if __name__ == "__main__":
     window = Window(WINDOW_WIDTH, WINDOW_HEIGHT, root)
 
     if doMainMenu: mainMenu = MainMenu(root, window)
-    else:
-        create_game(root, window)
+    else: game = create_game(root, window)
     root.mainloop()
 

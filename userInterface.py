@@ -1,4 +1,4 @@
-from tkinter import Tk, LabelFrame, Canvas, Text, Label, Message, Scrollbar
+from tkinter import Tk, LabelFrame, Canvas, Text, Label, Message, messagebox, Scrollbar
 from PIL import ImageTk, Image
 from typing import Callable
 from constants import *
@@ -29,6 +29,8 @@ class UserInterface():
 
         self.controlBar = ControlBar(root, PANEL_WIDTH, PANEL_HEIGHT - CONTROL_PANEL_HEIGHT, width=WINDOW_WIDTH - (2 * PANEL_WIDTH), height=CONTROL_PANEL_HEIGHT)
         self.__game_state = None
+
+        self.end = EndScreen(root, 1)
 
     def link_to_state(self, state):
         self.__game_state = state
@@ -84,7 +86,7 @@ class StatsPanel(Panel):
 
         # Empty default sprite for no unit selected
         self.empty = ImageTk.PhotoImage(Image.open(EMPTY_SPRITE))
-        self.selectedSprite = self.spriteCanvas.create_image(SPRITE_BUFFER, SPRITE_BUFFER, anchor = 'nw', image=self.empty)
+        self.selectedSprite = self.spriteCanvas.create_image((STATS_IMAGE_SIZE / 2), (STATS_IMAGE_SIZE / 2), anchor = 'center', image=self.empty)
 
         # Icons to be displayed alongside labels
         self.icons = {
@@ -504,18 +506,26 @@ class CombatLog():
 class EndScreen(Panel):
     def __init__(
             self,
-            winner,
-            root: Tk, 
+            root: Tk,
+            winner, 
             xPos: int = 0, 
             yPos: int = 0, 
             width: int = PANEL_WIDTH, 
             height: int = PANEL_HEIGHT, 
             colour: str = UI_BG_COLOUR, 
             bd: int = 0, 
+            bgColour: str = UI_BG_COLOUR,
+            textColour: str = 'white',
             relief: str = 'solid'
             ) -> None:
         super().__init__(root, xPos, yPos, width, height, colour, bd, relief)
 
+        self.message = messagebox.showinfo('Game End', f"Player {winner} Wins!")
+        # self.winnerLabel = Label(self.frame, text=f"Player {winner} Wins!", bg=bgColour, fg=textColour)
+        # self.winnerLabel.place(x=width / 2, y=0, anchor='n')
+
+    def return_to_start(self):
+        pass
         
 
 
