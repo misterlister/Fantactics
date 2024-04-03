@@ -38,13 +38,15 @@ class MainMenu(Panel):
             item.get_button().place(x=width / 2, y=(height / 8) + index, anchor='n')
             index += 90
 
+        self.buttons['play'].change_unclick_func(self.play)
         self.buttons['exit'].change_unclick_func(self.exit)
+        
 
     def exit(self):
         self.root.destroy()
 
     def play(self):
-        pass
+        self.frame.destroy()
 
     def options(self):
         pass

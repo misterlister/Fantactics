@@ -1,4 +1,4 @@
-from tkinter import Tk, LabelFrame, Canvas, Text, Label, Scrollbar
+from tkinter import Tk, LabelFrame, Canvas, Text, Label, Message, Scrollbar
 from PIL import ImageTk, Image
 from typing import Callable
 from constants import *
@@ -16,7 +16,7 @@ class UserInterface():
         self.statsPanel = { # Stats panel is divided into 3 seperate sub panels
             'friendlyUnitPanel' : StatsPanel(self.stats.getFrame(), height=PANEL_HEIGHT / 3, bgColour='#754239'),
             'enemyUnitPanel' : StatsPanel(self.stats.getFrame(), yPos=PANEL_HEIGHT / 3, height=PANEL_HEIGHT / 3, bgColour='#57312a'),
-            'terrainPanel' : Panel(self.stats.getFrame(), yPos=(PANEL_HEIGHT / 3) * 2, height=PANEL_HEIGHT / 3, colour='black')
+            'terrainPanel' : TerrainPanel(self.stats.getFrame(), yPos=(PANEL_HEIGHT / 3) * 2, height=PANEL_HEIGHT / 3, bgColour='brown')
         }
         
         ### Create Log Panel (right side panel), multiple panels as for future additions
@@ -80,7 +80,6 @@ class StatsPanel(Panel):
         ### Create the area for sprite to be displayed on click
         self.spriteCanvas = Canvas(self.frame, width=STATS_IMAGE_SIZE, height=STATS_IMAGE_SIZE, bg=spriteBgColour, highlightthickness=0, borderwidth=BORDER_WIDTH, relief='solid')
         self.spriteCanvas.pack_propagate(0)
-        #self.spriteCanvas.pack(expand=1, fill=None)
         self.spriteCanvas.place(x=0, y=25)
 
         # Empty default sprite for no unit selected
@@ -124,11 +123,9 @@ class StatsPanel(Panel):
         self.update_image(self.empty)
 
     # Update classes to be called during selection of a unit
-    def update_name(self, new: str = ' ') -> None:
-        self.labels['name'].config(text= f"Name: {new}")
+    def update_name(self, new: str = ' ') -> None: self.labels['name'].config(text= f"Name: {new}")
         
-    def update_class(self, new: str = ' ') -> None:
-        self.labels['class'].config(text= f" {new}")
+    def update_class(self, new: str = ' ') -> None: self.labels['class'].config(text= f" {new}")
 
     # For "diffType" variable:
     # 0 = damage
@@ -168,6 +165,93 @@ class StatsPanel(Panel):
     def update_image(self, image: ImageTk) -> None:
         #image = image.resize((2 * image.width(), 2 * image.height()))
         self.spriteCanvas.itemconfig(self.selectedSprite, image=image)
+
+class TerrainPanel(Panel):
+    def __init__(self,
+                root: Tk, 
+                xPos: int = 0,
+                yPos: int = 0, 
+                width: int = PANEL_WIDTH, 
+                height: int = PANEL_HEIGHT, 
+                bd: int = 0, 
+                relief: str = 'solid',
+                bgColour: str = UI_BG_COLOUR,
+                textColour: str = 'white',
+                spriteBgColour: str = '#757eff'
+                ) -> None:
+        super().__init__(root, xPos, yPos, width, height, bgColour, bd, relief)
+
+        self.spriteCanvas = Canvas(self.frame, width=STATS_IMAGE_SIZE, height=STATS_IMAGE_SIZE, bg=spriteBgColour, highlightthickness=0, borderwidth=BORDER_WIDTH, relief='solid')
+        self.spriteCanvas.place(x=0, y=0)
+        self.empty = ImageTk.PhotoImage(Image.open(EMPTY_SPRITE))
+        self.selectedSprite = self.spriteCanvas.create_image(SPRITE_BUFFER, SPRITE_BUFFER, anchor = 'nw', image=self.empty)
+
+        self.nameLabel = Label(self.frame, text='', bg=bgColour, fg=textColour, font=(FONT, 2 * DEFAULT_FONT_SIZE))
+        self.nameLabel.place(x=STATS_IMAGE_SIZE + (2 * BORDER_WIDTH) + 1 , y=0)
+
+        self.descriptionLabel = Message(self.frame, text='', bg=bgColour, fg=textColour, font=(FONT, DEFAULT_FONT_SIZE), width=160)
+        self.descriptionLabel.place(x=STATS_IMAGE_SIZE + (2 * BORDER_WIDTH) + 1 , y=40)
+
+        self.icons = {
+            'defense' : ImageTk.PhotoImage(Image.open('Assets/Icons/armour.png')),
+            'movement' : ImageTk.PhotoImage(Image.open('Assets/Icons/movement.png')),
+            'healing' : ImageTk.PhotoImage(Image.open('Assets/Icons/health.png')),
+        }
+
+        self.labels = {
+            "defense" : Label(self.frame, text = ' ', image=self.icons['defense'], compound='top'),
+            "movement" : Label(self.frame, text = ' ', image=self.icons['movement'], compound='top'),
+            "healing" : Label(self.frame, text = ' ', image=self.icons['healing'], compound='top'),
+        }
+
+        index = 25
+        for item in self.labels:
+            self.labels[item].config(bg=bgColour, fg=textColour, font=(FONT, DEFAULT_FONT_SIZE))
+            self.labels[item].place(x=index, y=(height - (height / 3)), anchor='n')
+            index += 50
+
+        ### TEMP
+            self.update_name("Forest")
+            self.update_description("description of a forest")
+            self.update_defense(30)
+            self.update_movement(3)
+            self.update_healing(10)
+        ###
+
+    def update_image(self, image: ImageTk):
+        #image = image.resize((2 * image.width(), 2 * image.height()))
+        self.spriteCanvas.itemconfig(self.selectedSprite, image=image)
+    
+    def update_name(self, new: str = ""):
+        if new != "":
+            self.nameLabel.config(text=f"{new}")
+        else:
+            self.nameLabel.config(text=f"")
+
+    def update_description(self, new: str = ""):
+        if new != "":
+            self.descriptionLabel.config(text=f"{new}")
+        else:
+            self.descriptionLabel.config(text=f"")
+
+    def update_defense(self, new: int = 0):
+        if new != 0:
+            self.labels['defense'].config(text=f"+ {new}")
+        else:
+            self.labels['defense'].config(text=f"")
+
+    def update_movement(self, new: int = 0):
+        if new != 0:
+            self.labels['movement'].config(text=f"+ {new}")
+        else:
+            self.labels['movement'].config(text=f"")
+
+    def update_healing(self, new: int = 0):
+        if new != 0:
+            self.labels['healing'].config(text=f"+ {new}")
+        else:
+            self.labels['healing'].config(text=f" ")
+
 
 # Attack, special ability, wait, cancel
 # Class for bottom side control bar
@@ -417,6 +501,25 @@ class CombatLog():
     
     def get_player(self):
         return self.__game_state.get_current_player_num()
+
+class EndScreen(Panel):
+    def __init__(
+            self,
+            winner,
+            root: Tk, 
+            xPos: int = 0, 
+            yPos: int = 0, 
+            width: int = PANEL_WIDTH, 
+            height: int = PANEL_HEIGHT, 
+            colour: str = UI_BG_COLOUR, 
+            bd: int = 0, 
+            relief: str = 'solid'
+            ) -> None:
+        super().__init__(root, xPos, yPos, width, height, colour, bd, relief)
+
+        
+
+
 
 
     
