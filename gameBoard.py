@@ -358,12 +358,14 @@ class GameBoard:
             return []
         range = unit.get_ability_range()
         valid_spaces = set()
-        if unit.get_ability_targets()[TargetType.ITSELF]:
-            valid_spaces = {self.__action_space}
         min_range = unit.get_ability_min_range()
         target_dict = unit.get_ability_targets()
         action = ActionType.ABILITY
         valid_spaces = valid_spaces.union(unit.find_target_spaces(space, range, target_dict, action))
+        if unit.get_ability_targets()[TargetType.ITSELF]:
+            valid_spaces = valid_spaces.difference({unit.get_space()})
+            valid_spaces = valid_spaces.union({self.__action_space})
+            
         if min_range > 1:
             invalid_spaces = unit.find_target_spaces(space, min_range-1, target_dict)
             valid_spaces = valid_spaces.difference(invalid_spaces)
