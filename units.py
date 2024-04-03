@@ -366,12 +366,12 @@ class Peasant(Unit):
         name_list = Names.Commoner
         title_list = Titles.Peasant
         ability_name = "Surge of Bravery"
-        ability_range = 0
+        ability_range = 1
         ability_min_range = 0
         ability_value = 1
         super().__init__(unit_type, hp, dam_val, dam_type, def_val, arm_type, move, move_type, 
                          sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
-        self.set_ability_targets(TARGET_SELF)
+        self.set_ability_targets(TARGET_SELF_ENEMIES)
         self.__brave_turn = None
         
     def special_ability(self, target, space):
@@ -380,6 +380,8 @@ class Peasant(Unit):
         attack_log = []
         self.__brave_turn = self.get_player().get_state().get_turn()
         attack_log.append(f"{unit_name} has a surge of bravery! They have temporarily unlocked unexpected strength.\n")
+        if target != self:
+            attack_log.append(self.basic_attack(target))
         return attack_log
     
     def get_damage_mod(self):

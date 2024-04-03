@@ -178,3 +178,10 @@ TARGET_NONE = {
     TargetType.NONE: False
 }
 
+TARGET_SELF_ENEMIES = {
+    TargetType.ITSELF: True,
+    TargetType.ALLY: False,
+    TargetType.ENEMY: True,
+    TargetType.NONE: False
+}
+

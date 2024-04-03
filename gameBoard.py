@@ -103,6 +103,7 @@ class GameBoard:
             if self.__attack_spaces != None: # Attack range is active
                 if space in self.__attack_spaces: # A valid target is selected
                     if space == self.__target_space and self.__action_confirmed:
+                        ### Send self.__action_space, unit, space, attack_action to server
                         self.attack_action(unit, space)
                     else:
                         self.setup_action(self.attack_action, unit, space, "red")
@@ -114,12 +115,14 @@ class GameBoard:
                     return
                 if space in self.__ability_spaces: # A valid target is selected
                     if space == self.__target_space and self.__action_confirmed:
+                        ### Send self.__action_space, unit, space, ability_action to server
                         self.ability_action(unit, space)
                     else:
                         self.setup_action(self.ability_action, unit, space, "yellow")
                     return
             if self.__action_space == space: # Movement to a new space is confirmed
                 if self.__action_confirmed:
+                    ### Send self.__action_space, unit, space, move_and_wait to server
                     self.move_and_wait(unit, space)
                 else:
                     self.setup_action(self.move_and_wait, unit, space, "green")
@@ -354,20 +357,20 @@ class GameBoard:
             self.update_info_panel("This unit's ability cannot be used again")
             return []
         range = unit.get_ability_range()
-        if range == 0:
-            valid_spaces = [self.__action_space]
-        else:
-            min_range = unit.get_ability_min_range()
-            target_dict = unit.get_ability_targets()
-            action = ActionType.ABILITY
-            valid_spaces = unit.find_target_spaces(space, range, target_dict, action)
-            if min_range > 1:
-                invalid_spaces = unit.find_target_spaces(space, min_range-1, target_dict)
-                valid_spaces = valid_spaces.difference(invalid_spaces)
-            if range > 1:
-                self.update_guarded_spaces(valid_spaces, unit)
-                valid_spaces = valid_spaces.difference(self.__guarded_spaces)
-                self.draw_space_list(self.__guarded_spaces)
+        valid_spaces = set()
+        if unit.get_ability_targets()[TargetType.ITSELF]:
+            valid_spaces = {self.__action_space}
+        min_range = unit.get_ability_min_range()
+        target_dict = unit.get_ability_targets()
+        action = ActionType.ABILITY
+        valid_spaces = valid_spaces.union(unit.find_target_spaces(space, range, target_dict, action))
+        if min_range > 1:
+            invalid_spaces = unit.find_target_spaces(space, min_range-1, target_dict)
+            valid_spaces = valid_spaces.difference(invalid_spaces)
+        if range > 1:
+            self.update_guarded_spaces(valid_spaces, unit)
+            valid_spaces = valid_spaces.difference(self.__guarded_spaces)
+            self.draw_space_list(self.__guarded_spaces)
         self.outline_spaces(valid_spaces, 'yellow')
         return valid_spaces
     
