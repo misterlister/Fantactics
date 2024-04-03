@@ -1,155 +1,47 @@
 import socket
 import selectors
 from constants import *
-from serverSend import assignColours
+from serverPlayer import initializePlayers
 from serverRecv import *
 from errors import errorMessage
-import time
-
 
 this_file = "server.py"
-
-p1Active = False
-p2Active = False
-sel = selectors.DefaultSelector()
-
-def receive(conn, mask):
-    data = conn.recv(MAX_MESSAGE_SIZE)
-    recvPlayer = None
-    if data:
-        message = data.decode('ascii')
-
-
-        if conn.fileno() == bluePlayer.getID():
-            recvPlayer = redPlayer
-            print("***RECEIVED from BLUE: ", message)
-
-        if conn.fileno() == redPlayer.getID():
-            recvPlayer = bluePlayer
-            print("***RECEIVED from RED: ", message)
-
-        msgs = message.split()
-        for msg in msgs:
-            parse_message(recvPlayer,msg)
-
-    else:
-        sel.unregister(conn)
-        conn.close()
-
-
-def parse_message(receivingPlayer,msg):
-
-    instruction = ""
-
-    i = 0
-    while msg[i] != ':':
-        if msg[i] != '[':
-            instruction += msg[i]
-        i+=1
-
-    if msg == "[Turn:END]":
-       
-        if(bluePlayer.isMyTurn()):
-            bluePlayer.stopTurn()
-            redPlayer.startTurn()
-        
-        elif(redPlayer.isMyTurn):
-            redPlayer.stopTurn()
-            bluePlayer.startTurn()
-        
-        else:
-            errorMessage(this_file, "It is nobodies turn!")
-    
-    if instruction == "Move":
-
-        coords = []
-
-        for c in msg:
-            if c.isnumeric():
-                coords.append(str(c))
-
-        relayString = "[Move:"
-        translatedCoords = []
-        for n in coords:
-            tn = (abs(int(n)-7))
-            translatedCoords.append(tn)
-            
-        relayString += str(translatedCoords[0]) + ',' + str(translatedCoords[1])
-        relayString += ':'
-        relayString += str(translatedCoords[2]) + ',' + str(translatedCoords[3])
-        relayString += ']'
-
-        receivingPlayer.sendString(relayString)
-
-        
-    if instruction == "Kill":
-        coords = []
-        for c in msg:
-            if c.isnumeric():
-                coords.append(str(c))
-
-        relayString = "[Kill:"
-        translatedCoords = []
-        for n in coords:
-            tn = (abs(int(n)-7))
-            translatedCoords.append(tn)
-        relayString += str(translatedCoords[0]) + ',' + str(translatedCoords[1])
-        relayString += ']'
-
-        receivingPlayer.sendString(relayString)
-
-    if instruction == "Hp":
-
-        inputs = []
-
-        for c in msg:
-            if c.isnumeric():
-                inputs.append(str(c))
-
-        relayString = "[Hp:"
-        t_row = str((abs(int(inputs[0])-7)))
-        t_col = str((abs(int(inputs[1])-7)))
-        hp = inputs[2]
-
-        relayString += t_row + ',' + t_col
-        relayString += ':' + hp + ']'
-
-        receivingPlayer.sendString(relayString)
-
 
 if __name__ == "__main__":
     
 
-    listenSocket = socket.socket()
-    listenSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,1)
-    
-    listenSocket.bind((IP, PORT))
-    listenSocket.listen()
+    # Create socket to listen for incoming connections
+    listen_socket = socket.socket()
+    listen_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,1)
+    listen_socket.bind((IP, PORT))
+    listen_socket.listen()
 
+    # Message to users. 
     print("Server listenining at hostname: ", IP, ", port: ", PORT)    
-    p1Conn, p1Addr = listenSocket.accept()
-    print("P1Conn type: ", type(p1Conn))
-    p1Active = True
-
-    print("Welcome to Fantactics. Please wait for your opponent")
-    p2Conn, p2Addr = listenSocket.accept()
-    p2Active = True
-    print("Welcome to Fantactics.")
-
-    bluePlayer, redPlayer = assignColours(p1Conn, p2Conn)
-    sel.register(bluePlayer.getConn(), selectors.EVENT_READ, receive)
-    sel.register(redPlayer.getConn(), selectors.EVENT_READ, receive)
-
-    if not (redPlayer.stopTurn() and bluePlayer.startTurn()):
-        errorMessage(this_file,"Could not assign initial turns.")
-    bluePlayer
     
-    bluePlayer.initializeBoard()
-    redPlayer.initializeBoard()
-    
-    listenSocket.close() 
+    # Accept the first connection.
+    conn1, addr1 = listen_socket.accept()
+    p1_active = True
 
-    while p1Active or p2Active:
+    #Accept the second connection.
+    conn2, addr2 = listen_socket.accept()
+    p2_active = True
+
+    # Assign each connection to be randomly either the light or dark player.
+    serverConn = ServerConnection(conn1, conn2)
+    print("Created serverconn")
+    receiver = Receiver(serverConn)
+    print("CREATED RECEIVER")
+    receiver.print_board()
+    # Register the file opjects for each connections with receive_data as the callback.
+    sel.register(conn1, selectors.EVENT_READ, receiver.receive_data)
+    sel.register(conn2, selectors.EVENT_READ, receiver.receive_data)
+    
+    # Both players are connected to new sockets, so listen socket is closed.
+    listen_socket.close() 
+
+    # Keep listening while both connections are active. 
+    while p1_active or p2_active:
         try:
             events = sel.select()
         except:
@@ -158,7 +50,7 @@ if __name__ == "__main__":
             callback = key.data
             callback(key.fileobj, mask)
         
-    p1Conn.close() 
-    p2Conn.close()
+    conn1.close() 
+    conn2.close()
 
     print ('Connection Closed')

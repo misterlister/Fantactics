@@ -4,6 +4,7 @@ from PIL import ImageTk, Image
 from userInterface import UserInterface, do_nothing
 from constants import *
 from units import Soldier
+from clientSender import Sender
 
 
 class GameBoard:
@@ -11,6 +12,7 @@ class GameBoard:
             self,
             window: Window,
             root: Tk,
+            sender,
             ui: UserInterface,
             x_start: int = DEFAULT_X_POS,
             y_start: int = DEFAULT_Y_POS,
@@ -32,10 +34,6 @@ class GameBoard:
         self.__transparent_square = self.set_transparency()
         self.window.canvas.bind('<Button-1>', self.click)
         self.window.canvas.bind('<Button-3>', self.right_click)
-        self.root.bind('<z>', self.ui.controlBar.buttons['attack'].unclick)
-        self.root.bind('<x>', self.ui.controlBar.buttons['ability'].unclick)
-        self.root.bind('<space>', self.ui.controlBar.buttons['confirm'].unclick)
-        self.root.bind('<Shift-KeyPress>', self.ui.controlBar.buttons['cancel'].unclick)
         self.__selected_space = None # Space currently selected
         self.__selected_unit = None # Unit currently selected
         self.__action_space = None # Location where selected unit will move to take an action
@@ -44,10 +42,10 @@ class GameBoard:
         self.__valid_moves = None # Spaces where the selected unit can move to
         self.__attack_spaces = None # Spaces the selected unit can attack from the selected action space
         self.__ability_spaces = None # Spaces the selected unit can target with their ability from the selected action space
-        self.__guarded_spaces = [] # Spaces which are guarded by soldiers, and cannot be targeted with ranged abilities
         self.__action_confirmed = False # Keeps track of if the current action has been confirmed
-        self.__game_state = None # Links to game state object
-        
+        self.__game_state = None
+        self.sender = sender
+    
     def draw_board(self) -> None:
         for i in range (BOARD_ROWS + 1):
             y_position = self.get_row_y(i)
@@ -73,13 +71,12 @@ class GameBoard:
         self.__game_state = state
 
     def click(self, event):
-        self.clear_info_panel()
         if event.x > self.x_start and event.x < self.x_end:
             if event.y > self.y_start and event.y < self.y_end:
                 row = (event.y-self.y_start) // self.square_size
                 col = (event.x-self.x_start) // self.square_size
-                #contents = self.check_square(row, col)
-                #print(f"Clicked square {row},{col}. Contents: {contents}")
+                contents = self.check_square(row, col)
+                print(f"Clicked square {row},{col}. Contents: {contents}")
                 new_space = self.__spaces[row][col]
                 if self.__selected_unit is None: # No unit is currently selected
                     self.click_no_unit_selected(new_space)
@@ -108,10 +105,6 @@ class GameBoard:
                         self.setup_action(self.attack_action, unit, space, "red")
                     return
             elif self.__ability_spaces != None: # Ability range is active
-                if space in self.__guarded_spaces:
-                    self.update_info_panel("This unit is guarded by an enemy soldier. It cannot be targeted.")
-                    self.unconfirm_action()
-                    return
                 if space in self.__ability_spaces: # A valid target is selected
                     if space == self.__target_space and self.__action_confirmed:
                         self.ability_action(unit, space)
@@ -129,7 +122,8 @@ class GameBoard:
                 self.set_attack_spaces(unit, space)
                 return
         else:
-            self.update_info_panel("You cannot move enemy units")
+            print("You cannot move enemy units")
+        print("Cancelled Action.")
         self.cancel_action()
 
     def right_click(self, event):
@@ -137,17 +131,17 @@ class GameBoard:
 
     def attack_action(self, unit, space):
         self.update_stats_panel(space.get_unit()) 
-        self.move_unit(unit, self.__action_space)
+        self.move_unit(False,unit, self.__action_space)
         self.combat(unit, space.get_unit())
-        self.ui.controlBar.buttons['attack'].untoggle_keys()
+        self.ui.controlBar.buttons['red'].untoggle_keys()
         self.end_turn()
         return
     
     def ability_action(self, unit, space):
-        self.move_unit(unit, self.__action_space)
+        self.move_unit(False, unit, self.__action_space)
         self.update_stats_panel(space.get_unit()) 
         self.activate_ability(unit, space)
-        self.ui.controlBar.buttons['attack'].untoggle_keys()
+        self.ui.controlBar.buttons['red'].untoggle_keys()
         self.end_turn()
         return
 
@@ -159,42 +153,14 @@ class GameBoard:
         self.__target_space = space
         self.draw_space(self.__action_space)
         self.preview_sprite(unit, self.__action_space)
-        target = space.get_unit()
-        self.ui.controlBar.buttons['confirm'].change_unclick_func(lambda: action(unit, space))
+        self.ui.controlBar.buttons['green'].change_unclick_func(lambda: action(unit, space))
         if action == self.ability_action: # If this is an ability, highlight the area of effect
             self.__area_of_effect_spaces = unit.get_area_of_effect(space)
             for effect_space in self.__area_of_effect_spaces:
                 self.circle_outline_space(effect_space, colour)
-            self.ability_preview(unit, target)
         else: # Otherwise, highlight the target space
             self.circle_outline_space(space, colour)
-            if action == self.attack_action:
-                self.combat_preview(unit, target)
-                
-    def unconfirm_action(self):
-        self.__action_confirmed = False
-        if self.__target_space != None:
-            self.draw_space(self.__target_space)
-            self.__target_space = None
-        if len(self.__area_of_effect_spaces) > 0:
-            self.draw_space_list(self.__area_of_effect_spaces)
-            self.__area_of_effect_spaces = []
-
-    def combat_preview(self, unit, target):
-        target_damage = unit.attack_preview(target, True)
-        if target_damage < target.get_curr_hp():
-            unit_damage = target.attack_preview(unit, False)
-        else:
-            unit_damage = 0
-        self.update_stats_panel(target, target_damage)
-        self.update_stats_panel(unit, unit_damage)
-
-    def ability_preview(self, unit, target):
-        if target != None:
-            target_damage = unit.ability_preview(target)
-            if target_damage != None:
-                self.update_stats_panel(target, target_damage)
-                self.update_stats_panel(unit)
+        ### SHOW COMBAT/ABILITY PREVIEW HERE
                 
     def connect_spaces(self, spaces):
         for i in range(BOARD_ROWS):
@@ -211,7 +177,7 @@ class GameBoard:
 
     # Update the stats panel items
     # Should be called on selection of a unit
-    def update_stats_panel(self, unit, damage_preview = 0):
+    def update_stats_panel(self, unit):
         if unit is not None:
             if unit.get_player().is_current_turn():
                 panel = 'friendlyUnitPanel'
@@ -221,18 +187,12 @@ class GameBoard:
             self.ui.statsPanel[panel].update_image(self.window.get_sprite(sprite))
             self.ui.statsPanel[panel].update_class(unit.get_unit_type())
             self.ui.statsPanel[panel].update_name(unit.get_name())
-            self.ui.statsPanel[panel].update_health(unit.get_curr_hp(), unit.get_max_hp(), damage_preview)
-            self.ui.statsPanel[panel].update_damage(unit.get_damage_val(), '', unit.get_damage_mod())
-            self.ui.statsPanel[panel].update_defense(unit.get_defense_val(), '', unit.get_defense_mod())
+            self.ui.statsPanel[panel].update_health(unit.get_curr_hp(), unit.get_max_hp())
+            self.ui.statsPanel[panel].update_damage(unit.get_damage_val())
+            self.ui.statsPanel[panel].update_armour(unit.get_armour_val())
             self.ui.statsPanel[panel].update_movement(unit.get_movement())
         else:
             self.clear_stats_panel()
-            
-    def update_info_panel(self, message):
-        self.ui.info.update(message)
-        
-    def clear_info_panel(self):
-        self.ui.info.update('')
 
     def clear_stats_panel(self):
         for panel in self.ui.statsPanel:
@@ -318,9 +278,6 @@ class GameBoard:
         if self.__ability_spaces != None:
             if space in self.__ability_spaces:
                 self.outline_space(space, 'yellow')
-        if space in self.__guarded_spaces:
-            for sp in self.__guarded_spaces:
-                self.x_out_space(sp, "grey")
 
     def draw_all_spaces(self):
         for i in range(BOARD_ROWS):
@@ -350,24 +307,20 @@ class GameBoard:
         return valid_spaces
     
     def get_ability_spaces(self, unit, space) -> set:
-        if unit.ability_expended():
-            self.update_info_panel("This unit's ability cannot be used again")
-            return []
         range = unit.get_ability_range()
-        if range == 0:
-            valid_spaces = [self.__action_space]
-        else:
-            min_range = unit.get_ability_min_range()
-            target_dict = unit.get_ability_targets()
-            action = ActionType.ABILITY
-            valid_spaces = unit.find_target_spaces(space, range, target_dict, action)
-            if min_range > 1:
-                invalid_spaces = unit.find_target_spaces(space, min_range-1, target_dict)
-                valid_spaces = valid_spaces.difference(invalid_spaces)
-            if range > 1:
-                self.update_guarded_spaces(valid_spaces, unit)
-                valid_spaces = valid_spaces.difference(self.__guarded_spaces)
-                self.draw_space_list(self.__guarded_spaces)
+        min_range = unit.get_ability_min_range()
+        target_dict = unit.get_ability_targets()
+        action = ActionType.ABILITY
+        valid_spaces = unit.find_target_spaces(space, range, target_dict, action)
+        if min_range > 1:
+            invalid_spaces = unit.find_target_spaces(space, min_range-1, target_dict)
+            valid_spaces = valid_spaces.difference(invalid_spaces)
+        if range > 1:
+            guarded_spaces = self.get_guarded_spaces(valid_spaces, unit)
+            valid_spaces = valid_spaces.difference(guarded_spaces)
+            print(guarded_spaces)
+            for sp in guarded_spaces:
+                self.x_out_space(sp, "grey")
         self.outline_spaces(valid_spaces, 'yellow')
         return valid_spaces
     
@@ -379,7 +332,7 @@ class GameBoard:
         self.outline_spaces(valid_spaces, 'red')
         return valid_spaces
     
-    def update_guarded_spaces(self, valid_spaces, unit):
+    def get_guarded_spaces(self, valid_spaces, unit):
         guarded_spaces = set()
         for space in valid_spaces:
             target = space.get_unit()
@@ -388,7 +341,8 @@ class GameBoard:
                     if not target.is_unit_type(Soldier):
                         if target.adjacent_to(Soldier, True):
                             guarded_spaces.add(space)
-        self.__guarded_spaces = guarded_spaces
+        return guarded_spaces
+
     
     def draw_space_list(self, spaces: list):
         for space in spaces:
@@ -403,10 +357,7 @@ class GameBoard:
         if unit is not None:
             self.__valid_moves = self.get_movement_spaces(unit, space)
             self.set_action_space(unit, space)
-            if self.ui.controlBar.buttons['ability'].get_toggle_status():
-                self.set_ability_spaces(unit, space)
-            else:
-                self.set_attack_spaces(unit, space)
+            self.set_attack_spaces(unit, space)
 
     def deselect_space(self) -> None:
         space = self.__selected_space
@@ -414,8 +365,6 @@ class GameBoard:
             space.deselect()
         self.unset_unit_buttons()
         self.__selected_space = None
-        if self.__selected_unit != None:
-            self.__selected_unit.reset_action_space()
         self.__selected_unit = None
         self.__action_space = None
         self.__target_space = None
@@ -423,13 +372,16 @@ class GameBoard:
         self.__valid_moves = None
         self.__attack_spaces = None
         self.__ability_spaces = None
-        self.__guarded_spaces = []
         self.__action_confirmed = False
         ### REMOVE COMBAT/ABILITY PREVIEW HERE
         self.draw_all_spaces()
 
-    def move_unit(self, unit, space):
-        old_space = unit.get_space()
+    def move_unit(self, from_server, unit, space):
+        old_space = unit.get_location()
+        r1 = old_space.get_row()
+        print("*** PREVIOUS ROW SPACE: ", r1)
+        c1 = old_space.get_col()
+
         try:  
             unit.move(space)
             self.deselect_space()
@@ -437,19 +389,25 @@ class GameBoard:
             self.draw_space(space)
             if old_space != space:
                 move_log = f"{unit.get_name()} -> {space.get_row()},{space.get_col()}.\n"
+                print("MOVE LOG:", move_log)
+                r2 = space.get_row()
+                c2 = space.get_col()
+                if not from_server:
+                    self.sender.move(r1,c1,r2,c2)
+
             else:
                 move_log = f"{unit.get_name()} stayed in place.\n"
             self.ui.logItems['text'].add_text(move_log) # Send movement to combat log
+
         except Exception as e:
             print(e)
 
     def cancel_action(self):
-        self.update_info_panel("Cancelled action")
         self.__action_space = None
         self.draw_all_spaces()
         self.deselect_space()
         self.clear_stats_panel()
-        self.ui.controlBar.buttons['attack'].untoggle_keys()
+        self.ui.controlBar.buttons['red'].untoggle_keys()
 
     def get_col_x(self, col):
         x = self.x_start + (col * (self.square_size))
@@ -462,22 +420,19 @@ class GameBoard:
     def set_action_space(self, unit, space):
         if self.__action_space is not None: # If a new action space is being selected, overriding another
             self.draw_space(self.__selected_space)
-            if self.__action_space == self.__selected_unit.get_space(): # If the old space was the current unit's space
+            if self.__action_space == self.__selected_unit.get_location(): # If the old space was the current unit's space
                 self.outline_space(self.__action_space, 'blue')
             else: # Otherwise, this is another space in the current unit's range
                 self.draw_space(self.__action_space)
                 self.outline_space(self.__action_space, 'green')
         self.reset_target_spaces()
-        unit.set_action_space(space)
-        self.update_stats_panel(unit)
         self.set_unit_buttons(unit, space)
         self.outline_space(space, 'purple')
         self.preview_sprite(unit, space)
-        
         self.__action_space = space
 
     def set_attack_spaces(self, unit, space):
-        self.ui.controlBar.buttons['attack'].toggle()
+        self.ui.controlBar.buttons['red'].toggle()
         self.reset_target_spaces()
         self.draw_space(space)
         self.preview_sprite(unit, space)
@@ -496,28 +451,24 @@ class GameBoard:
             print(e)
     
     def set_unit_buttons(self, unit, space):
-        self.ui.controlBar.buttons['attack'].change_unclick_func(lambda: self.set_attack_spaces(unit, space))
-        self.ui.controlBar.buttons['ability'].change_unclick_func(lambda: self.set_ability_spaces(unit, space))
-        self.ui.controlBar.buttons['confirm'].change_unclick_func(lambda: self.move_and_wait(unit, space))
-        self.ui.controlBar.buttons['cancel'].change_unclick_func(self.cancel_action)
+        self.ui.controlBar.buttons['red'].change_unclick_func(lambda: self.set_attack_spaces(unit, space))
+        self.ui.controlBar.buttons['yellow'].change_unclick_func(lambda: self.set_ability_spaces(unit, space))
+        self.ui.controlBar.buttons['green'].change_unclick_func(lambda: self.move_and_wait(unit, space))
+        self.ui.controlBar.buttons['grey'].change_unclick_func(self.cancel_action)
 
     def unset_unit_buttons(self):
-        self.ui.controlBar.buttons['attack'].change_unclick_func(do_nothing)
-        self.ui.controlBar.buttons['ability'].change_unclick_func(do_nothing)
-        self.ui.controlBar.buttons['confirm'].change_unclick_func(do_nothing)
-        self.ui.controlBar.buttons['cancel'].change_unclick_func(do_nothing)
+        self.ui.controlBar.buttons['red'].change_unclick_func(do_nothing)
+        self.ui.controlBar.buttons['yellow'].change_unclick_func(do_nothing)
+        self.ui.controlBar.buttons['green'].change_unclick_func(do_nothing)
+        self.ui.controlBar.buttons['grey'].change_unclick_func(do_nothing)
 
     def reset_target_spaces(self):
-        self.clear_info_panel()
-        self.unconfirm_action()
+        self.__action_confirmed = False
         ### REMOVE COMBAT/ABILITY PREVIEW HERE
         ability_spaces_reset = self.__ability_spaces
         self.__ability_spaces = None
         if ability_spaces_reset is not None:     
             self.draw_space_list(ability_spaces_reset)
-        guarded_spaces_reset = self.__guarded_spaces
-        self.__guarded_spaces = []
-        self.draw_space_list(guarded_spaces_reset)
         attack_spaces_reset = self.__attack_spaces
         self.__attack_spaces = None
         if attack_spaces_reset is not None:
@@ -531,17 +482,24 @@ class GameBoard:
     def combat(self, unit, target):
         unit_name = unit.get_name()
         target_name = target.get_name()
-        unit_loc = unit.get_space()
-        target_loc = target.get_space()
+        unit_loc = unit.get_location()
+        target_loc = target.get_location()
         attack_log = unit.basic_attack(target)
         self.update_stats_panel(target) 
+        unit_row = unit.get_location().get_row()
+        unit_col = unit.get_location().get_col()
+        target_row = target.get_location().get_row()
+        target_col = target.get_location().get_col()
+
         # Send attack details to combat log
         self.ui.logItems['text'].add_text(attack_log) 
         if target.is_dead(): # If the target is dead, remove them and take their place
             self.ui.logItems['text'].add_text(f"{unit_name} has slain {target_name}!\n")
             target_loc.assign_unit(None)
-            self.move_unit(unit, target_loc)
+            self.sender.kill(target_row,target_col)
+            self.move_unit(False, unit, target_loc)
         else: # Otherwise, they will retaliate
+            self.sender.change_hp(target_row, target_col, target.get_curr_hp())
             retaliation_log = target.retaliate(unit)
             self.update_stats_panel(unit)
             # Send retaliation details to combat log
@@ -552,7 +510,11 @@ class GameBoard:
                 self.__action_space = None
                 self.draw_all_spaces()
                 self.deselect_space()
-        
+                self.sender.kill(target_row,target_col)
+            else:
+                self.sender.change_hp(unit_row, unit_col, unit.get_curr_hp())
+
+    
     def preview_sprite(self, unit, space):
         preview = unit.get_sprite()
         x = self.get_col_x(space.get_col())
@@ -584,11 +546,9 @@ class GameBoard:
         self.__game_state.next_turn()
 
     def move_and_wait(self, unit, space):
-        self.ui.controlBar.buttons['attack'].untoggle_keys()
-        self.move_unit(unit, space)
+        self.ui.controlBar.buttons['red'].untoggle_keys()
+        self.move_unit(False, unit, space)
         self.end_turn()
-
-
 
 class Terrain:
     def __init__(self) -> None:
@@ -619,9 +579,6 @@ class Space:
 
     def get_terrain(self):
         return self.__terrain
-    
-    def get_defense_mod(self):
-        return 0 # self.__terrain.get_defense_mod()
     
     def get_unit_sprite(self):
         if self.__unit == None:

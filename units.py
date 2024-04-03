@@ -46,12 +46,20 @@ class Unit:
         self.__player = None
         self.__ability_targets = TARGET_NONE
         self._ability_area_of_effect = []
+        self.__id = None
         
     def get_unit_type(self):
         return self.__unit_type
 
     def get_max_hp(self):
         return self.__max_hp
+    
+    def set_id(self, id: str):
+        self.__id = id
+
+    
+    def get_id(self):
+        return self.__id
 
     def get_curr_hp(self):
         return self.__curr_hp
