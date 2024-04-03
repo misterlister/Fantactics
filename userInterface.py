@@ -47,13 +47,16 @@ class Panel():
             relief: str = 'solid'
             ) -> None:
         
+        self.root = root
         self.frame = LabelFrame(root, width = width, height = height, bg=colour, bd=bd, relief=relief)
         self.frame.pack_propagate(0) # Prevent the LabelFrame from shrinking
-        #self.frame.pack(side = 'left', expand = 'True', anchor='nw', fill='both')
         self.frame.place(x=xPos, y=yPos)
 
     def getFrame(self):
         return self.frame
+    
+    def getRoot(self):
+        return self.root
     
     def clear(self):
         pass
@@ -258,10 +261,9 @@ class CanvasButton():
 
         self.clickFunc = clickFunc
         self.unclickFunc = unclickFunc
-    
         self.enabled = enabled
 
-    def bind(self, click: Callable, unclick: Callable):
+    def bind(self, click: Callable = do_nothing, unclick: Callable = do_nothing):
         self.button.bind('<Button-1>', click)
         self.button.bind('<ButtonRelease-1>', unclick)
 
@@ -282,14 +284,11 @@ class CanvasButton():
         self.enabled = False
         self.button.config(cursor='arrow')
 
-    def change_click_func(self, new: Callable = do_nothing):
-        self.clickFunc = new
+    def change_click_func(self, new: Callable = do_nothing): self.clickFunc = new
 
-    def change_unclick_func(self, new: Callable = do_nothing):
-        self.unclickFunc = new
+    def change_unclick_func(self, new: Callable = do_nothing): self.unclickFunc = new
 
-    def get_button(self):
-        return self.button
+    def get_button(self): return self.button
 
     def __create_image(self, unpressed, pressed) -> None:
         self.unpressed = ImageTk.PhotoImage(Image.open(unpressed))
