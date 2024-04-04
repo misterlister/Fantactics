@@ -267,7 +267,18 @@ class Unit:
         valid_spaces = set()
         if space != None: # If this space doesn't exist, return
             if self.verify_space_pass(space, pass_dict, action):
-                valid_spaces = valid_spaces.union(self.find_target_spaces(space, range-1, target_dict, action, pass_dict))
+                # If this is a move action, determine the move cost of the terrain
+                if action == ActionType.MOVE:
+                    # Flying units ignore terrain
+                    if self.get_move_type() != MoveType.FLY:
+                        move_cost = space.get_move_cost()
+                        # If this unit is riding a horse, increase difficult terrain movement cost
+                        if self.get_move_type() == MoveType.HORSE:
+                            if move_cost > 1:
+                                move_cost = move_cost * 2
+                else:
+                    move_cost = 1
+                valid_spaces = valid_spaces.union(self.find_target_spaces(space, (range - move_cost), target_dict, action, pass_dict))
         return valid_spaces
     
     def verify_space_pass(self, space, target_dict, action) -> bool:

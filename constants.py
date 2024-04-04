@@ -67,6 +67,27 @@ class SpriteType:
     HEALER2 = "Healer2"
     ARCHMAGE2 = "Archmage2"
     GENERAL2 = "General2"
+    
+class TerrainType:
+    PLAINS = "plains"
+    FOREST = "forest"
+    FORTRESS = "fortress"
+    PATH_E = "path_e"
+    PATH_ES = "path_es"
+    PATH_ESW = "path_esw"
+    PATH_EW = "path_ew"
+    PATH_N = "path_n"
+    PATH_NE = "path_ne"
+    PATH_NES = "path_nes"
+    PATH_NESW = "path_nesw"
+    PATH_NEW = "path_new"
+    PATH_NS = "path_ns"
+    PATH_NSW = "path_nsw"
+    PATH_NW = "path_nw"
+    PATH_S = "path_s"
+    PATH_SW = "path_sw"
+    PATH_W = "path_w"
+    PATH = "path"
 
 # Damage multiplier for units initiating combat
 FIRST_STRIKE_BOOST = 1.2

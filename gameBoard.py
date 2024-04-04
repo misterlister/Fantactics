@@ -68,7 +68,26 @@ class GameBoard:
         # Destroy excess labels, not most elegant solution but least code
         self.rowLabel[i].destroy()
         self.colLabel[j].destroy()
-
+        
+    def setup_map(self, game_map):
+        map_size = BOARD_COLS * BOARD_ROWS
+        if len(game_map) != map_size:
+            print("Alert: Map does not match the board size. Reverting to default map.")
+            game_map = [TerrainType.PLAINS * (map_size)]
+        cell = 0
+        for i in range(BOARD_ROWS):
+            for j in range(BOARD_COLS):
+                space = self.__spaces[i][j]
+                if game_map[cell] == TerrainType.FOREST:
+                    space.set_terrain(Forest(space))
+                elif game_map[cell] == TerrainType.FORTRESS:
+                    space.set_terrain(Fortress(space))
+                elif game_map[cell] == TerrainType.PATH:
+                    space.set_terrain(Path(space))
+                else:
+                    space.set_terrain(Plains(space))
+                cell += 1
+                        
     def link_to_state(self, state):
         self.__game_state = state
 
@@ -294,20 +313,20 @@ class GameBoard:
     def draw_space(self, space) -> None:
         col = space.get_col()
         row = space.get_row()
-        x = self.get_col_x(col) + SPRITE_BUFFER/2
-        y = self.get_row_y(row) + SPRITE_BUFFER/2
-        #terrain = self.__spaces[i][j].get_terrain()
-        #terrain_sprite = terrain.get_sprite()
-        #self.window.draw_sprite(x, y, terrain_sprite)
-
+        terrain_x = self.get_col_x(col)
+        terrain_y = self.get_row_y(row)
         ### TEMPORARY
         self.erase(row, col)
         ###
-
+        terrain_sprite = space.get_terrain_sprite()
+        
+        self.window.draw_sprite(terrain_x, terrain_y, terrain_sprite)
+        unit_x = terrain_x + SPRITE_BUFFER/2
+        unit_y = terrain_y + SPRITE_BUFFER/2
         unit = space.get_unit()
         if unit is not None:
             unit_sprite = unit.get_sprite()
-            self.window.draw_sprite(x, y, unit_sprite)
+            self.window.draw_sprite(unit_x, unit_y, unit_sprite)
         if self.__valid_moves != None:
             if space in self.__valid_moves:
                 self.outline_space(space, 'green')
@@ -337,7 +356,7 @@ class GameBoard:
         y1 = self.get_row_y(row)
         x2 = self.get_col_x(col+1)
         y2 = self.get_row_y(row+1)
-        self.window.canvas.create_rectangle(x1, y1, x2, y2, fill=BG_COL, outline = 'black', width=2)
+        self.window.canvas.create_rectangle(x1, y1, x2, y2, fill=BG_COL, outline = 'grey', width=2)
 ######
 
     def get_movement_spaces(self, unit, space) -> set:
@@ -596,9 +615,81 @@ class GameBoard:
 
 
 class Terrain:
-    def __init__(self) -> None:
-        pass
+    def __init__(self, space, sprite, move_cost, defense_mod) -> None:
+        self.__space = space
+        self._sprite = sprite
+        self.__move_cost = move_cost
+        self.__defense_mod = defense_mod
+        
+    def get_space(self):
+        return self.__space
+        
+    def get_sprite(self):
+        return self._sprite
     
+    def get_move_cost(self):
+        return self.__move_cost
+    
+    def get_defense_mod(self):
+        return self.__defense_mod
+    
+class Plains(Terrain):
+    def __init__(self, space) -> None:
+        sprite = TerrainType.PLAINS
+        move_cost = 1
+        defense_mod = 0
+        super().__init__(space, sprite, move_cost, defense_mod)
+        
+class Forest(Terrain):
+    def __init__(self, space) -> None:
+        sprite = TerrainType.FOREST
+        move_cost = 1.5
+        defense_mod = 1
+        super().__init__(space, sprite, move_cost, defense_mod)
+        
+class Fortress(Terrain):
+    def __init__(self, space) -> None:
+        sprite = TerrainType.FORTRESS
+        move_cost = 1
+        defense_mod = 2
+        super().__init__(space, sprite, move_cost, defense_mod)
+        
+class Path(Terrain):
+    def __init__(self, space) -> None:
+        sprite = None
+        move_cost = 0.8
+        defense_mod = 0
+        super().__init__(space, sprite, move_cost, defense_mod)
+        
+    def get_sprite(self):
+        if self._sprite == None:
+            self.set_path_sprite()
+        return self._sprite
+    
+    def set_path_sprite(self):
+        space = self.get_space()
+        path_string = "path_"
+        north_space = space.get_up()
+        if north_space != None:
+            if north_space.is_path() or north_space.is_fortress():
+                path_string += "n"
+        east_space = space.get_right()
+        if east_space != None:
+            if east_space.is_path():
+                path_string += "e"
+        south_space = space.get_down()
+        if south_space != None:
+            if south_space.is_path():
+                path_string += "s"
+        west_space = space.get_left()
+        if west_space != None:
+            if west_space.is_path():
+                path_string += "w"
+        if path_string == "path_":
+            path_string = "path_n"
+            print(f"Error: disconnected path object at row: {space.get_row()} col: {space.get_col()}")
+        self._sprite = path_string
+        
 
 class Space:
     def __init__(
@@ -625,8 +716,20 @@ class Space:
     def get_terrain(self):
         return self.__terrain
     
+    def get_terrain_sprite(self):
+        if self.__terrain == None:
+            return None
+        return self.__terrain.get_sprite()
+    
+    def get_move_cost(self):
+        if self.__terrain == None:
+            return 1
+        return self.__terrain.get_move_cost()
+    
     def get_defense_mod(self):
-        return 0 # self.__terrain.get_defense_mod()
+        if self.__terrain == None:
+            return 0
+        return self.__terrain.get_defense_mod()
     
     def get_unit_sprite(self):
         if self.__unit == None:
@@ -639,8 +742,8 @@ class Space:
         else:
             return False
     
-    def get_terrain_sprite(self):
-        pass
+    def set_terrain(self, terrain: Terrain):
+        self.__terrain = terrain
     
     def get_row(self):
         return self.__row
@@ -681,3 +784,27 @@ class Space:
     def get_down(self):
         return self.__down
 
+    def is_path(self) -> bool:
+        if isinstance(self.get_terrain(), Path):
+            return True
+        return False
+    
+    def is_fortress(self) -> bool:
+        if isinstance(self.get_terrain(), Fortress):
+            return True
+        return False
+    
+class MapLayout:
+    PL = TerrainType.PLAINS
+    FS = TerrainType.FOREST
+    FT = TerrainType.FORTRESS
+    PT = TerrainType.PATH
+    Maps = {
+        "map1": [
+            PL, PL, PL, PL, PL, PL, PL, PL,
+            PL, PL, PL, PL, PL, PL, PL, PL,
+            FS, PT, PT, PL, FS, PT, PL, PT,
+            PL, PT, FT, FS, PL, PT, PT, PT
+        ]
+    }
+    

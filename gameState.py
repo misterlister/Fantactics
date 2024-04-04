@@ -1,5 +1,26 @@
-from gameBoard import GameBoard
-from units import *
+from gameBoard import (
+    GameBoard,
+    MapLayout
+    )
+
+from units import (
+    Unit,
+    Peasant, 
+    Soldier, 
+    Archer, 
+    Cavalry,
+    Sorcerer,
+    Healer,
+    Archmage,
+    General
+    )
+
+from constants import (
+    BOARD_COLS, 
+    BOARD_ROWS
+    )
+
+from random import randint
 
 class Player:
     def __init__(self) -> None:
@@ -65,6 +86,8 @@ class GameState:
             self.setup_row(6, 7, p1_units_r2, True) 
             self.player1.assign_units(p1_units_r1+p1_units_r2)
             self.player1.join_game(self)
+            game_map = self.select_map()
+            self.board.setup_map(game_map)
             self.board.draw_all_spaces()
 
             self.board.link_to_state(self)
@@ -92,6 +115,23 @@ class GameState:
             unit._place(self.board.get_space(row, col))
             return True
         return False
+    
+    def select_map(self):
+        map_size = BOARD_COLS * BOARD_ROWS
+        valid_maps = []
+        map_choice = None
+        for map in MapLayout.Maps:
+            if (len(MapLayout.Maps[map]) * 2) == map_size:
+                valid_maps.append(MapLayout.Maps[map])
+        num_maps = len(valid_maps)
+        if num_maps == 0:
+            return []
+        else:
+            map_choice_num = randint(0, num_maps-1)
+            map_choice = valid_maps[map_choice_num]
+            for i in range((len(map_choice)-1), -1, -1):
+                map_choice.append(map_choice[i])
+        return map_choice
     
     def set_turn(self, player):
         self.__current_player = player
