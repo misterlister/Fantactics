@@ -25,8 +25,10 @@ class UserInterface():
             'text' : CombatLog(self.log.getFrame(), yPos= 50, height=PANEL_HEIGHT - CONTROL_PANEL_HEIGHT - 50)
         }
 
+        ### Top Info bar for displaying text to user
         self.info = InfoPanel(root, PANEL_WIDTH, 0, width=WINDOW_WIDTH - (2 * PANEL_WIDTH), height=25, colour=BG_COL)
 
+        ### Bottom button bar for game controls
         self.controlBar = ControlBar(root, PANEL_WIDTH, PANEL_HEIGHT - CONTROL_PANEL_HEIGHT, width=WINDOW_WIDTH - (2 * PANEL_WIDTH), height=CONTROL_PANEL_HEIGHT)
         self.__game_state = None
 
@@ -282,10 +284,10 @@ class ControlBar(Panel):
         self.buttons['ability'].set_key(self.__actionToggleKeys)
 
         self.labels = {
-            'attack' : Label(self.frame, text='Attack'),
-            'ability' : Label(self.frame, text='Ability'),
-            'confirm' : Label(self.frame, text='Confirm Move'),
-            'cancel' : Label(self.frame, text='Cancel')
+            'attack' : Label(self.frame, text='Attack [Z]'),
+            'ability' : Label(self.frame, text='Ability [X]'),
+            'confirm' : Label(self.frame, text='Confirm Move [Space]'),
+            'cancel' : Label(self.frame, text='Cancel [LShift]')
         }
 
         spacing = 16

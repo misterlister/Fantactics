@@ -7,14 +7,15 @@ from gameBoard import GameBoard
 from gameState import Player, GameState
 from userInterface import UserInterface
 
-def create_game(root, window):
-    userInterface = UserInterface(root)
-    board = GameBoard(window, root, userInterface)
-    player1 = Player()
-    player2 = Player()
-    gameState = GameState(player1, player2, board, userInterface)
+class Game():
+    def __init__(self, root, window) -> None:
+        self.userInterface = UserInterface(root)
+        self.board = GameBoard(window, root, self.userInterface)
+        self.player1 = Player()
+        self.player2 = Player()
+        self.gameState = GameState(self.player1, self.player2, self.board, self.userInterface)
 
-class MainMenu(Panel):
+class StartMenu(Panel):
     def __init__(
             self, 
             root: Tk,
@@ -54,14 +55,13 @@ class MainMenu(Panel):
         
 
     def play(self):
-        create_game(self.root, self.window)
+        Game(self.root, self.window)
         self.frame.destroy()
 
     def options(self):
         pass
 
     def exit(self):
-
         self.root.destroy()
 
     
