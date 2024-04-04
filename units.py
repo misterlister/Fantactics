@@ -40,8 +40,8 @@ class Unit:
         self.__ability_min_range = ability_min_range
         self.__ability_value = ability_value
         self.__ability_used = False
-        self.__space = None
-        self.__action_space = None
+        self.__space = None # Space where a unit currently is
+        self.__action_space = None # Space where a unit is currently acting from
         self.__dead = False
         self.__player = None
         self.__ability_targets = TARGET_NONE
@@ -499,6 +499,12 @@ class Archer(Unit):
             return None
         damage_dealt = self.calculate_preview(target, self.get_ability_value(), self.__special_damage_type)
         return damage_dealt
+    
+    # Variation of defense calculation that doubles terrain bonuses
+    def get_defense_mod(self):
+        defense_mod =  super().get_defense_mod()
+        defense_mod += self.get_action_space().get_defense_mod()
+        return defense_mod
 
 class Cavalry(Unit):
     def __init__(self, p1 = True) -> None:
