@@ -248,11 +248,12 @@ class Unit:
     
     def find_target_spaces(self, space, range: int, target_dict: dict, action = None, pass_dict: dict = TARGET_ALL) -> set:
         # Add this space if it is a valid target
+        target_spaces = set()
+        if range < 0:
+            return target_spaces
         if self.verify_target(space, target_dict):
             target_spaces = {space}
-        else:
-            target_spaces = set()
-        if range <= 0:
+        if range == 0:
             return target_spaces
         target_spaces = target_spaces.union(self.check_target_spaces(space.get_left(), range, target_dict, action, pass_dict))
         target_spaces = target_spaces.union(self.check_target_spaces(space.get_up(), range, target_dict, action, pass_dict))
