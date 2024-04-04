@@ -30,7 +30,7 @@ class UserInterface():
         self.controlBar = ControlBar(root, PANEL_WIDTH, PANEL_HEIGHT - CONTROL_PANEL_HEIGHT, width=WINDOW_WIDTH - (2 * PANEL_WIDTH), height=CONTROL_PANEL_HEIGHT)
         self.__game_state = None
 
-        self.end = EndScreen(root, 1)
+        #self.end = EndScreen(root, 1)
 
     def link_to_state(self, state):
         self.__game_state = state
