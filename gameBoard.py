@@ -263,11 +263,12 @@ class GameBoard:
     def outline_space(self, space, colour: str) -> None:
         row = space.get_row()
         col = space.get_col()
-        x1 = self.get_col_x(col) + (LINE_WIDTH - 1)
-        y1 = self.get_row_y(row) + (LINE_WIDTH - 1)
-        x2 = self.get_col_x(col+1) - (LINE_WIDTH)
-        y2 = self.get_row_y(row+1) - (LINE_WIDTH)
+        x1 = self.get_col_x(col) + (LINE_WIDTH)
+        y1 = self.get_row_y(row) + (LINE_WIDTH)
+        x2 = self.get_col_x(col+1) - (LINE_WIDTH + 2)
+        y2 = self.get_row_y(row+1) - (LINE_WIDTH + 2)
         self.window.canvas.create_rectangle(x1, y1, x2, y2, width=SELECTION_BUFFER, outline=colour)
+        self.window.canvas.create_rectangle(x1-2, y1-2, x2+2, y2+2, width=3, outline="black")
 
     def outline_spaces(self, spaces: list, colour: str) -> None:
         for space in spaces:
@@ -276,10 +277,10 @@ class GameBoard:
     def circle_outline_space(self, space, colour: str) -> None:
         row = space.get_row()
         col = space.get_col()
-        x1 = self.get_col_x(col) + ((LINE_WIDTH * 2) - 1) 
-        y1 = self.get_row_y(row) + ((LINE_WIDTH * 2) - 1) 
-        x2 = self.get_col_x(col+1) - (LINE_WIDTH * 2)
-        y2 = self.get_row_y(row+1) - (LINE_WIDTH * 2)
+        x1 = self.get_col_x(col) + ((LINE_WIDTH * 2)) 
+        y1 = self.get_row_y(row) + ((LINE_WIDTH * 2)) 
+        x2 = self.get_col_x(col+1) - (LINE_WIDTH * 2) - 2
+        y2 = self.get_row_y(row+1) - (LINE_WIDTH * 2) - 2
         self.window.canvas.create_oval(x1, y1, x2, y2, width=SELECTION_BUFFER, outline=colour)
 
     def x_out_space(self, space, colour: str) -> None:
@@ -587,10 +588,11 @@ class GameBoard:
         box_x = x + (LINE_WIDTH - 2) + SELECTION_BUFFER
         box_y = y + (LINE_WIDTH - 2) + SELECTION_BUFFER
         self.window.canvas.create_image(box_x, box_y, image=self.__transparent_square, anchor='nw')
+        self.outline_space(space, "purple")
 
     def set_transparency(self):
-        width = DEFAULT_SQUARE_SIZE - (LINE_WIDTH - 1) - (SELECTION_BUFFER * 2)
-        height = DEFAULT_SQUARE_SIZE - (LINE_WIDTH - 1) - (SELECTION_BUFFER * 2)
+        width = DEFAULT_SQUARE_SIZE - (LINE_WIDTH) - (SELECTION_BUFFER * 2)
+        height = DEFAULT_SQUARE_SIZE - (LINE_WIDTH) - (SELECTION_BUFFER * 2)
         alpha = 126
         # Use the fill variable to fill the shape with transparent color
         fill_col = self.root.winfo_rgb(BG_COL) + (alpha,)
