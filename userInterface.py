@@ -314,7 +314,7 @@ class InfoPanel(Panel):
             ) -> None:
         super().__init__(root, xPos, yPos, width, height, colour, bd, relief)
 
-        self.label = Label(self.frame, text='Hello world', justify='center', bg=colour, fg='black', font=(FONT, DEFAULT_FONT_SIZE))
+        self.label = Label(self.frame, text='', justify='center', bg=colour, fg='black', font=(FONT, DEFAULT_FONT_SIZE))
         self.label.place(x=width/2, y=0, anchor='n')
     
     def update(self, new: str):
