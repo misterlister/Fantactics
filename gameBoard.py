@@ -317,7 +317,7 @@ class GameBoard:
         terrain_x = self.get_col_x(col)
         terrain_y = self.get_row_y(row)
         ### TEMPORARY
-        self.erase(row, col)
+        self.erase_space(row, col)
         ###
         terrain_sprite = space.get_terrain_sprite()
         
@@ -350,15 +350,12 @@ class GameBoard:
             for j in range(BOARD_COLS):
                 self.draw_space(self.__spaces[i][j])
 
-
-###### TEMPORARY
-    def erase(self, row, col):
+    def erase_space(self, row, col):
         x1 = self.get_col_x(col)
         y1 = self.get_row_y(row)
         x2 = self.get_col_x(col+1)
         y2 = self.get_row_y(row+1)
         self.window.canvas.create_rectangle(x1, y1, x2, y2, fill=BG_COL, outline = 'grey', width=2)
-######
 
     def get_movement_spaces(self, unit, space) -> set:
         range = unit.get_movement()
@@ -659,7 +656,7 @@ class Fortress(Terrain):
 class Path(Terrain):
     def __init__(self, space) -> None:
         sprite = None
-        move_cost = 0.8
+        move_cost = 0.7
         defense_mod = 0
         super().__init__(space, sprite, move_cost, defense_mod)
         
@@ -681,7 +678,7 @@ class Path(Terrain):
                 path_string += "e"
         south_space = space.get_down()
         if south_space != None:
-            if south_space.is_path():
+            if south_space.is_path() or south_space.is_fortress():
                 path_string += "s"
         west_space = space.get_left()
         if west_space != None:
@@ -802,11 +799,29 @@ class MapLayout:
     FT = TerrainType.FORTRESS
     PT = TerrainType.PATH
     Maps = {
-        "map1": [
+        "Great Plains": [
             PL, PL, PL, PL, PL, PL, PL, PL,
             PL, PL, PL, PL, PL, PL, PL, PL,
             FS, PT, PT, PL, FS, PT, PL, PT,
             PL, PT, FT, FS, PL, PT, PT, PT
+        ],
+        "Checkered Woods": [
+            PL, PL, PT, PL, PL, PL, PL, FS,
+            PL, PL, PT, PL, PL, PL, FS, PL,
+            PT, PT, PT, FS, PL, FS, PL, FS,
+            PT, FT, FS, PL, FS, PL, FS, PL
+        ],
+        "Forest Ambush": [
+            FS, PL, PL, PL, PL, PT, PL, PL,
+            FS, PL, PL, PT, PT, PT, FS, FS,
+            PL, PL, FS, PT, FS, PT, PT, FS,
+            PL, FS, FS, FT, FS, FS, PT, PT
+        ],
+        "Centre Road": [
+            PL, PL, PL, PL, PL, PT, PL, PL,
+            PL, PL, FS, PT, PT, PT, PL, FS,
+            FS, PL, PL, PT, FS, PL, PL, PL,
+            FS, FS, PT, PT, PT, FT, PL, FS
         ]
     }
     
