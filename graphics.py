@@ -19,7 +19,7 @@ class Window:
         self.canvas.configure(background=BG_COL)
         self.sprites = self.__load_sprites()
 
-    def draw_line(self, p1: Point, p2: Point, fill_colour = "black", width: int = LINE_WIDTH) -> None:
+    def draw_line(self, p1: Point, p2: Point, fill_colour = "grey", width: int = LINE_WIDTH) -> None:
         self.canvas.create_line(
             p1.x, 
             p1.y, 
@@ -55,5 +55,24 @@ class Window:
         sprites[SpriteType.HEALER2] = ImageTk.PhotoImage(Image.open("Assets/Units/healer_black.png"))
         sprites[SpriteType.ARCHMAGE2] = ImageTk.PhotoImage(Image.open("Assets/Units/archmage_black.png"))
         sprites[SpriteType.GENERAL2] = ImageTk.PhotoImage(Image.open("Assets/Units/general_black.png"))
+        
+        sprites[TerrainType.PLAINS] = ImageTk.PhotoImage(Image.open("Assets/Terrain/plains.png"))
+        sprites[TerrainType.FOREST] = ImageTk.PhotoImage(Image.open("Assets/Terrain/forest.png"))
+        sprites[TerrainType.FORTRESS] = ImageTk.PhotoImage(Image.open("Assets/Terrain/fortress.png"))
+        sprites[TerrainType.PATH_E] = ImageTk.PhotoImage(Image.open("Assets/Terrain/path_e.png"))
+        sprites[TerrainType.PATH_ES] = ImageTk.PhotoImage(Image.open("Assets/Terrain/path_es.png"))
+        sprites[TerrainType.PATH_ESW] = ImageTk.PhotoImage(Image.open("Assets/Terrain/path_esw.png"))
+        sprites[TerrainType.PATH_EW] = ImageTk.PhotoImage(Image.open("Assets/Terrain/path_ew.png"))
+        sprites[TerrainType.PATH_N] = ImageTk.PhotoImage(Image.open("Assets/Terrain/path_n.png"))
+        sprites[TerrainType.PATH_NE] = ImageTk.PhotoImage(Image.open("Assets/Terrain/path_ne.png"))
+        sprites[TerrainType.PATH_NES] = ImageTk.PhotoImage(Image.open("Assets/Terrain/path_nes.png"))
+        sprites[TerrainType.PATH_NESW] = ImageTk.PhotoImage(Image.open("Assets/Terrain/path_nesw.png"))
+        sprites[TerrainType.PATH_NEW] = ImageTk.PhotoImage(Image.open("Assets/Terrain/path_new.png"))
+        sprites[TerrainType.PATH_NS] = ImageTk.PhotoImage(Image.open("Assets/Terrain/path_ns.png"))
+        sprites[TerrainType.PATH_NSW] = ImageTk.PhotoImage(Image.open("Assets/Terrain/path_nsw.png"))
+        sprites[TerrainType.PATH_NW] = ImageTk.PhotoImage(Image.open("Assets/Terrain/path_nw.png"))
+        sprites[TerrainType.PATH_S] = ImageTk.PhotoImage(Image.open("Assets/Terrain/path_s.png"))
+        sprites[TerrainType.PATH_SW] = ImageTk.PhotoImage(Image.open("Assets/Terrain/path_sw.png"))
+        sprites[TerrainType.PATH_W] = ImageTk.PhotoImage(Image.open("Assets/Terrain/path_w.png"))
         return sprites
     
