@@ -245,9 +245,6 @@ class Unit:
 
     def revive(self):
         self.__dead = False
-
-    def choose_action(self):
-        print("Choose Action!")
     
     def find_target_spaces(self, space, range: int, target_dict: dict, action = None, pass_dict: dict = TARGET_ALL) -> set:
         # Add this space if it is a valid target
@@ -604,7 +601,6 @@ class Sorcerer(Unit):
         if siphon_targets == 0:
             return [f"{self.get_name()} blasts the darkness with arcane energy. It has no effect!\n"]
         attack_log.append(self.siphon_message(siphon_targets))
-        print(attack_log)
         return attack_log
     
     def magic_power(self, target, damage):
