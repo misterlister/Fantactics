@@ -42,6 +42,8 @@ class StartMenu(Panel):
         self.canvas = Canvas(self.root, width=WINDOW_WIDTH, height=WINDOW_HEIGHT, bg='black', bd=0, highlightthickness=0)
         self.canvas.pack_propagate(0)
         self.canvas.place(x=0, y=0)
+        self.backgroundImage = ImageTk.PhotoImage(Image.open('Assets/Title_Background.png'))
+        self.background = self.canvas.create_image(0, 0, image=self.backgroundImage, anchor='nw')
         self.sprites = [[],[]]
         self.img = [[],[]]
         self.speed = [[],[]]
@@ -69,8 +71,8 @@ class StartMenu(Panel):
 
         self.buttons = {
             'play' : CanvasButton(self.canvas, unpressed='Assets/Text/play_unpressed.png', pressed='Assets/Text/play_pressed.png'),
-            'options' : CanvasButton(self.canvas, unpressed='Assets/Text/options_unpressed.png'), #pressed='Assets/Text/options_pressed.png'),
-            'exit' : CanvasButton(self.canvas, unpressed='Assets/Text/exit_unpressed.png') #, self.assets['exit_pressed'])
+            'options' : CanvasButton(self.canvas, unpressed='Assets/Text/options_unpressed.png', pressed='Assets/Text/options_pressed.png'),
+            'exit' : CanvasButton(self.canvas, unpressed='Assets/Text/exit_unpressed.png', pressed='Assets/Text/exit_pressed.png')
         }
 
         index = 160
@@ -94,7 +96,7 @@ class StartMenu(Panel):
                 if colour == 0:
                     self.canvas.moveto(sprite, random.randint(0, bound), random.uniform(1.0, 3.0) * (-100 * self.scale))
                 else:
-                    self.canvas.moveto(sprite, random.randint(2 * bound, WINDOW_WIDTH), random.uniform(1.0, 3.0) * (-100 * self.scale))
+                    self.canvas.moveto(sprite, random.randint(2 * bound, WINDOW_WIDTH - 50), random.uniform(1.0, 3.0) * (-100 * self.scale))
             self.canvas.move(sprite, 0, self.speed[colour][index])
             self.root.after(16, self.animate, sprite, index, colour)
 
@@ -110,7 +112,6 @@ class StartMenu(Panel):
     
     def change_image(self, sprite, index, colour):
         image = self.get_random_sprite(colour)
-        print(image)
         load = Image.open(image)
         self.scale = random.uniform(1, maxScale)
         load = load.resize((int((16 * 4) * self.scale), int((17 * 4) * self.scale)), Image.LANCZOS)

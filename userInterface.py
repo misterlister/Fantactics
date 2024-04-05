@@ -477,6 +477,7 @@ class CombatLog():
         self.text.pack(side='left', expand='True', anchor='nw', fill='both')
         self.text.place(x=xPos, y=yPos, height=height - xPos, width=width)
         #self.text.tag_config("red", foreground='red')
+        self.text.tag_config("boldtext", font=("consolas bold", DEFAULT_FONT_SIZE))
         self.text.insert('end', 'meow')
         self.__game_state = None
         self.label = Label(root, text='', bg=UI_BG_COLOUR, fg='white', font=(FONT, DEFAULT_FONT_SIZE))
@@ -494,7 +495,7 @@ class CombatLog():
     def insert_turn_divider(self):
         self.text.config(state='normal')
         self.text.insert('end', f"-----[Turn {self.get_turn()} - Player {self.get_player()}]-----\n")
-        #self.text.tag_add("red", 'end-2c linestart', 'end-2c lineend')
+        self.text.tag_add("boldtext", 'end-2c linestart', 'end-2c lineend')
         self.text.see('end')
         self.text.config(state='disabled')  
 
