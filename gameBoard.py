@@ -632,6 +632,12 @@ class MapLayout:
             PL, PL, FS, PT, PT, PT, PL, FS,
             FS, PL, PL, PT, FS, PL, PL, PL,
             FS, FS, PT, PT, PT, FT, PL, FS
-        ]
+        ],
+        "Fortresses of Altria": [
+            PL, PL, PT, PT, PT, PT, PT, PL,
+            PL, PL, PT, PL, PL, PL, PT, PL,
+            FT, PL, PT, FS, FS, PT, PT, FS,
+            PT, PT, PT, FS, FS, FT, PL, FS
+        ],
     }
     
