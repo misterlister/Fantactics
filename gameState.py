@@ -25,9 +25,10 @@ from random import randint
 class Player:
     def __init__(self) -> None:
         self.__units = []
+        self.__effected_units = []
         self.__game_state = None
         self.__turn = False
-        self.__extra_turn = False
+        self.__extra_turns = 0
         
     def get_state(self):
         return self.__game_state
@@ -36,6 +37,9 @@ class Player:
         self.__units = unit_list
         for unit in unit_list:
             unit.set_player(self)
+            
+    def add_effected_unit(self, unit: Unit):
+        self.__effected_units.append(unit)
 
     def join_game(self, game):
         self.__game_state = game
@@ -50,7 +54,36 @@ class Player:
         return self.__turn
 
     def has_extra_turn(self):
-        return self.__extra_turn
+        if self.__extra_turns > 0:
+            return True
+        return False
+    
+    def get_extra_turns(self, turns: int):
+        self.__extra_turns += turns
+    
+    def use_extra_turn(self):
+        if self.__extra_turns > 0:
+            self.__extra_turns -= 1
+            
+    def advance_timed_effects(self):
+        if len(self.__effected_units) > 0:
+            self.end_bravery()
+            self.ability_disable_timer()
+        
+    def end_bravery(self):
+        for unit in self.__effected_units:
+            if isinstance(unit, Peasant):
+                if unit.is_brave():
+                    unit.end_brave()
+                    self.__effected_units.remove(unit)
+                    
+    def ability_disable_timer(self):
+        for unit in self.__effected_units:
+            if unit.ability_disabled():
+                unit.decrement_disabled_counter()
+                if not unit.ability_disabled():
+                    self.__effected_units.remove(unit)
+                    
 
 class GameState:
     def __init__(
@@ -133,7 +166,7 @@ class GameState:
                 map_choice.append(map_choice[i])
         return map_choice
     
-    def set_turn(self, player):
+    def set_turn(self, player: Player):
         self.__current_player = player
         player.start_turn()
 
@@ -152,19 +185,25 @@ class GameState:
             return "No Current Player"
     
     def next_turn(self):
-        self.__turn_count += 1
         if self.__current_player == None: # At start of game, set turn to Player 1
+            self.__turn_count += 1
             self.set_turn(self.player1)
+            self.ui.logItems['text'].insert_turn_divider()
         else:
             # If the current player has an extra turn, don't change turns
             if self.__current_player.has_extra_turn(): 
-                pass
+                self.__current_player.use_extra_turn()
             elif self.__current_player == self.player1:
                 self.player1.end_turn()
                 self.set_turn(self.player2)
+                self.player2.advance_timed_effects()
+                self.ui.logItems['text'].insert_turn_divider()
             else:
                 self.player2.end_turn()
                 self.set_turn(self.player1)
+                self.__turn_count += 1
+                self.player1.advance_timed_effects()
+                self.ui.logItems['text'].insert_turn_divider()
         self.ui.logItems['text'].update_label()
         #for panel in self.ui.statsPanel:
                 #self.ui.statsPanel[panel].clear()
