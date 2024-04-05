@@ -421,7 +421,7 @@ class Peasant(Unit):
         self.__brave_turn = self.get_player().get_state().get_turn()
         attack_log.append(f"{unit_name} has a surge of bravery! They have temporarily unlocked unexpected strength.\n")
         if target != self:
-            attack_log.append(self.basic_attack(target))
+            attack_log.extend(self.basic_attack(target))
         return attack_log
     
     def get_damage_mod(self):
