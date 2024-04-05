@@ -3,8 +3,14 @@ from tkinter import Tk, Label
 from PIL import ImageTk, Image
 from userInterface import UserInterface, do_nothing
 from constants import *
-from units import Soldier
-
+from units import Soldier, Unit
+from space import (
+    Space,
+    Forest,
+    Fortress,
+    Plains,
+    Path
+    )
 
 class GameBoard:
     def __init__(
@@ -105,7 +111,7 @@ class GameBoard:
                 else: # A unit is currently selected
                     self.click_unit_selected(self.__selected_unit, new_space)
 
-    def click_no_unit_selected(self, space):
+    def click_no_unit_selected(self, space: Space):
         if self.__selected_space is not None: # If another space was already selected
             if self.__selected_space == space: # If a selected space is selected, deselect it
                 self.deselect_space()
@@ -116,7 +122,7 @@ class GameBoard:
         self.update_stats_panel(self.__selected_unit)
         return
 
-    def click_unit_selected(self, unit, space):
+    def click_unit_selected(self, unit: Unit, space: Space):
         unit = self.__selected_unit
         if unit.get_player().is_current_turn():
             if self.__attack_spaces != None: # Attack range is active
@@ -157,7 +163,7 @@ class GameBoard:
     def right_click(self, event):
         self.cancel_action()
 
-    def attack_action(self, unit, space):
+    def attack_action(self, unit: Unit, space: Space):
         self.update_stats_panel(space.get_unit()) 
         self.move_unit(unit, self.__action_space)
         self.combat(unit, space.get_unit())
@@ -165,7 +171,7 @@ class GameBoard:
         self.end_turn()
         return
     
-    def ability_action(self, unit, space):
+    def ability_action(self, unit: Unit, space: Space):
         self.move_unit(unit, self.__action_space)
         self.update_stats_panel(space.get_unit()) 
         self.activate_ability(unit, space)
@@ -173,7 +179,7 @@ class GameBoard:
         self.end_turn()
         return
 
-    def setup_action(self, action, unit, space, colour):
+    def setup_action(self, action, unit: Unit, space: Space, colour):
         self.__action_confirmed = True
         if self.__target_space is not None: # If there was a selected space before, redraw all area of effect spaces
             for sp in self.__area_of_effect_spaces:
@@ -202,7 +208,7 @@ class GameBoard:
             self.draw_space_list(self.__area_of_effect_spaces)
             self.__area_of_effect_spaces = []
 
-    def combat_preview(self, unit, target):
+    def combat_preview(self, unit: Unit, target: Unit):
         target_damage = unit.attack_preview(target, True)
         if target_damage < target.get_curr_hp():
             unit_damage = target.attack_preview(unit, False)
@@ -211,14 +217,14 @@ class GameBoard:
         self.update_stats_panel(target, target_damage)
         self.update_stats_panel(unit, unit_damage)
 
-    def ability_preview(self, unit, target):
+    def ability_preview(self, unit: Unit, target: Unit):
         if target != None:
-            target_damage = unit.ability_preview(target)
+            target_damage, unit_damage = unit.ability_preview(target)
             if target_damage != None:
                 self.update_stats_panel(target, target_damage)
-                self.update_stats_panel(unit)
+                self.update_stats_panel(unit, unit_damage)
                 
-    def connect_spaces(self, spaces):
+    def connect_spaces(self, spaces: Space):
         for i in range(BOARD_ROWS):
             for j in range(BOARD_COLS):
                 if j-1 >= 0:
@@ -233,7 +239,7 @@ class GameBoard:
 
     # Update the stats panel items
     # Should be called on selection of a unit
-    def update_stats_panel(self, unit, damage_preview = 0):
+    def update_stats_panel(self, unit: Unit, damage_preview = 0):
         if unit is not None:
             if unit.get_player().is_current_turn():
                 panel = 'friendlyUnitPanel'
@@ -260,7 +266,7 @@ class GameBoard:
         for panel in self.ui.statsPanel:
             self.ui.statsPanel[panel].clear()
 
-    def outline_space(self, space, colour: str) -> None:
+    def outline_space(self, space: Space, colour: str) -> None:
         row = space.get_row()
         col = space.get_col()
         x1 = self.get_col_x(col) + (LINE_WIDTH)
@@ -274,7 +280,7 @@ class GameBoard:
         for space in spaces:
             self.outline_space(space, colour)
 
-    def circle_outline_space(self, space, colour: str) -> None:
+    def circle_outline_space(self, space: Space, colour: str) -> None:
         row = space.get_row()
         col = space.get_col()
         x1 = self.get_col_x(col) + ((LINE_WIDTH * 2)) 
@@ -283,7 +289,7 @@ class GameBoard:
         y2 = self.get_row_y(row+1) - (LINE_WIDTH * 2) - 2
         self.window.canvas.create_oval(x1, y1, x2, y2, width=SELECTION_BUFFER, outline=colour)
 
-    def x_out_space(self, space, colour: str) -> None:
+    def x_out_space(self, space: Space, colour: str) -> None:
         row = space.get_row()
         col = space.get_col()
         x1 = self.get_col_x(col) + ((LINE_WIDTH * 2) - 1) 
@@ -311,7 +317,7 @@ class GameBoard:
         self.__spaces[row][col].assign_unit(unit)
         return True
     
-    def draw_space(self, space) -> None:
+    def draw_space(self, space: Space) -> None:
         col = space.get_col()
         row = space.get_row()
         terrain_x = self.get_col_x(col)
@@ -357,7 +363,7 @@ class GameBoard:
         y2 = self.get_row_y(row+1)
         self.window.canvas.create_rectangle(x1, y1, x2, y2, fill=BG_COL, outline = 'grey', width=2)
 
-    def get_movement_spaces(self, unit, space) -> set:
+    def get_movement_spaces(self, unit: Unit, space: Space) -> set:
         range = unit.get_movement()
         if unit.get_move_type() == MoveType.FLY:
             pass_dict = TARGET_ALL
@@ -370,9 +376,6 @@ class GameBoard:
         return valid_spaces
     
     def get_ability_spaces(self, unit, space) -> set:
-        if unit.ability_expended():
-            self.update_info_panel("This unit's ability cannot be used again")
-            return []
         range = unit.get_ability_range()
         valid_spaces = set()
         min_range = unit.get_ability_min_range()
@@ -393,7 +396,7 @@ class GameBoard:
         self.outline_spaces(valid_spaces, 'yellow')
         return valid_spaces
     
-    def get_attack_spaces(self, unit, space) -> set:
+    def get_attack_spaces(self, unit: Unit, space: Space) -> set:
         range = 1
         target_dict = TARGET_ENEMIES
         action = ActionType.ATTACK
@@ -401,7 +404,7 @@ class GameBoard:
         self.outline_spaces(valid_spaces, 'red')
         return valid_spaces
     
-    def update_guarded_spaces(self, valid_spaces, unit):
+    def update_guarded_spaces(self, valid_spaces: list, unit: Unit):
         guarded_spaces = set()
         for space in valid_spaces:
             target = space.get_unit()
@@ -450,23 +453,19 @@ class GameBoard:
         ### REMOVE COMBAT/ABILITY PREVIEW HERE
         self.draw_all_spaces()
 
-    def move_unit(self, unit, space):
+    def move_unit(self, unit: Unit, space: Space):
         old_space = unit.get_space()
         try:  
-            unit.move(space)
+            move_log = unit.move(space)
             self.deselect_space()
             self.draw_space(old_space)
             self.draw_space(space)
-            if old_space != space:
-                move_log = f"{unit.get_name()} -> {space.get_row()},{space.get_col()}.\n"
-            else:
-                move_log = f"{unit.get_name()} stayed in place.\n"
-            self.ui.logItems['text'].add_text(move_log) # Send movement to combat log
+            for message in move_log:
+                self.ui.logItems['text'].add_text(message) # Send movement to combat log
         except Exception as e:
             print(e)
 
     def cancel_action(self):
-        self.update_info_panel("Cancelled action")
         self.__action_space = None
         self.draw_all_spaces()
         self.deselect_space()
@@ -481,7 +480,7 @@ class GameBoard:
         y = self.y_start + (row * (self.square_size))
         return y
     
-    def set_action_space(self, unit, space):
+    def set_action_space(self, unit: Unit, space: Space):
         if self.__action_space is not None: # If a new action space is being selected, overriding another
             self.draw_space(self.__selected_space)
             if self.__action_space == self.__selected_unit.get_space(): # If the old space was the current unit's space
@@ -498,8 +497,9 @@ class GameBoard:
         
         self.__action_space = space
 
-    def set_attack_spaces(self, unit, space):
+    def set_attack_spaces(self, unit: Unit, space: Space):
         self.ui.controlBar.buttons['attack'].toggle()
+        self.ui.controlBar.buttons['ability'].untoggle()
         self.reset_target_spaces()
         self.draw_space(space)
         self.preview_sprite(unit, space)
@@ -508,7 +508,13 @@ class GameBoard:
         except Exception as e:
             print(e)
 
-    def set_ability_spaces(self, unit, space):
+    def set_ability_spaces(self, unit: Unit, space: Space):
+        if unit.ability_expended():
+            self.update_info_panel("This unit's ability cannot be used again")
+            return
+        if unit.ability_disabled():
+            self.update_info_panel(unit.get_disabled_message())
+            return
         self.reset_target_spaces()
         self.draw_space(space)
         self.preview_sprite(unit, space)
@@ -517,7 +523,7 @@ class GameBoard:
         except Exception as e:
             print(e)
     
-    def set_unit_buttons(self, unit, space):
+    def set_unit_buttons(self, unit: Unit, space: Space):
         self.ui.controlBar.buttons['attack'].change_unclick_func(lambda: self.set_attack_spaces(unit, space))
         self.ui.controlBar.buttons['ability'].change_unclick_func(lambda: self.set_ability_spaces(unit, space))
         self.ui.controlBar.buttons['confirm'].change_unclick_func(lambda: self.move_and_wait(unit, space))
@@ -550,32 +556,17 @@ class GameBoard:
             for sp in area_spaces_reset:
                 self.draw_space(sp)
 
-    def combat(self, unit, target):
-        unit_name = unit.get_name()
-        target_name = target.get_name()
-        unit_loc = unit.get_space()
-        target_loc = target.get_space()
+    def combat(self, unit: Unit, target: Unit):
         attack_log = unit.basic_attack(target)
         self.update_stats_panel(target) 
-        # Send attack details to combat log
-        self.ui.logItems['text'].add_text(attack_log) 
-        if target.is_dead(): # If the target is dead, remove them and take their place
-            self.ui.logItems['text'].add_text(f"{unit_name} has slain {target_name}!\n")
-            target_loc.assign_unit(None)
-            self.move_unit(unit, target_loc)
-        else: # Otherwise, they will retaliate
-            retaliation_log = target.retaliate(unit)
-            self.update_stats_panel(unit)
-            # Send retaliation details to combat log
-            self.ui.logItems['text'].add_text(retaliation_log) 
-            if unit.is_dead(): # If the unit died, remove them
-                self.ui.logItems['text'].add_text(f"{unit_name} has been slain by {target_name}!\n")
-                unit_loc.assign_unit(None)
-                self.__action_space = None
-                self.draw_all_spaces()
-                self.deselect_space()
+        self.update_stats_panel(unit)
+        for message in attack_log:
+            self.ui.logItems['text'].add_text(message)
+        self.__action_space = None
+        self.draw_all_spaces()
+        self.deselect_space()
         
-    def preview_sprite(self, unit, space):
+    def preview_sprite(self, unit: Unit, space: Space):
         preview = unit.get_sprite()
         x = self.get_col_x(space.get_col())
         y = self.get_row_y(space.get_row())
@@ -597,7 +588,7 @@ class GameBoard:
         transparent_square = ImageTk.PhotoImage(image=cover)
         return transparent_square
     
-    def activate_ability(self, unit, space):
+    def activate_ability(self, unit: Unit, space: Space):
         special_log = unit.special_ability(space.get_unit(), space)
         for message in special_log:
             self.ui.logItems['text'].add_text(message)
@@ -606,192 +597,11 @@ class GameBoard:
     def end_turn(self):
         self.__game_state.next_turn()
 
-    def move_and_wait(self, unit, space):
+    def move_and_wait(self, unit: Unit, space: Space):
         self.ui.controlBar.buttons['attack'].untoggle_keys()
         self.move_unit(unit, space)
         self.end_turn()
 
-
-
-class Terrain:
-    def __init__(self, space, sprite, move_cost, defense_mod) -> None:
-        self.__space = space
-        self._sprite = sprite
-        self.__move_cost = move_cost
-        self.__defense_mod = defense_mod
-        
-    def get_space(self):
-        return self.__space
-        
-    def get_sprite(self):
-        return self._sprite
-    
-    def get_move_cost(self):
-        return self.__move_cost
-    
-    def get_defense_mod(self):
-        return self.__defense_mod
-    
-class Plains(Terrain):
-    def __init__(self, space) -> None:
-        sprite = TerrainType.PLAINS
-        move_cost = 1
-        defense_mod = 0
-        super().__init__(space, sprite, move_cost, defense_mod)
-        
-class Forest(Terrain):
-    def __init__(self, space) -> None:
-        sprite = TerrainType.FOREST
-        move_cost = 1.5
-        defense_mod = 1
-        super().__init__(space, sprite, move_cost, defense_mod)
-        
-class Fortress(Terrain):
-    def __init__(self, space) -> None:
-        sprite = TerrainType.FORTRESS
-        move_cost = 1
-        defense_mod = 2
-        super().__init__(space, sprite, move_cost, defense_mod)
-        
-class Path(Terrain):
-    def __init__(self, space) -> None:
-        sprite = None
-        move_cost = 0.7
-        defense_mod = 0
-        super().__init__(space, sprite, move_cost, defense_mod)
-        
-    def get_sprite(self):
-        if self._sprite == None:
-            self.set_path_sprite()
-        return self._sprite
-    
-    def set_path_sprite(self):
-        space = self.get_space()
-        path_string = "path_"
-        north_space = space.get_up()
-        if north_space != None:
-            if north_space.is_path() or north_space.is_fortress():
-                path_string += "n"
-        east_space = space.get_right()
-        if east_space != None:
-            if east_space.is_path():
-                path_string += "e"
-        south_space = space.get_down()
-        if south_space != None:
-            if south_space.is_path() or south_space.is_fortress():
-                path_string += "s"
-        west_space = space.get_left()
-        if west_space != None:
-            if west_space.is_path():
-                path_string += "w"
-        if path_string == "path_":
-            path_string = "path_n"
-            print(f"Error: disconnected path object at row: {space.get_row()} col: {space.get_col()}")
-        self._sprite = path_string
-        
-
-class Space:
-    def __init__(
-            self,
-            row: int,
-            col: int,
-            ) -> None:
-        self.__row = row
-        self.__col = col
-        self.__terrain = None
-        self.__unit = None
-        self.__selected = False
-        self.__left = None
-        self.__up = None
-        self.__right = None
-        self.__down = None
-
-    def get_unit(self):
-        return self.__unit
-    
-    def assign_unit(self, unit):
-        self.__unit = unit
-
-    def get_terrain(self):
-        return self.__terrain
-    
-    def get_terrain_sprite(self):
-        if self.__terrain == None:
-            return None
-        return self.__terrain.get_sprite()
-    
-    def get_move_cost(self):
-        if self.__terrain == None:
-            return 1
-        return self.__terrain.get_move_cost()
-    
-    def get_defense_mod(self):
-        if self.__terrain == None:
-            return 0
-        return self.__terrain.get_defense_mod()
-    
-    def get_unit_sprite(self):
-        if self.__unit == None:
-            return None
-        return self.__unit.get_sprite()
-    
-    def contains_unit_type(self, unit_type) -> bool:
-        if self.__unit != None:
-            return self.__unit.is_unit_type(unit_type)
-        else:
-            return False
-    
-    def set_terrain(self, terrain: Terrain):
-        self.__terrain = terrain
-    
-    def get_row(self):
-        return self.__row
-    
-    def get_col(self):
-        return self.__col
-    
-    def select(self):
-        self.__selected = True
-
-    def deselect(self):
-        self.__selected = False
-
-    def is_selected(self):
-        return self.__selected
-    
-    def set_left(self, space):
-        self.__left = space
-
-    def set_up(self, space):
-        self.__up = space
-
-    def set_right(self, space):
-        self.__right = space
-
-    def set_down(self, space):
-        self.__down = space
-
-    def get_left(self):
-        return self.__left
-    
-    def get_up(self):
-        return self.__up
-    
-    def get_right(self):
-        return self.__right
-    
-    def get_down(self):
-        return self.__down
-
-    def is_path(self) -> bool:
-        if isinstance(self.get_terrain(), Path):
-            return True
-        return False
-    
-    def is_fortress(self) -> bool:
-        if isinstance(self.get_terrain(), Fortress):
-            return True
-        return False
     
 class MapLayout:
     PL = TerrainType.PLAINS
