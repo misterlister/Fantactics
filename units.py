@@ -40,8 +40,7 @@ class Unit:
         self.__ability_range = ability_range
         self.__ability_min_range = ability_min_range
         self.__ability_value = ability_value
-        self.__ability_disabled_turn = 0
-        self.__disabled_message = ""
+        self.__ability_disabled_duration = 0
         self.__ability_used = False
         self.__space = None # Space where a unit currently is
         self.__action_space = None # Space where a unit is currently acting from
@@ -129,21 +128,17 @@ class Unit:
         return self.__ability_used
     
     def disable_ability(self, duration: int):
-        self.__ability_disabled_turn = self.get_player().get_state().get_turn() + duration
-        self.set_disabled_message(f"{self.get_name()} cannot use their ability until turn {self.__ability_disabled_turn}")
+        self.__ability_disabled_duration = duration
+        
+    def decrement_disabled_counter(self):
+        self.__ability_disabled_duration -= 1
         
     def get_disabled_message(self):
-        return self.__disabled_message
-        
-    def set_disabled_message(self, message: str):
-        self.__disabled_message = message
+        return f"{self.get_name()} cannot use their ability for {self.__ability_disabled_duration} turns."
     
     def ability_disabled(self):
-        if self.__ability_disabled_turn > 0:
-            current_turn = self.get_player().get_state().get_turn()
-            if self.__ability_disabled_turn - current_turn > 0:
+        if self.__ability_disabled_duration > 0:
                 return True
-            self.__ability_disabled_turn = 0
         return False
     
     def set_action_space(self, space):
@@ -412,13 +407,14 @@ class Peasant(Unit):
         super().__init__(unit_type, hp, dam_val, dam_type, def_val, arm_type, move, move_type, 
                          sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
         self.set_ability_targets(TARGET_SELF_ENEMIES)
-        self.__brave_turn = None
+        self.__brave = False
         
     def special_ability(self, target: Unit, space: Space):
         self.expend_ability()
         unit_name = self.get_name()
         attack_log = []
-        self.__brave_turn = self.get_player().get_state().get_turn()
+        self.__brave = True
+        self.get_player().add_effected_unit(self)
         attack_log.append(f"{unit_name} has a surge of bravery! They have temporarily unlocked unexpected strength.\n")
         if target != self:
             attack_log.extend(self.basic_attack(target))
@@ -427,7 +423,7 @@ class Peasant(Unit):
     def get_damage_mod(self):
         mod_total = 0
         mod_total += get_aura_damage_mods(self)
-        mod_total += self.check_bravery()
+        mod_total += self.bravery_mod()
         if mod_total < 0:
             mod_total = 0
         return mod_total
@@ -436,30 +432,32 @@ class Peasant(Unit):
         mod_total = 0
         mod_total += get_aura_defense_mods(self)
         mod_total += self.get_action_space().get_defense_mod()
-        mod_total += self.check_bravery()
+        mod_total += self.bravery_mod()
         if mod_total < 0:
             mod_total = 0
         return mod_total
 
-    def check_bravery(self):
-        if self.__brave_turn != None:
-            current_turn = self.get_player().get_state().get_turn()
-            if current_turn - self.__brave_turn < 2:
-                return self.get_ability_value()
-            self.__brave_turn = None
-        return 0  
+    def is_brave(self):
+        return self.__brave 
+    
+    def end_brave(self):
+        self.__brave = False
+        
+    def bravery_mod(self):
+        if self.is_brave():
+            return self.get_ability_value()
+        return 0
     
     def ability_preview(self, target: Unit):
         if target == None:
             return None, None
-        current_brave = self.__brave_turn
-        self.__brave_turn = self.get_player().get_state().get_turn() + 1
+        self.__brave = True
         damage_dealt = self.attack_preview(target, True)
         if damage_dealt >= target.get_curr_hp():
             damage_received = 0
         else:
             damage_received = target.attack_preview(self, False)
-        self.__brave_turn = current_brave
+        self.__brave = False
         return damage_dealt, damage_received
 
 class Soldier(Unit):
@@ -573,7 +571,7 @@ class Cavalry(Unit):
         super().__init__(unit_type, hp, dam_val, dam_type, def_val, arm_type, move, move_type, 
                          sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
         self.set_ability_targets(TARGET_ENEMIES)
-        self.__ability_duration = 4
+        self.__ability_duration = 2
     
     # Variation of movement verification that can pass all units except Enemy-aligned Soldiers
     def verify_space_pass(self, space: Space, target_dict, action) -> bool:
@@ -609,6 +607,7 @@ class Cavalry(Unit):
                 self_loc.assign_unit(None)
             attack_log.append(f"{target_name} was harried! They cannot use their ability for their next {self.__ability_duration} turns!\n")
             target.disable_ability(self.__ability_duration)
+            target.get_player().add_effected_unit(target)
         return attack_log
     
     def ability_preview(self, target: Unit):
@@ -899,10 +898,17 @@ class General(Unit):
         ability_name = "Inspirational Rally"
         ability_range = 0
         ability_min_range = 0
-        ability_value = 1
+        ability_value = 2
         super().__init__(unit_type, hp, dam_val, dam_type, def_val, arm_type, move, move_type, 
                          sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
         self.set_ability_targets(TARGET_SELF)
+        
+    def special_ability(self, target: Unit, space: Space):
+        self.expend_ability()
+        attack_log = []
+        self.get_player().get_extra_turns(self.get_ability_value())
+        attack_log.append(f"{self.get_name()} lets out a rallying cry, spurring their forces on! Two of their units may now take an action.\n")
+        return attack_log
 
 
 def weapon_matchup(weapon, armour):
