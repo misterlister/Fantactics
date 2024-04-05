@@ -479,7 +479,6 @@ class CombatLog():
         #self.text.tag_config("red", foreground='red')
         self.text.insert('end', 'meow')
         self.__game_state = None
-        self.lastTurn = 0
         self.label = Label(root, text='', bg=UI_BG_COLOUR, fg='white', font=(FONT, DEFAULT_FONT_SIZE))
         self.label.place(x=0, y=0)
 
@@ -488,12 +487,15 @@ class CombatLog():
         
     def add_text(self, text: str) -> None:
         self.text.config(state='normal')
-        if self.lastTurn is not self.get_turn():
-            self.text.insert('end', f"-----[Turn {self.get_turn()}]-----\n")
-            #self.text.tag_add("red", 'end-2c linestart', 'end-2c lineend')
         self.text.insert('end', f"{text}\n")
         self.text.see('end')
-        self.lastTurn = self.get_turn()
+        self.text.config(state='disabled')  
+        
+    def insert_turn_divider(self):
+        self.text.config(state='normal')
+        self.text.insert('end', f"-----[Turn {self.get_turn()} - Player {self.get_player()}]-----\n")
+        #self.text.tag_add("red", 'end-2c linestart', 'end-2c lineend')
+        self.text.see('end')
         self.text.config(state='disabled')  
 
     def link_to_state(self, state):
