@@ -540,7 +540,8 @@ class Archer(Unit):
     def ability_preview(self, target: Unit):
         if target == None:
             return None, None
-        damage_dealt = self.calculate_damage(target, self.get_ability_value(), self.__special_damage_type)
+        damage = self.get_ability_value() + self.get_damage_mod()
+        damage_dealt = self.calculate_damage(target, damage, self.__special_damage_type)
         return damage_dealt, 0
     
     # Variation of defense calculation that doubles terrain bonuses
@@ -613,7 +614,8 @@ class Cavalry(Unit):
     def ability_preview(self, target: Unit):
         if target == None:
             return None, None
-        damage_dealt = self.calculate_damage(target, self.get_ability_value(), self.get_damage_type())
+        damage = self.get_ability_value() + self.get_damage_mod()
+        damage_dealt = self.calculate_damage(target, damage, self.get_damage_type())
         if damage_dealt >= target.get_curr_hp():
             damage_received = 0
         else:
