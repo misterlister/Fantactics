@@ -234,20 +234,11 @@ class Unit:
             attack_damage = self.first_strike_damage()
         else:
             attack_damage = self.__damage + self.get_damage_mod()
-        damage_dealt = self.calculate_preview(target, attack_damage, self.__damage_type)
-        return damage_dealt
-    
-    def calculate_preview(self, target, attack_damage, damage_type):
-        target_hp = target.get_curr_hp()
-        damage = self.calculate_damage(target, attack_damage, damage_type)
-        if damage >= target_hp:
-            damage_dealt = target_hp
-        else:
-            damage_dealt = damage
+        damage_dealt = self.calculate_damage(target, attack_damage, self.__damage_type)
         return damage_dealt
 
     def ability_preview(self, target):
-        return None
+        return None, None
 
     def retaliate(self, target):
         target_hp = target.get_curr_hp()
@@ -460,7 +451,7 @@ class Peasant(Unit):
     
     def ability_preview(self, target: Unit):
         if target == None:
-            return None
+            return None, None
         current_brave = self.__brave_turn
         self.__brave_turn = self.get_player().get_state().get_turn() + 1
         damage_dealt = self.attack_preview(target, True)
@@ -548,9 +539,9 @@ class Archer(Unit):
     
     def ability_preview(self, target: Unit):
         if target == None:
-            return None
-        damage_dealt = self.calculate_preview(target, self.get_ability_value(), self.__special_damage_type)
-        return damage_dealt
+            return None, None
+        damage_dealt = self.calculate_damage(target, self.get_ability_value(), self.__special_damage_type)
+        return damage_dealt, 0
     
     # Variation of defense calculation that doubles terrain bonuses
     def get_defense_mod(self):
@@ -621,8 +612,8 @@ class Cavalry(Unit):
     
     def ability_preview(self, target: Unit):
         if target == None:
-            return None
-        damage_dealt = self.calculate_preview(target, self.get_ability_value(), self.get_damage_type())
+            return None, None
+        damage_dealt = self.calculate_damage(target, self.get_ability_value(), self.get_damage_type())
         if damage_dealt >= target.get_curr_hp():
             damage_received = 0
         else:
@@ -667,7 +658,10 @@ class Sorcerer(Unit):
     
     def basic_attack(self, target: Unit):
         attack_log = super().basic_attack(target)
-        return attack_log + "\n" + self.siphon_message()
+        if not self.is_dead():
+            siphon = self.siphon_message()
+            attack_log.append(siphon)
+        return attack_log
     
     def siphon_message(self, mul = 1):
         healing = self.__heal_value * mul
@@ -717,16 +711,17 @@ class Sorcerer(Unit):
     def ability_preview(self, target: Unit):
         if target == None:
             return None, None
-        damage_dealt = self.calculate_preview(target, self.get_ability_value(), self.__special_damage_type)
+        ability_damage = self.get_ability_value() + self.get_damage_mod()
+        damage_dealt = self.calculate_damage(target, ability_damage, self.__special_damage_type)
         damage_received = 0
-        self_space = self.get_space()
+        self_space = self.get_action_space()
         target_space = target.get_space()
         if (target_space.get_left() == self_space
             or target_space.get_right() == self_space):
-            splash_damage = ceil((self.get_ability_value() + self.get_damage_mod())/2)
-            damage_received = self.calculate_preview(self, splash_damage, self.__special_damage_type)
+            splash_damage = ceil(ability_damage/2)
+            damage_received = self.calculate_damage(self, splash_damage, self.__special_damage_type)
         elif target_space == self_space:
-            damage_received = self.calculate_preview(self, self.get_ability_value(), self.__special_damage_type)
+            damage_received = self.calculate_damage(self, ability_damage, self.__special_damage_type)
         return damage_dealt, damage_received
 
 class Healer(Unit):
@@ -868,18 +863,19 @@ class Archmage(Unit):
     def ability_preview(self, target: Unit):
         if target == None:
             return None, None
-        damage_dealt = self.calculate_preview(target, self.get_ability_value(), self.__special_damage_type)
+        ability_damage = self.get_ability_value() + self.get_damage_mod()
+        damage_dealt = self.calculate_damage(target, ability_damage, self.__special_damage_type)
         damage_received = 0
-        self_space = self.get_space()
+        self_space = self.get_action_space()
         target_space = target.get_space()
         if (target_space.get_up() == self_space
             or target_space.get_left() == self_space
             or target_space.get_right() == self_space
             or target_space.get_down() == self_space):
-            splash_damage = ceil((self.get_ability_value() + self.get_damage_mod())/2)
-            damage_received = self.calculate_preview(self, splash_damage, self.__special_damage_type)
+            splash_damage = ceil(ability_damage/2)
+            damage_received = self.calculate_damage(self, splash_damage, self.__special_damage_type)
         elif target_space == self_space:
-            damage_received = self.calculate_preview(self, self.get_ability_value(), self.__special_damage_type)
+            damage_received = self.calculate_damage(self, ability_damage, self.__special_damage_type)
         return damage_dealt, damage_received
 
 class General(Unit):
