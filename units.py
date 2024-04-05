@@ -3,6 +3,7 @@ from graphics import SpriteType
 from random import randint
 from names import Names, Titles
 from constants import *
+from space import Space
 
 class Unit:
     def __init__(
@@ -39,6 +40,8 @@ class Unit:
         self.__ability_range = ability_range
         self.__ability_min_range = ability_min_range
         self.__ability_value = ability_value
+        self.__ability_disabled_turn = 0
+        self.__disabled_message = ""
         self.__ability_used = False
         self.__space = None # Space where a unit currently is
         self.__action_space = None # Space where a unit is currently acting from
@@ -125,6 +128,24 @@ class Unit:
     def ability_expended(self):
         return self.__ability_used
     
+    def disable_ability(self, duration: int):
+        self.__ability_disabled_turn = self.get_player().get_state().get_turn() + duration
+        self.set_disabled_message(f"{self.get_name()} cannot use their ability until turn {self.__ability_disabled_turn}")
+        
+    def get_disabled_message(self):
+        return self.__disabled_message
+        
+    def set_disabled_message(self, message: str):
+        self.__disabled_message = message
+    
+    def ability_disabled(self):
+        if self.__ability_disabled_turn > 0:
+            current_turn = self.get_player().get_state().get_turn()
+            if self.__ability_disabled_turn - current_turn > 0:
+                return True
+            self.__ability_disabled_turn = 0
+        return False
+    
     def set_action_space(self, space):
         self.__action_space = space
         
@@ -146,16 +167,23 @@ class Unit:
         return name
 
     def move(self, space):
-        try:
-            if space.get_unit() is None:
-                self.__space.assign_unit(None)
-                self.__space = space
-                self.__action_space = space
-                space.assign_unit(self)
-            else:
-                raise Exception("Error: Cannot move unit into another unit's space")
-        except Exception as e:
-            return e
+        old_space = self.get_space()
+        move_log = []
+        if old_space != space:
+            try:
+                if space.get_unit() == None:
+                    self.__space.assign_unit(None)
+                    self.__space = space
+                    self.__action_space = space
+                    space.assign_unit(self)
+                    move_log.append(f"{self.get_name()} -> {space.get_row()},{space.get_col()}.\n")
+                else:
+                    raise Exception("Error: Cannot move unit into another unit's space")
+            except Exception as e:
+                print(e)
+        else:
+            move_log.append(f"{self.get_name()} stayed in place.\n")
+        return move_log
         
     def _place(self, space):
         self.__space = space
@@ -181,10 +209,24 @@ class Unit:
 
     def basic_attack(self, target):
         first_strike_attack = self.first_strike_damage()
+        self_name = self.get_name()
+        target_name = target.get_name()
+        self_loc = self.get_space()
+        target_loc = target.get_space()
+        attack_log = []
         target_hp = target.get_curr_hp()
         self.attack(target, first_strike_attack, self.__damage_type)
         damage_dealt = target_hp - target.get_curr_hp()
-        attack_log = f"{self.get_name()} attacks {target.get_name()}, dealing {damage_dealt} damage!\n"
+        attack_log.append(f"{self_name} attacks {target_name}, dealing {damage_dealt} damage!\n")
+        if target.is_dead(): # If the target is dead, remove them and take their place
+            attack_log.append(f"{self_name} has slain {target_name}!\n")
+            target_loc.assign_unit(None)
+            self.move(target_loc)
+        else: # Otherwise, they will retaliate
+            attack_log.append(target.retaliate(self))
+            if self.is_dead(): # If the unit died, remove them
+                attack_log.append(f"{self_name} has been slain by {target_name}!\n")
+                self_loc.assign_unit(None)
         return attack_log
     
     def attack_preview(self, target, first_strike = False):
@@ -354,8 +396,7 @@ class Unit:
         if unit.get_player() == self.get_player():
             return True
         return False
-
-        
+    
 
 class Peasant(Unit):
     def __init__(self, p1 = True) -> None:
@@ -382,7 +423,7 @@ class Peasant(Unit):
         self.set_ability_targets(TARGET_SELF_ENEMIES)
         self.__brave_turn = None
         
-    def special_ability(self, target, space):
+    def special_ability(self, target: Unit, space: Space):
         self.expend_ability()
         unit_name = self.get_name()
         attack_log = []
@@ -416,6 +457,19 @@ class Peasant(Unit):
                 return self.get_ability_value()
             self.__brave_turn = None
         return 0  
+    
+    def ability_preview(self, target: Unit):
+        if target == None:
+            return None
+        current_brave = self.__brave_turn
+        self.__brave_turn = self.get_player().get_state().get_turn() + 1
+        damage_dealt = self.attack_preview(target, True)
+        if damage_dealt >= target.get_curr_hp():
+            damage_received = 0
+        else:
+            damage_received = target.attack_preview(self, False)
+        self.__brave_turn = current_brave
+        return damage_dealt, damage_received
 
 class Soldier(Unit):
     def __init__(self, p1 = True) -> None:
@@ -441,19 +495,17 @@ class Soldier(Unit):
                          sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
         self.set_ability_targets(TARGET_ALLIES)
 
-    def special_ability(self, target, space):
+    def special_ability(self, target: Unit, space: Space):
         unit_name = self.get_name()
         target_name = target.get_name()
-        attack_log = []
+        ability_log = []
         current_space = self.get_space()
         current_space.assign_unit(None)
+        ability_log.append(f"{unit_name} moves to defend {target_name}, taking their place.\n")
         target.move(current_space)
         space.assign_unit(self)
         self.move(space)
-        attack_log.append(f"{unit_name} moves to defend {target_name}, taking their place.\n")
-        attack_log.append(f"{unit_name} -> {space.get_row()},{space.get_col()}.\n")
-        attack_log.append(f"{target_name} -> {current_space.get_row()},{current_space.get_col()}.\n")
-        return attack_log
+        return ability_log
 
 class Archer(Unit):
     def __init__(self, p1 = True) -> None:
@@ -480,11 +532,11 @@ class Archer(Unit):
         self.set_ability_targets(TARGET_ENEMIES)
         self.__special_damage_type = DamageType.PIERCE
 
-    def special_ability(self, target, space):
+    def special_ability(self, target: Unit, space: Space):
         unit_name = self.get_name()
         target_name = target.get_name()
         attack_log = []
-        attack_damage = self.get_ability_value()
+        attack_damage = self.get_ability_value() + self.get_damage_mod()
         target_hp = target.get_curr_hp()
         self.attack(target, attack_damage, self.__special_damage_type)
         damage_dealt = target_hp - target.get_curr_hp()
@@ -494,7 +546,7 @@ class Archer(Unit):
             target.get_space().assign_unit(None)
         return attack_log
     
-    def ability_preview(self, target):
+    def ability_preview(self, target: Unit):
         if target == None:
             return None
         damage_dealt = self.calculate_preview(target, self.get_ability_value(), self.__special_damage_type)
@@ -523,15 +575,16 @@ class Cavalry(Unit):
         name_list = Names.Noble
         title_list = Titles.Cavalry
         ability_name = "Harrying Strike"
-        ability_range = 0
+        ability_range = 1
         ability_min_range = 0
-        ability_value = None
+        ability_value = 6
         super().__init__(unit_type, hp, dam_val, dam_type, def_val, arm_type, move, move_type, 
                          sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
-        self.set_ability_targets(TARGET_SELF)
+        self.set_ability_targets(TARGET_ENEMIES)
+        self.__ability_duration = 4
     
     # Variation of movement verification that can pass all units except Enemy-aligned Soldiers
-    def verify_space_pass(self, space, target_dict, action) -> bool:
+    def verify_space_pass(self, space: Space, target_dict, action) -> bool:
         if action == ActionType.MOVE:
             unit = space.get_unit()
             if unit != None:
@@ -541,6 +594,41 @@ class Cavalry(Unit):
             return True
         else:
             return self.verify_target(space, target_dict)
+    
+    def special_ability(self, target: Unit, space: Space):    
+        ability_damage = self.get_ability_value()
+        self_name = self.get_name()
+        target_name = target.get_name()
+        self_loc = self.get_space()
+        target_loc = target.get_space()
+        attack_log = []
+        target_hp = target.get_curr_hp()
+        self.attack(target, ability_damage, self.get_damage_type())
+        damage_dealt = target_hp - target.get_curr_hp()
+        attack_log.append(f"{self_name} unleashes a harrying strike at {target_name}, dealing {damage_dealt} damage!\n")
+        if target.is_dead(): # If the target is dead, remove them and take their place
+            attack_log.append(f"{self_name} has slain {target_name}!\n")
+            target_loc.assign_unit(None)
+            self.move(target_loc)
+        else: # Otherwise, they will retaliate
+            attack_log.append(target.retaliate(self))
+            if self.is_dead(): # If the unit died, remove them
+                attack_log.append(f"{self_name} has been slain by {target_name}!\n")
+                self_loc.assign_unit(None)
+            attack_log.append(f"{target_name} was harried! They cannot use their ability for their next {self.__ability_duration} turns!\n")
+            target.disable_ability(self.__ability_duration)
+        return attack_log
+    
+    def ability_preview(self, target: Unit):
+        if target == None:
+            return None
+        damage_dealt = self.calculate_preview(target, self.get_ability_value(), self.get_damage_type())
+        if damage_dealt >= target.get_curr_hp():
+            damage_received = 0
+        else:
+            damage_received = target.attack_preview(self, False)
+        return damage_dealt, damage_received
+    
     
 class Sorcerer(Unit):
     def __init__(self, p1 = True) -> None:
@@ -569,15 +657,15 @@ class Sorcerer(Unit):
         self._ability_area_of_effect.extend([Direction.LEFT, Direction.RIGHT])
         self.__heal_value = 1
     
-    def attack(self, target, damage: int, damage_type):
+    def attack(self, target: Unit, damage: int, damage_type):
         self.heal(self.__heal_value)
         return super().attack(target, damage, damage_type)
 
-    def retaliate(self, target):
+    def retaliate(self, target: Unit):
         attack_log = super().retaliate(target)
         return attack_log + "\n" + self.siphon_message()
     
-    def basic_attack(self, target):
+    def basic_attack(self, target: Unit):
         attack_log = super().basic_attack(target)
         return attack_log + "\n" + self.siphon_message()
     
@@ -585,10 +673,10 @@ class Sorcerer(Unit):
         healing = self.__heal_value * mul
         return f"{self.get_name()} heals {healing} hp by siphoning life force\n"
         
-    def special_ability(self, target, space):
+    def special_ability(self, target: Unit, space: Space):
         attack_log = []
         siphon_targets = 0
-        main_damage = self.get_ability_value()
+        main_damage = self.get_ability_value() + self.get_damage_mod()
         splash_damage = ceil(main_damage/2)
         left_space = space.get_left()
         if left_space is not None:
@@ -610,7 +698,7 @@ class Sorcerer(Unit):
         attack_log.append(self.siphon_message(siphon_targets))
         return attack_log
     
-    def magic_power(self, target, damage):
+    def magic_power(self, target: Unit, damage: int):
         unit_name = self.get_name()
         if target is self:
             target_name = "themself"
@@ -626,11 +714,20 @@ class Sorcerer(Unit):
             target.get_space().assign_unit(None)
         return attack_log
     
-    def ability_preview(self, target):
+    def ability_preview(self, target: Unit):
         if target == None:
-            return None
+            return None, None
         damage_dealt = self.calculate_preview(target, self.get_ability_value(), self.__special_damage_type)
-        return damage_dealt
+        damage_received = 0
+        self_space = self.get_space()
+        target_space = target.get_space()
+        if (target_space.get_left() == self_space
+            or target_space.get_right() == self_space):
+            splash_damage = ceil((self.get_ability_value() + self.get_damage_mod())/2)
+            damage_received = self.calculate_preview(self, splash_damage, self.__special_damage_type)
+        elif target_space == self_space:
+            damage_received = self.calculate_preview(self, self.get_ability_value(), self.__special_damage_type)
+        return damage_dealt, damage_received
 
 class Healer(Unit):
     def __init__(self, p1 = True) -> None:
@@ -657,7 +754,7 @@ class Healer(Unit):
         self.set_ability_targets(TARGET_SELF)
         self._ability_area_of_effect.extend([Direction.UP, Direction.LEFT, Direction.RIGHT, Direction.DOWN])
 
-    def special_ability(self, target, space):
+    def special_ability(self, target: Unit, space: Space):
         attack_log = []
         top_space = space.get_up()
         if top_space is not None:
@@ -684,7 +781,7 @@ class Healer(Unit):
             attack_log.append(f"{self.get_name()} infuses their surroundings with healing magic. The warmth is pleasant, but it has no effect!\n")
         return attack_log
         
-    def magic_power(self, target):
+    def magic_power(self, target: Unit):
         if self.get_player() == target.get_player():
             unit_name = self.get_name()
             target_name = target.get_name()
@@ -722,9 +819,9 @@ class Archmage(Unit):
         self.__special_damage_type = DamageType.MAGIC
         self._ability_area_of_effect.extend([Direction.UP, Direction.LEFT, Direction.RIGHT, Direction.DOWN])
 
-    def special_ability(self, target, space):
+    def special_ability(self, target: Unit, space: Space):
         attack_log = []
-        main_damage = self.get_ability_value()
+        main_damage = self.get_ability_value() + self.get_damage_mod()
         splash_damage = ceil(main_damage/2)
         top_space = space.get_up()
         if top_space is not None:
@@ -752,7 +849,7 @@ class Archmage(Unit):
             attack_log.append(f"{self.get_name()} blasts the darkness with arcane energy. It has no effect!\n")
         return attack_log
         
-    def magic_power(self, target, damage):
+    def magic_power(self, target: Unit, damage: int):
         unit_name = self.get_name()
         if target is self:
             target_name = "themself"
@@ -768,11 +865,22 @@ class Archmage(Unit):
             target.get_space().assign_unit(None)
         return attack_log
     
-    def ability_preview(self, target):
+    def ability_preview(self, target: Unit):
         if target == None:
-            return None
+            return None, None
         damage_dealt = self.calculate_preview(target, self.get_ability_value(), self.__special_damage_type)
-        return damage_dealt
+        damage_received = 0
+        self_space = self.get_space()
+        target_space = target.get_space()
+        if (target_space.get_up() == self_space
+            or target_space.get_left() == self_space
+            or target_space.get_right() == self_space
+            or target_space.get_down() == self_space):
+            splash_damage = ceil((self.get_ability_value() + self.get_damage_mod())/2)
+            damage_received = self.calculate_preview(self, splash_damage, self.__special_damage_type)
+        elif target_space == self_space:
+            damage_received = self.calculate_preview(self, self.get_ability_value(), self.__special_damage_type)
+        return damage_dealt, damage_received
 
 class General(Unit):
     def __init__(self, p1 = True) -> None:
