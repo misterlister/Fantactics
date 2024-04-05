@@ -606,7 +606,7 @@ class Cavalry(Unit):
                 attack_log.append(f"{self_name} has been slain by {target_name}!\n")
                 self_loc.assign_unit(None)
             attack_log.append(f"{target_name} was harried! They cannot use their ability for their next {self.__ability_duration} turns!\n")
-            target.disable_ability(self.__ability_duration)
+            target.disable_ability(self.__ability_duration + 1)
             target.get_player().add_effected_unit(target)
         return attack_log
     
