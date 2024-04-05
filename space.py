@@ -28,10 +28,38 @@ class Plains(Terrain):
         
 class Forest(Terrain):
     def __init__(self, space) -> None:
-        sprite = TerrainType.FOREST
+        sprite = None
         move_cost = 1.5
         defense_mod = 1
         super().__init__(space, sprite, move_cost, defense_mod)
+        
+    def get_sprite(self):
+        if self._sprite == None:
+            self.set_forest_sprite()
+        return self._sprite
+    
+    def set_forest_sprite(self):
+        space = self.get_space()
+        forest_string = "forest_"
+        north_space = space.get_up()
+        if north_space != None:
+            if north_space.is_forest():
+                forest_string += "n"
+        east_space = space.get_right()
+        if east_space != None:
+            if east_space.is_forest():
+                forest_string += "e"
+        south_space = space.get_down()
+        if south_space != None:
+            if south_space.is_forest():
+                forest_string += "s"
+        west_space = space.get_left()
+        if west_space != None:
+            if west_space.is_forest():
+                forest_string += "w"
+        if forest_string == "forest_":
+            forest_string = "forest"
+        self._sprite = forest_string
         
 class Fortress(Terrain):
     def __init__(self, space) -> None:
@@ -172,6 +200,11 @@ class Space:
 
     def is_path(self) -> bool:
         if isinstance(self.get_terrain(), Path):
+            return True
+        return False
+
+    def is_forest(self) -> bool:
+        if isinstance(self.get_terrain(), Forest):
             return True
         return False
     

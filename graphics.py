@@ -74,5 +74,22 @@ class Window:
         sprites[TerrainType.PATH_S] = ImageTk.PhotoImage(Image.open("Assets/Terrain/path_s.png"))
         sprites[TerrainType.PATH_SW] = ImageTk.PhotoImage(Image.open("Assets/Terrain/path_sw.png"))
         sprites[TerrainType.PATH_W] = ImageTk.PhotoImage(Image.open("Assets/Terrain/path_w.png"))
+        
+        sprites[TerrainType.FOREST_E] = ImageTk.PhotoImage(Image.open("Assets/Terrain/forest_e.png"))
+        sprites[TerrainType.FOREST_ES] = ImageTk.PhotoImage(Image.open("Assets/Terrain/forest_es.png"))
+        sprites[TerrainType.FOREST_ESW] = ImageTk.PhotoImage(Image.open("Assets/Terrain/forest_esw.png"))
+        sprites[TerrainType.FOREST_EW] = ImageTk.PhotoImage(Image.open("Assets/Terrain/forest_ew.png"))
+        sprites[TerrainType.FOREST_N] = ImageTk.PhotoImage(Image.open("Assets/Terrain/forest_n.png"))
+        sprites[TerrainType.FOREST_NE] = ImageTk.PhotoImage(Image.open("Assets/Terrain/forest_ne.png"))
+        sprites[TerrainType.FOREST_NES] = ImageTk.PhotoImage(Image.open("Assets/Terrain/forest_nes.png"))
+        sprites[TerrainType.FOREST_NESW] = ImageTk.PhotoImage(Image.open("Assets/Terrain/forest_nesw.png"))
+        sprites[TerrainType.FOREST_NEW] = ImageTk.PhotoImage(Image.open("Assets/Terrain/forest_new.png"))
+        sprites[TerrainType.FOREST_NS] = ImageTk.PhotoImage(Image.open("Assets/Terrain/forest_ns.png"))
+        sprites[TerrainType.FOREST_NSW] = ImageTk.PhotoImage(Image.open("Assets/Terrain/forest_nsw.png"))
+        sprites[TerrainType.FOREST_NW] = ImageTk.PhotoImage(Image.open("Assets/Terrain/forest_nw.png"))
+        sprites[TerrainType.FOREST_S] = ImageTk.PhotoImage(Image.open("Assets/Terrain/forest_s.png"))
+        sprites[TerrainType.FOREST_SW] = ImageTk.PhotoImage(Image.open("Assets/Terrain/forest_sw.png"))
+        sprites[TerrainType.FOREST_W] = ImageTk.PhotoImage(Image.open("Assets/Terrain/forest_w.png"))
+        
         return sprites
     
