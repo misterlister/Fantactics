@@ -25,8 +25,8 @@ class GameBoard:
         self.window = window
         self.root = root
         self.ui = ui
-        self.x_start = x_start
-        self.y_start = y_start
+        self.__x_start = x_start
+        self.__y_start = y_start
         self.x_end = x_start + (BOARD_COLS * square_size) 
         self.y_end = y_start + (BOARD_ROWS * square_size)
         self.square_size = square_size
@@ -36,12 +36,7 @@ class GameBoard:
         self.connect_spaces(self.__spaces)
         self.draw_board()
         self.__transparent_square = self.set_transparency()
-        self.window.canvas.bind('<Button-1>', self.click)
-        self.window.canvas.bind('<Button-3>', self.right_click)
-        self.root.bind('<z>', self.ui.controlBar.buttons['attack'].unclick)
-        self.root.bind('<x>', self.ui.controlBar.buttons['ability'].unclick)
-        self.root.bind('<space>', self.ui.controlBar.buttons['confirm'].unclick)
-        self.root.bind('<Shift-KeyPress>', self.ui.controlBar.buttons['cancel'].unclick)
+        self.bind_buttons()
         self.__selected_space = None # Space currently selected
         self.__selected_unit = None # Unit currently selected
         self.__action_space = None # Location where selected unit will move to take an action
@@ -54,12 +49,29 @@ class GameBoard:
         self.__action_confirmed = False # Keeps track of if the current action has been confirmed
         self.__game_state = None # Links to game state object
         
+    def bind_buttons(self):
+        self.window.canvas.bind('<Button-1>', self.click)
+        self.window.canvas.bind('<Button-3>', self.right_click)
+        self.root.bind('<z>', self.ui.controlBar.buttons['attack'].unclick)
+        self.root.bind('<x>', self.ui.controlBar.buttons['ability'].unclick)
+        self.root.bind('<space>', self.ui.controlBar.buttons['confirm'].unclick)
+        self.root.bind('<Shift-KeyPress>', self.ui.controlBar.buttons['cancel'].unclick)
+        
+    def unbind_buttons(self):
+        self.window.canvas.bind('<Button-1>', do_nothing)
+        self.window.canvas.bind('<Button-3>', do_nothing)
+        self.root.bind('<z>', do_nothing)
+        self.root.bind('<x>', do_nothing)
+        self.root.bind('<space>', do_nothing)
+        self.root.bind('<Shift-KeyPress>', do_nothing)
+        self.unset_unit_buttons()
+    
     def draw_board(self) -> None:
         for i in range (BOARD_ROWS + 1):
             y_position = self.get_row_y(i)
             self.rowLabel.append(Label(self.root, text=i + 1, anchor='center', bg=BG_COL, font=(FONT, DEFAULT_FONT_SIZE)))
             self.rowLabel[i].place(x=330, y=(i * DEFAULT_SQUARE_SIZE) + 60)
-            p1 = Point(self.x_start, y_position)
+            p1 = Point(self.__x_start, y_position)
             p2 = Point(self.x_end, y_position)
             self.window.draw_line(p1, p2)
 
@@ -67,7 +79,7 @@ class GameBoard:
             x_position = self.get_col_x(j)
             self.colLabel.append(Label(self.root, text=chr(65 + j), anchor='center', bg=BG_COL, font=(FONT, DEFAULT_FONT_SIZE)))
             self.colLabel[j].place(x=(j * DEFAULT_SQUARE_SIZE) + 380, y=614)
-            p1 = Point(x_position, self.y_start)
+            p1 = Point(x_position, self.__y_start)
             p2 = Point(x_position, self.y_end)
             self.window.draw_line(p1, p2)
 
@@ -99,10 +111,10 @@ class GameBoard:
 
     def click(self, event):
         self.clear_info_panel()
-        if event.x > self.x_start and event.x < self.x_end:
-            if event.y > self.y_start and event.y < self.y_end:
-                row = (event.y-self.y_start) // self.square_size
-                col = (event.x-self.x_start) // self.square_size
+        if event.x > self.__x_start and event.x < self.x_end:
+            if event.y > self.__y_start and event.y < self.y_end:
+                row = (event.y-self.__y_start) // self.square_size
+                col = (event.x-self.__x_start) // self.square_size
                 #contents = self.check_square(row, col)
                 #print(f"Clicked square {row},{col}. Contents: {contents}")
                 new_space = self.__spaces[row][col]
@@ -235,7 +247,6 @@ class GameBoard:
                     spaces[i][j].set_right(spaces[i][j+1])
                 if i+1 < BOARD_ROWS:
                     spaces[i][j].set_down(spaces[i+1][j])
-
 
     # Update the stats panel items
     # Should be called on selection of a unit
@@ -473,11 +484,11 @@ class GameBoard:
         self.ui.controlBar.buttons['attack'].untoggle_keys()
 
     def get_col_x(self, col):
-        x = self.x_start + (col * (self.square_size))
+        x = self.__x_start + (col * (self.square_size))
         return x
         
     def get_row_y(self, row):
-        y = self.y_start + (row * (self.square_size))
+        y = self.__y_start + (row * (self.square_size))
         return y
     
     def set_action_space(self, unit: Unit, space: Space):
