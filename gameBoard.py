@@ -2,7 +2,26 @@ from graphics import Window, Point
 from tkinter import Tk, Label
 from PIL import ImageTk, Image
 from userInterface import UserInterface, do_nothing
-from constants import *
+from constants import (
+    DEFAULT_X_POS,
+    DEFAULT_Y_POS,
+    DEFAULT_SQUARE_SIZE,
+    BOARD_COLS,
+    BOARD_ROWS,
+    TerrainType,
+    BG_COL,
+    FONT,
+    DEFAULT_FONT_SIZE,
+    LINE_WIDTH,
+    SELECTION_BUFFER,
+    SPRITE_BUFFER,
+    MoveType,
+    ActionType,
+    TargetType,
+    TARGET_ALL,
+    TARGET_ENEMIES,
+    TARGET_MOVE
+)
 from units import Soldier, Unit
 from space import (
     Space,

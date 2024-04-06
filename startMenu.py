@@ -3,7 +3,11 @@ import os
 from tkinter import Tk, Label, Canvas
 from PIL import ImageTk, Image
 from userInterface import Panel, CanvasButton
-from constants import *
+from constants import (
+    WINDOW_WIDTH,
+    WINDOW_HEIGHT,
+    EMPTY_SPRITE
+)
 from graphics import Window
 from gameBoard import GameBoard
 from gameState import Player, GameState
