@@ -16,7 +16,7 @@ class UserInterface():
         self.statsPanel = { # Stats panel is divided into 3 seperate sub panels
             'friendlyUnitPanel' : StatsPanel(self.stats.getFrame(), height=PANEL_HEIGHT / 3, bgColour='#754239'),
             'enemyUnitPanel' : StatsPanel(self.stats.getFrame(), yPos=PANEL_HEIGHT / 3, height=PANEL_HEIGHT / 3, bgColour='#57312a'),
-            'terrainPanel' : TerrainPanel(self.stats.getFrame(), yPos=(PANEL_HEIGHT / 3) * 2, height=PANEL_HEIGHT / 3, bgColour='brown')
+            'terrainPanel' : TerrainPanel(self.stats.getFrame(), yPos=(PANEL_HEIGHT / 3) * 2, height=PANEL_HEIGHT / 3, bgColour='#4f473b')
         }
         
         ### Create Log Panel (right side panel), multiple panels as for future additions
@@ -30,7 +30,6 @@ class UserInterface():
 
         ### Bottom button bar for game controls
         self.controlBar = ControlBar(root, PANEL_WIDTH, PANEL_HEIGHT - CONTROL_PANEL_HEIGHT, width=WINDOW_WIDTH - (2 * PANEL_WIDTH), height=CONTROL_PANEL_HEIGHT)
-        self.__game_state = None
 
         #self.end = EndScreen(root, 1)
 
@@ -77,14 +76,16 @@ class StatsPanel(Panel):
             bd: int = 0,
             relief: str = 'solid',
             textColour: str = 'white',
-            spriteBgColour: str = '#757eff'
             ) -> None:
         super().__init__(root, xPos, yPos, width, height, bgColour, bd, relief)
 
         ### Create the area for sprite to be displayed on click
-        self.spriteCanvas = Canvas(self.frame, width=STATS_IMAGE_SIZE, height=STATS_IMAGE_SIZE, bg=spriteBgColour, highlightthickness=0, borderwidth=BORDER_WIDTH, relief='solid')
+        self.spriteCanvas = Canvas(self.frame, width=STATS_IMAGE_SIZE, height=STATS_IMAGE_SIZE, highlightthickness=0, borderwidth=BORDER_WIDTH, relief='solid')
         self.spriteCanvas.pack_propagate(0)
         self.spriteCanvas.place(x=0, y=25)
+
+        self.bgImg = ImageTk.PhotoImage(Image.open("Assets/stats_image_background.png"))
+        self.spriteCanvas.create_image(0, 0, anchor ='nw', image=self.bgImg)
 
         # Empty default sprite for no unit selected
         self.empty = ImageTk.PhotoImage(Image.open(EMPTY_SPRITE))
@@ -101,20 +102,25 @@ class StatsPanel(Panel):
         # Label fields for stats to be displayed
         self.labels = {
             'name' : Label(self.frame, text='Name:'),
-            'class' : Label(self.frame, text=' ', image=self.icons['class'], compound='left'),
-            'health' : Label(self.frame, text='   ', image=self.icons['health'], compound='left'),
-            'damage' : Label(self.frame, text=' ', image=self.icons['damage'], compound='left'),
-            'defense' : Label(self.frame, text=' ', image=self.icons['defense'], compound='left'),
-            'movement' : Label(self.frame, text=' ', image=self.icons['movement'], compound='left')
+            'class' : Label(self.frame, text=' ', image=self.icons['class'], compound='right'),
+            'health' : Label(self.frame, text='   ', image=self.icons['health'], compound='right'),
+            'damage' : Label(self.frame, text=' ', image=self.icons['damage'], compound='right'),
+            'defense' : Label(self.frame, text=' ', image=self.icons['defense'], compound='right'),
+            'movement' : Label(self.frame, text=' ', image=self.icons['movement'], compound='right'),
+            'description' : Message(self.frame, text=' ', width=240)
         }
         
         index = -12
         for item in self.labels:
             self.labels[item].config(bg=bgColour, fg=textColour, font=(FONT, DEFAULT_FONT_SIZE))
-            self.labels[item].place(x=STATS_IMAGE_SIZE + (2 * BORDER_WIDTH) + 1, y=index)
+            self.labels[item].place(x=width, y=index, anchor = 'ne')
             index += 35
 
-        self.labels['name'].place(x=0, y=0)
+        self.labels['name'].place(x=0, y=0, anchor='nw')
+        self.labels['description'].place(x=0, y=STATS_IMAGE_SIZE + 33, anchor='nw')
+
+        ## TEMP
+        self.update_description('Surge of Bravery', 'A long description describing the Surge of Bravery ability. Here is some extra text.')
 
     # Clear all data from stat display
     def clear(self) -> None:
@@ -124,24 +130,28 @@ class StatsPanel(Panel):
         self.update_damage()
         self.update_defense()
         self.update_movement()   
+        self.update_description()
         self.update_image(self.empty)
 
     # Update classes to be called during selection of a unit
-    def update_name(self, new: str = ' ') -> None: self.labels['name'].config(text= f"Name: {new}")
+    def update_name(self, new: str = ' ') -> None: self.labels['name'].config(text= f"Name: {new} ")
         
-    def update_class(self, new: str = ' ') -> None: self.labels['class'].config(text= f" {new}")
+    def update_class(self, new: str = ' ') -> None: self.labels['class'].config(text= f" {new} ")
 
     # For "diffType" variable:
     # 0 = damage
     # 1 = healing
-    def update_health(self, new: str = '  ', max: str = '', diff: int = 0, diffType: bool = 0) -> None:
-        if diff != 0:
-            if diffType == 0:
-                self.labels['health'].config(text= f" {new} (- {diff}) / {max}")
+    def update_health(self, new: str = ' ', max: str = '', diff: int = 0, diffType: bool = 0) -> None:
+        if new != ' ':
+            if diff != 0:
+                if diffType == 0:
+                    self.labels['health'].config(text= f" {new} (- {diff}) / {max}  ")
+                else:
+                    self.labels['health'].config(text= f" {new} (+ {diff}) / {max}  ")
             else:
-                self.labels['health'].config(text= f" {new} (+ {diff}) / {max}")
+                self.labels['health'].config(text= f" {new} / {max}  ")
         else:
-            self.labels['health'].config(text= f" {new} / {max}")
+            self.labels['health'].config(text= f"  ")
 
     def update_damage(self, new: str = ' ', type: str = '', diff: int = 0) -> None:
         if diff != 0:
@@ -149,9 +159,9 @@ class StatsPanel(Panel):
                 sign = "+"
             else:
                 sign = "-"
-            self.labels['damage'].config(text= f" {new} ({sign} {diff}) {type}")
+            self.labels['damage'].config(text= f" {new} ({sign} {diff}) {type} ")
         else:
-            self.labels['damage'].config(text= f" {new} {type}")
+            self.labels['damage'].config(text= f" {new} {type} ")
 
     def update_defense(self, new: str = ' ', type: str = '', diff: int = 0) -> None:
         if diff != 0:
@@ -159,15 +169,20 @@ class StatsPanel(Panel):
                 sign = "+"
             else:
                 sign = "-"
-            self.labels['defense'].config(text= f" {new} ({sign} {diff}) {type}")
+            self.labels['defense'].config(text= f" {new} ({sign} {diff}) {type} ")
         else:
-            self.labels['defense'].config(text= f" {new} {type}")
+            self.labels['defense'].config(text= f" {new} {type} ")
 
     def update_movement(self, new: str = ' ', type: str = '') -> None:
-        self.labels['movement'].config(text= f" {new} {type}")
+        self.labels['movement'].config(text= f" {new} {type} ")
     
+    def update_description(self, name: str = ' ', new: str = ' ') -> None:
+        if new != ' ' and name != ' ':
+            self.labels['description'].config(text= f"{name}:\n{new}")
+        else:
+            self.labels['description'].config(text="")
+
     def update_image(self, image: ImageTk) -> None:
-        #image = image.resize((2 * image.width(), 2 * image.height()))
         self.spriteCanvas.itemconfig(self.selectedSprite, image=image)
 
 class TerrainPanel(Panel):
@@ -185,9 +200,11 @@ class TerrainPanel(Panel):
                 ) -> None:
         super().__init__(root, xPos, yPos, width, height, bgColour, bd, relief)
 
-        self.spriteCanvas = Canvas(self.frame, width=STATS_IMAGE_SIZE, height=STATS_IMAGE_SIZE, bg=spriteBgColour, highlightthickness=0, borderwidth=BORDER_WIDTH, relief='solid')
+        self.spriteCanvas = Canvas(self.frame, width=STATS_IMAGE_SIZE, height=STATS_IMAGE_SIZE, highlightthickness=0, borderwidth=BORDER_WIDTH, relief='solid')
         self.spriteCanvas.place(x=0, y=0)
         self.empty = ImageTk.PhotoImage(Image.open(EMPTY_SPRITE))
+        self.bgImg = ImageTk.PhotoImage(Image.open('Assets/terrain_image_background.png'))
+        self.selectedSprite = self.spriteCanvas.create_image(0, 0, anchor='nw', image=self.bgImg)
         self.selectedSprite = self.spriteCanvas.create_image(SPRITE_BUFFER, SPRITE_BUFFER, anchor = 'nw', image=self.empty)
 
         self.nameLabel = Label(self.frame, text='', bg=bgColour, fg=textColour, font=(FONT, 2 * DEFAULT_FONT_SIZE))
@@ -199,31 +216,21 @@ class TerrainPanel(Panel):
         self.icons = {
             'defense' : ImageTk.PhotoImage(Image.open('Assets/Icons/armour.png')),
             'movement' : ImageTk.PhotoImage(Image.open('Assets/Icons/movement.png')),
-            'healing' : ImageTk.PhotoImage(Image.open('Assets/Icons/health.png')),
         }
 
         self.labels = {
             "defense" : Label(self.frame, text = ' ', image=self.icons['defense'], compound='top'),
             "movement" : Label(self.frame, text = ' ', image=self.icons['movement'], compound='top'),
-            "healing" : Label(self.frame, text = ' ', image=self.icons['healing'], compound='top'),
         }
 
-        index = 25
+        index = 34
         for item in self.labels:
             self.labels[item].config(bg=bgColour, fg=textColour, font=(FONT, DEFAULT_FONT_SIZE))
-            self.labels[item].place(x=index, y=(height - (height / 3)), anchor='n')
-            index += 50
+            self.labels[item].place(x=index, y=STATS_IMAGE_SIZE + 8, anchor='n')
+            index += 64
 
-        ### TEMP
-            self.update_name("Forest")
-            self.update_description("description of a forest")
-            self.update_defense(30)
-            self.update_movement(3)
-            self.update_healing(10)
-        ###
 
     def update_image(self, image: ImageTk):
-        #image = image.resize((2 * image.width(), 2 * image.height()))
         self.spriteCanvas.itemconfig(self.selectedSprite, image=image)
     
     def update_name(self, new: str = ""):
