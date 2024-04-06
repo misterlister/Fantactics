@@ -19,7 +19,7 @@ EMPTY_SPRITE = "Assets/Text/empty.png"
 # Default font
 FONT = 'consolas'
 # Default font size
-DEFAULT_FONT_SIZE = 12
+DEFAULT_FONT_SIZE = 11
 
 UI_BG_COLOUR = '#5d4037'
 DEFAULT_TEXT_COLOUR = '#ffffff'
