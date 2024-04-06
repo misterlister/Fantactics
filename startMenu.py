@@ -42,7 +42,7 @@ class StartMenu(Panel):
         self.canvas = Canvas(self.root, width=WINDOW_WIDTH, height=WINDOW_HEIGHT, bg='black', bd=0, highlightthickness=0)
         self.canvas.pack_propagate(0)
         self.canvas.place(x=0, y=0)
-        self.backgroundImage = ImageTk.PhotoImage(Image.open('Assets/Title_Background.png'))
+        self.backgroundImage = ImageTk.PhotoImage(Image.open('Assets/title_background.png'))
         self.background = self.canvas.create_image(0, 0, image=self.backgroundImage, anchor='nw')
         self.sprites = [[],[]]
         self.img = [[],[]]
