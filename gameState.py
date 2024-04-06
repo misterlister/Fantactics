@@ -34,8 +34,11 @@ class Player:
     def get_state(self):
         return self.__game_state
     
-    def get_team(self):
+    def get_team_colour(self):
         return self.__team
+    
+    def get_unit_list(self):
+        return self.__units
 
     def assign_units(self, unit_list: list):
         for unit in unit_list:
@@ -109,7 +112,9 @@ class GameState:
         self.ui = ui
         self.__turn_count = 0
         self.__current_player = None
+        self.__game_over = False
         self.setup_board()
+        
 
     def setup_board(self):
         try:
@@ -140,7 +145,7 @@ class GameState:
             print(e)
             
     def promote_unit(self, unit) -> Unit:
-        team_colour = unit.get_player().get_team()
+        team_colour = unit.get_player().get_team_colour()
         col = unit.get_space().get_col()
         if team_colour == "white":
             team = True
@@ -218,26 +223,82 @@ class GameState:
         else:
             return "No Current Player"
     
+    def game_is_over(self):
+        return self.__game_over
+    
+    def end_game(self):
+        self.player1.end_turn()
+        self.player2.end_turn()
+        self.__game_over = True
+        
+    def check_victory_conditions(self):
+        p1_units = self.player1.get_unit_list()
+        p2_units = self.player2.get_unit_list()
+        p1_team = "White"
+        p2_team = "Black"
+        messages = []
+        p2_victory = self.check_unit_death(self.player1, p1_units, p1_team, messages)
+        p1_victory = self.check_unit_death(self.player2, p2_units, p2_team, messages)        
+        if self.check_army_surrender(p1_units, p1_team, messages):
+            p2_victory = True
+        if self.check_army_surrender(p2_units, p2_team, messages):
+            p1_victory = True
+        if p1_victory or p2_victory:
+            if p1_victory and not p2_victory:
+                messages.append(f"The {p1_team} army is victorious!\n")
+                ### VICTORY SCREEN HERE
+            elif p2_victory and not p1_victory:
+                messages.append(f"The {p2_team} army is victorious!\n")
+                ### VICTORY SCREEN HERE
+            elif p2_victory and p1_victory:
+                messages.append(f"The {p1_team} and {p2_team} armies have fought to a stalemate!\n")
+                ### VICTORY SCREEN HERE
+            for message in messages:
+                self.ui.logItems['text'].add_text(message)
+            return True
+        return False
+    
+    def check_unit_death(self, player, units, team, messages):
+        victory = False
+        for unit in units:
+            if unit.is_dead():
+                if isinstance(unit, General):
+                    messages.append(f"With the fall of their General, {unit.get_name()}, the {team} army cannot continue fighting!\n")
+                    victory = True
+                player.remove_unit(unit)
+        return victory
+    
+    def check_army_surrender(self, units, team, messages):
+        if len(units) == 1:
+            messages.append(f"With their forces decimated, the {team} army is forced to surrender.\n")
+            return True
+        return False
+            
+        
+    
     def next_turn(self):
-        if self.__current_player == None: # At start of game, set turn to Player 1
-            self.__turn_count += 1
-            self.set_turn(self.player1)
-            self.ui.logItems['text'].insert_turn_divider()
+        if self.check_victory_conditions():
+            self.end_game()
         else:
-            # If the current player has an extra turn, don't change turns
-            if self.__current_player.has_extra_turn(): 
-                self.__current_player.use_extra_turn()
-            elif self.__current_player == self.player1:
-                self.player1.end_turn()
-                self.set_turn(self.player2)
-                self.player2.advance_timed_effects()
+            if self.__current_player == None: # At start of game, set turn to Player 1
+                self.__turn_count += 1
+                self.set_turn(self.player1)
                 self.ui.logItems['text'].insert_turn_divider()
             else:
-                self.player2.end_turn()
-                self.set_turn(self.player1)
-                self.__turn_count += 1
-                self.player1.advance_timed_effects()
-                self.ui.logItems['text'].insert_turn_divider()
-        self.ui.logItems['text'].update_label()
-        #for panel in self.ui.statsPanel:
-                #self.ui.statsPanel[panel].clear()
+                # If the current player has an extra turn, don't change turns
+                if self.__current_player.has_extra_turn(): 
+                    self.__current_player.use_extra_turn()
+                elif self.__current_player == self.player1:
+                    self.player1.end_turn()
+                    self.set_turn(self.player2)
+                    self.player2.advance_timed_effects()
+                    self.ui.logItems['text'].insert_turn_divider()
+                else:
+                    self.player2.end_turn()
+                    self.set_turn(self.player1)
+                    self.__turn_count += 1
+                    self.player1.advance_timed_effects()
+                    self.ui.logItems['text'].insert_turn_divider()
+            self.ui.logItems['text'].update_label()
+            #for panel in self.ui.statsPanel:
+            #self.ui.statsPanel[panel].clear()
