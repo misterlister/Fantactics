@@ -1,8 +1,22 @@
 from tkinter import Tk, LabelFrame, Canvas, Text, Label, Message, messagebox, Scrollbar
 from PIL import ImageTk, Image
 from typing import Callable
-from constants import *
-from constants import ERROR_PRESSED, ERROR_UNPRESSED
+from constants import (
+    ERROR_PRESSED, 
+    ERROR_UNPRESSED,
+    PANEL_HEIGHT,
+    WINDOW_WIDTH,
+    PANEL_WIDTH,
+    CONTROL_PANEL_HEIGHT,
+    BG_COL,
+    UI_BG_COLOUR,
+    STATS_IMAGE_SIZE,
+    EMPTY_SPRITE,
+    BORDER_WIDTH,
+    FONT,
+    DEFAULT_FONT_SIZE,
+    SPRITE_BUFFER
+    )
 
 # It does nothing
 def do_nothing(nothing = None): 
