@@ -19,8 +19,8 @@ class Game():
     def __init__(self, root, window) -> None:
         self.userInterface = UserInterface(root)
         self.board = GameBoard(window, root, self.userInterface)
-        self.player1 = Player()
-        self.player2 = Player()
+        self.player1 = Player("white")
+        self.player2 = Player("black")
         self.gameState = GameState(self.player1, self.player2, self.board, self.userInterface)
 
 class StartMenu(Panel):
