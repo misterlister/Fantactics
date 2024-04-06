@@ -625,7 +625,7 @@ class MapLayout:
             FS, PL, PL, PL, PL, PT, PL, PL,
             FS, PL, PL, PT, PT, PT, FS, FS,
             PL, PL, FS, PT, FS, PT, PT, FS,
-            PL, FS, FS, FT, FS, FS, PT, PT
+            PT, FS, FS, FT, FS, FS, PT, PT
         ],
         "Centre Road": [
             PL, PL, PL, PL, PL, PT, PL, PL,
