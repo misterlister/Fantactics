@@ -253,6 +253,7 @@ class GameState:
             elif p2_victory and p1_victory:
                 messages.append(f"The {p1_team} and {p2_team} armies have fought to a stalemate!\n")
                 ### VICTORY SCREEN HERE
+            self.ui.logItems['text'].insert_endgame_divider()
             for message in messages:
                 self.ui.logItems['text'].add_text(message)
             return True

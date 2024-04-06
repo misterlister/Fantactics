@@ -518,7 +518,14 @@ class CombatLog():
         self.text.insert('end', f"-----[Turn {self.get_turn()} - Player {self.get_player()}]-----\n")
         self.text.tag_add("boldtext", 'end-2c linestart', 'end-2c lineend')
         self.text.see('end')
-        self.text.config(state='disabled')  
+        self.text.config(state='disabled')
+        
+    def insert_endgame_divider(self):
+        self.text.config(state='normal')
+        self.text.insert('end', f"-----[Endgame]-----\n\n")
+        self.text.tag_add("boldtext", 'end-2c linestart', 'end-2c lineend')
+        self.text.see('end')
+        self.text.config(state='disabled')
 
     def link_to_state(self, state):
         self.__game_state = state
