@@ -5,7 +5,7 @@ from constants import *
 from constants import ERROR_PRESSED, ERROR_UNPRESSED
 
 # It does nothing
-def do_nothing(): 
+def do_nothing(nothing = None): 
     pass
     
 class UserInterface():
