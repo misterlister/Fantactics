@@ -141,6 +141,9 @@ class Unit:
                 return True
         return False
     
+    def set_name(self, name):
+        self.__name = name
+    
     def set_action_space(self, space):
         self.__action_space = space
         
@@ -459,6 +462,33 @@ class Peasant(Unit):
             damage_received = target.attack_preview(self, False)
         self.__brave = False
         return damage_dealt, damage_received
+    
+    def move(self, space):
+        move_log = super().move(space)
+        row = self.get_space().get_row()
+        team = self.get_player().get_team()
+        if ((row == 0 and team == "white")
+            or (row == BOARD_ROWS -1 and team == "black")):
+            move_log.append(self.promotion())
+        return move_log
+    
+    def promotion(self):
+        player = self.get_player()
+        new_unit = player.get_state().promote_unit(self)
+        before_name = self.get_name()
+        name = before_name.split()[0]
+        damage = self.get_max_hp() - self.get_curr_hp()
+        space = self.get_space()
+        space.assign_unit(new_unit)
+        new_unit._place(space)
+        title = " ".join(new_unit.get_name().split()[1:])
+        after_name = name + " " + title
+        new_unit.set_name(after_name)
+        new_unit.take_damage(damage)
+        player.remove_unit(self)
+        player.assign_unit(new_unit)
+        return f"{before_name} has been promoted to {after_name}!"
+
 
 class Soldier(Unit):
     def __init__(self, p1 = True) -> None:

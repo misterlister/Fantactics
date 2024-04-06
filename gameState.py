@@ -23,20 +23,30 @@ from constants import (
 from random import randint
 
 class Player:
-    def __init__(self) -> None:
+    def __init__(self, team: str) -> None:
         self.__units = []
         self.__effected_units = []
         self.__game_state = None
         self.__turn = False
         self.__extra_turns = 0
+        self.__team = team
         
     def get_state(self):
         return self.__game_state
+    
+    def get_team(self):
+        return self.__team
 
     def assign_units(self, unit_list: list):
-        self.__units = unit_list
         for unit in unit_list:
-            unit.set_player(self)
+            self.assign_unit(unit)
+            
+    def assign_unit(self, unit: Unit):
+        self.__units.append(unit)
+        unit.set_player(self)
+        
+    def remove_unit(self, unit: Unit):
+        self.__units.remove(unit)
             
     def add_effected_unit(self, unit: Unit):
         self.__effected_units.append(unit)
@@ -101,7 +111,6 @@ class GameState:
         self.__current_player = None
         self.setup_board()
 
-
     def setup_board(self):
         try:
             p2_units_r1 = [Archer(False), Cavalry(False), Healer(False), Archmage(False), 
@@ -129,6 +138,31 @@ class GameState:
 
         except Exception as e:
             print(e)
+            
+    def promote_unit(self, unit) -> Unit:
+        team_colour = unit.get_player().get_team()
+        col = unit.get_space().get_col()
+        if team_colour == "white":
+            team = True
+        else:
+            team = False
+        if col == 0 or col == 7:
+            new_unit = Archer(team)
+        elif col == 1 or col == 6:
+            new_unit = Cavalry(team)
+        elif col == 2:
+            if team_colour == "white":
+                new_unit = Healer(team)
+            else:
+                new_unit = Sorcerer(team)
+        elif col == 5:
+            if team_colour == "white":
+                new_unit = Sorcerer(team)
+            else:
+                new_unit = Healer(team)
+        else:
+            new_unit = Soldier(team)
+        return new_unit
 
     def setup_row(self, row, col, units: list, reverse: bool):
         inc = 1
