@@ -11,7 +11,7 @@ LINE_WIDTH = 3
 # Number of pixels between a sprite and the border of its square
 SPRITE_BUFFER = 8
 # Size of images in the stats display window
-STATS_IMAGE_SIZE = (2 * 64) + SPRITE_BUFFER
+STATS_IMAGE_SIZE = (1.5 * 64)
 # Assets for error unpressed and pressed button
 ERROR_UNPRESSED, ERROR_PRESSED = "Assets/Text/error_unpressed.png", "Assets/Text/error_pressed.png"
 # Placeholder for empty sprites
