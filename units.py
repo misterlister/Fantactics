@@ -466,7 +466,7 @@ class Peasant(Unit):
     def move(self, space):
         move_log = super().move(space)
         row = self.get_space().get_row()
-        team = self.get_player().get_team()
+        team = self.get_player().get_team_colour()
         if ((row == 0 and team == "white")
             or (row == BOARD_ROWS -1 and team == "black")):
             move_log.append(self.promotion())
@@ -487,7 +487,7 @@ class Peasant(Unit):
         new_unit.take_damage(damage)
         player.remove_unit(self)
         player.assign_unit(new_unit)
-        return f"{before_name} has been promoted to {after_name}!"
+        return f"{before_name} has been promoted to {after_name}!\n"
 
 
 class Soldier(Unit):
