@@ -429,7 +429,7 @@ class Peasant(Unit):
         ability_range = 1
         ability_min_range = 0
         ability_value = 1
-        ability_description = f"Increases attack and defense by {ability_value} for one turn, usable once per game"
+        ability_description = f"Increase attack and defense by {ability_value} for one turn, once per game"
         super().__init__(unit_type, hp, dam_val, dam_type, def_val, arm_type, move, 
                          move_type, sprite, name_list, title_list, ability_name, 
                          ability_range, ability_min_range, ability_value, ability_description)
@@ -982,7 +982,7 @@ class General(Unit):
         ability_range = 0
         ability_min_range = 0
         ability_value = 2
-        ability_description = f"Allows {ability_value} allies to take an action this turn, usable once per game"
+        ability_description = f"Allows {ability_value} allies to take an action this turn, once per game"
         super().__init__(unit_type, hp, dam_val, dam_type, def_val, arm_type, move, 
                          move_type, sprite, name_list, title_list, ability_name, 
                          ability_range, ability_min_range, ability_value, ability_description)
