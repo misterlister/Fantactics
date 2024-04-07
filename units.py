@@ -106,6 +106,9 @@ class Unit:
     def get_ability_targets(self):
         return self.__ability_targets
     
+    def get_special_damage_type(self):
+        return self.__damage_type
+    
     def get_damage_mod(self):
         mod_total = 0
         mod_total += get_aura_damage_mods(self)
@@ -761,6 +764,9 @@ class Sorcerer(Unit):
         elif target_space == self_space:
             damage_received = self.calculate_damage(self, ability_damage, self.__special_damage_type)
         return damage_dealt, damage_received
+    
+    def get_special_damage_type(self):
+        return self.__special_damage_type
 
 class Healer(Unit):
     def __init__(self, p1 = True) -> None:
@@ -918,6 +924,9 @@ class Archmage(Unit):
         elif target_space == self_space:
             damage_received = self.calculate_damage(self, ability_damage, self.__special_damage_type)
         return damage_dealt, damage_received
+    
+    def get_special_damage_type(self):
+        return self.__special_damage_type
 
 class General(Unit):
     def __init__(self, p1 = True) -> None:

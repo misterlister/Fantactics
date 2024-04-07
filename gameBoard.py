@@ -252,11 +252,15 @@ class GameBoard:
         self.update_stats_panel(unit, unit_damage)
 
     def ability_preview(self, unit: Unit, target: Unit):
+        damage_val = unit.get_ability_value()
+        damage_type = unit.get_special_damage_type()
         if target != None:
             target_damage, unit_damage = unit.ability_preview(target)
             if target_damage != None:
                 self.update_stats_panel(target, target_damage)
-                self.update_stats_panel(unit, unit_damage)
+                self.update_stats_panel(unit, unit_damage, damage_val, damage_type) 
+                return
+        self.update_stats_panel(unit, 0, damage_val, damage_type)
                 
     def connect_spaces(self, spaces: Space):
         for i in range(BOARD_ROWS):
@@ -272,18 +276,22 @@ class GameBoard:
 
     # Update the stats panel items
     # Should be called on selection of a unit
-    def update_stats_panel(self, unit: Unit, damage_preview = 0):
+    def update_stats_panel(self, unit: Unit, damage_preview = 0, damage_val = None, damage_type = None):
         if unit is not None:
             if unit.get_player().is_current_turn():
                 panel = 'friendlyUnitPanel'
             else:
                 panel = 'enemyUnitPanel'
+            if damage_val == None:
+                damage_val = unit.get_damage_val()
+            if damage_type == None:
+                damage_type = unit.get_damage_type()
             sprite = unit.get_sprite()
             self.ui.statsPanel[panel].update_image(self.window.get_sprite(sprite))
             self.ui.statsPanel[panel].update_class(unit.get_unit_type())
             self.ui.statsPanel[panel].update_name(unit.get_name())
             self.ui.statsPanel[panel].update_health(unit.get_curr_hp(), unit.get_max_hp(), damage_preview)
-            self.ui.statsPanel[panel].update_damage(unit.get_damage_val(), unit.get_damage_type(), unit.get_damage_mod())
+            self.ui.statsPanel[panel].update_damage(damage_val, damage_type, unit.get_damage_mod())
             self.ui.statsPanel[panel].update_defense(unit.get_armour_type(), unit.get_defense_mod())
             self.ui.statsPanel[panel].update_movement(unit.get_movement())
         else:
