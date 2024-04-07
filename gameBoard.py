@@ -30,6 +30,7 @@ from space import (
     Plains,
     Path
     )
+from clientSender import Sender
 
 class GameBoard:
     def __init__(
@@ -37,10 +38,13 @@ class GameBoard:
             window: Window,
             root: Tk,
             ui: UserInterface,
+            player_colour: str,
+            sender: Sender,
             x_start: int = DEFAULT_X_POS,
             y_start: int = DEFAULT_Y_POS,
             square_size: int = DEFAULT_SQUARE_SIZE
                  ) -> None:
+        self.__player_colour = player_colour
         self.window = window
         self.root = root
         self.ui = ui
@@ -67,6 +71,7 @@ class GameBoard:
         self.__guarded_spaces = [] # Spaces which are guarded by soldiers, and cannot be targeted with ranged abilities
         self.__action_confirmed = False # Keeps track of if the current action has been confirmed
         self.__game_state = None # Links to game state object
+        self.sender = sender
         
     def bind_buttons(self):
         self.window.canvas.bind('<Button-1>', self.click)
@@ -86,21 +91,41 @@ class GameBoard:
         self.unset_unit_buttons()
     
     def draw_board(self) -> None:
-        for i in range (BOARD_ROWS + 1):
-            y_position = self.get_row_y(i)
-            self.rowLabel.append(Label(self.root, text=i + 1, anchor='center', bg=BG_COL, font=(FONT, DEFAULT_FONT_SIZE)))
-            self.rowLabel[i].place(x=330, y=(i * DEFAULT_SQUARE_SIZE) + 60)
-            p1 = Point(self.__x_start, y_position)
-            p2 = Point(self.x_end, y_position)
-            self.window.draw_line(p1, p2)
+        print("My colour: ", self.__player_colour)
 
-        for j in range(BOARD_COLS + 1):
-            x_position = self.get_col_x(j)
-            self.colLabel.append(Label(self.root, text=chr(65 + j), anchor='center', bg=BG_COL, font=(FONT, DEFAULT_FONT_SIZE)))
-            self.colLabel[j].place(x=(j * DEFAULT_SQUARE_SIZE) + 380, y=614)
-            p1 = Point(x_position, self.__y_start)
-            p2 = Point(x_position, self.y_end)
-            self.window.draw_line(p1, p2)
+        if self.__player_colour == "white":
+            for i in range (BOARD_ROWS + 1):
+                y_position = self.get_row_y(i)
+                self.rowLabel.append(Label(self.root, text=BOARD_ROWS - i, anchor='center', bg=BG_COL, font=(FONT, DEFAULT_FONT_SIZE)))
+                self.rowLabel[i].place(x=330, y=(i * DEFAULT_SQUARE_SIZE) + 60)
+                p1 = Point(self.__x_start, y_position)
+                p2 = Point(self.x_end, y_position)
+                self.window.draw_line(p1, p2)
+
+            for j in range(BOARD_COLS + 1):
+                x_position = self.get_col_x(j)
+                self.colLabel.append(Label(self.root, text=chr(65 + j), anchor='center', bg=BG_COL, font=(FONT, DEFAULT_FONT_SIZE)))
+                self.colLabel[j].place(x=(j * DEFAULT_SQUARE_SIZE) + 380, y=614)
+                p1 = Point(x_position, self.__y_start)
+                p2 = Point(x_position, self.y_end)
+                self.window.draw_line(p1, p2)
+
+        else:
+            for i in range (BOARD_ROWS + 1):
+                y_position = self.get_row_y(i)
+                self.rowLabel.append(Label(self.root, text=i+1, anchor='center', bg=BG_COL, font=(FONT, DEFAULT_FONT_SIZE)))
+                self.rowLabel[i].place(x=330, y=(i * DEFAULT_SQUARE_SIZE) + 60)
+                p1 = Point(self.__x_start, y_position)
+                p2 = Point(self.x_end, y_position)
+                self.window.draw_line(p1, p2)
+
+            for j in range(BOARD_COLS + 1):
+                x_position = self.get_col_x(j)
+                self.colLabel.append(Label(self.root, text=chr(65 + BOARD_COLS - 1- j), anchor='center', bg=BG_COL, font=(FONT, DEFAULT_FONT_SIZE)))
+                self.colLabel[j].place(x=(j * DEFAULT_SQUARE_SIZE) + 380, y=614)
+                p1 = Point(x_position, self.__y_start)
+                p2 = Point(x_position, self.y_end)
+                self.window.draw_line(p1, p2)
 
         # Destroy excess labels, not most elegant solution but least code
         self.rowLabel[i].destroy()
@@ -155,11 +180,14 @@ class GameBoard:
 
     def click_unit_selected(self, unit: Unit, space: Space):
         unit = self.__selected_unit
-        if unit.get_player().is_current_turn():
+        player = unit.get_player()
+        if player.is_current_turn() and player.get_team_colour() == self.__player_colour:
             if self.__attack_spaces != None: # Attack range is active
                 if space in self.__attack_spaces: # A valid target is selected
                     if space == self.__target_space and self.__action_confirmed:
-                        ### Send self.__action_space, unit, space, attack_action to server
+                        uspace = unit.get_space()
+                        
+                        self.sender.send("[ATK:")
                         self.attack_action(unit, space)
                     else:
                         self.setup_action(self.attack_action, unit, space, "red")

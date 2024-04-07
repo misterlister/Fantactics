@@ -22,6 +22,8 @@ from constants import (
 
 from random import randint
 
+from clientSender import Sender
+
 class Player:
     def __init__(self, team: str) -> None:
         self.__units = []
@@ -104,12 +106,14 @@ class GameState:
             player1: Player,
             player2: Player,
             board: GameBoard,
-            ui
+            ui,
+            sender: Sender
             ) -> None:
         self.player1 = player1
         self.player2 = player2
         self.board = board
         self.ui = ui
+        self.sender = sender
         self.__turn_count = 0
         self.__current_player = None
         self.__game_over = False
@@ -292,7 +296,8 @@ class GameState:
         else:
             if self.__current_player == None: # At start of game, set turn to Player 1
                 self.__turn_count += 1
-                self.set_turn(self.player1)
+                if self.player1.get_team_colour() == "white":
+                    self.set_turn(self.player1)
                 self.ui.logItems['text'].insert_turn_divider()
             else:
                 # If the current player has an extra turn, don't change turns
@@ -300,6 +305,7 @@ class GameState:
                     self.__current_player.use_extra_turn()
                 elif self.__current_player == self.player1:
                     self.player1.end_turn()
+                    self.sender.send("[ENDTURN]")
                     self.set_turn(self.player2)
                     self.player2.advance_timed_effects()
                     self.ui.logItems['text'].insert_turn_divider()

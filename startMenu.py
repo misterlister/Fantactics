@@ -12,6 +12,7 @@ from graphics import Window
 from gameBoard import GameBoard
 from gameState import Player, GameState
 from userInterface import UserInterface
+from clientSender import Sender
 
 maxScale = 2.0
 floatRange = 10.0
@@ -20,13 +21,14 @@ numSprites = 5
 bound = int(WINDOW_WIDTH/3)
 
 class Game():
-    def __init__(self, root, window) -> None:
+    def __init__(self, root, window, sender) -> None:
         self.root = root
         self.window = window
-    
+        self.sender = sender
+
     def start(self):
         self.userInterface = UserInterface(self.root)
-        self.board = GameBoard(self.window, self.root, self.userInterface)
+        self.board = GameBoard(self.window, self.root, self.userInterface, self.player_colour, self.sender)
         
         if(self.player_colour == "white"):
             self.player1 = Player("white")
@@ -35,7 +37,7 @@ class Game():
         else:
             self.player1 = Player("black")
             self.player2 = Player("white")
-        self.gameState = GameState(self.player1, self.player2, self.board, self.userInterface)
+        self.gameState = GameState(self.player1, self.player2, self.board, self.userInterface,self.sender)
 
     def set_player_colour(self, colour:str):
         self.player_colour = colour
@@ -46,6 +48,7 @@ class StartMenu(Panel):
             root: Tk,
             window: Window, 
             game: Game,
+            sender: Sender,
             xPos: int = 0, 
             yPos: int = 0, 
             width: int = WINDOW_WIDTH, 
@@ -66,8 +69,9 @@ class StartMenu(Panel):
         self.img = [[],[]]
         self.speed = [[],[]]
         self.__playerReady = False
-        self.__opponentReady = True
+        self.__opponentReady = False
         self.game = game
+        self.sender = sender
 
         for i in range(numSprites):
             self.sprites[0].append(self.canvas.create_image(random.randint(0, bound), random.uniform(1.0, floatRange) * -60, anchor='nw'))
@@ -140,6 +144,8 @@ class StartMenu(Panel):
         self.canvas.itemconfig(sprite, image=self.img[colour][index])
 
     def play(self):
+        if not self.__playerReady:
+            self.sender.send("[RDY]")
         self.__playerReady = True
         if self.__opponentReady:
             self.start()

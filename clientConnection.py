@@ -13,7 +13,7 @@ this_file = "clientConnection.py"
 
 class Receiver():
 
-    def __init__(self, sock, game):
+    def __init__(self, sock, menu):
         
         self.sock = sock
         self.__thread = threading.Thread(target=self.__threadFunction, args=())
@@ -22,7 +22,8 @@ class Receiver():
         self.inbox = Queue()
         self.p1 = None
         self.p2 = None
-        self.game = game
+        self.menu = menu
+        self.game = self.menu.game
 
     def __threadFunction(self) -> None:
         
@@ -51,8 +52,15 @@ class Receiver():
         if message == "[CLR:WHITE]":
             self.game.set_player_colour("white")
 
-        else:
+        if message == "[CLR:BLACK]":
             self.game.set_player_colour("black")
+
+        if message == "[RDY]":
+            self.menu.setOpponentReady()
+        
+        if message == "[YOURTURN]":
+            self.menu.setOpponentReady()
+            self.state.next_turn()
 
         return True
 

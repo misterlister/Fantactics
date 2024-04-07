@@ -5,6 +5,7 @@ from startMenu import StartMenu, Game
 from constants import *
 from errors import errorMessage
 from clientConnection import Receiver, establishConn
+from clientSender import Sender
 
 this_file = "main.py"
 doMainMenu = False
@@ -19,9 +20,10 @@ if __name__ == "__main__":
 
     root = Tk()
     window = Window(WINDOW_WIDTH, WINDOW_HEIGHT, root)
-    game = Game(root,window)
-    receiver = Receiver(conn,game)
-    mainMenu = StartMenu(root, window,game)
+    sender = Sender(conn)
+    game = Game(root,window,sender)
+    mainMenu = StartMenu(root, window,game, sender)
+    receiver = Receiver(conn,mainMenu)
 
     root.mainloop()
 

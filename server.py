@@ -41,9 +41,8 @@ if __name__ == "__main__":
     sender = ServerSender(serverConn)
     receiver = Receiver(serverConn, sender)
     
-    print(type(serverConn.get_light_conn))
-    sender.sendString(serverConn.get_light_conn(), "[CLR:WHITE]")
-    sender.sendString(serverConn.get_dark_conn(), "[CLR:BLACK]")
+    sender.sendString(serverConn.get_white_conn(), "[CLR:WHITE]")
+    sender.sendString(serverConn.get_black_conn(), "[CLR:BLACK]")
 
     # Register the file opjects for each connections with receive_data as the callback.
     sel.register(conn1, selectors.EVENT_READ, receiver.receive_data)
