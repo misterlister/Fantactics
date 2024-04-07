@@ -117,8 +117,6 @@ class Unit:
         mod_total = 0
         mod_total += get_aura_defense_mods(self)
         mod_total += self.__action_space.get_defense_mod()
-        if mod_total < 0:
-            mod_total = 0
         return mod_total
     
     def expend_ability(self):
@@ -170,7 +168,9 @@ class Unit:
         if old_space != space:
             try:
                 if space.get_unit() == None:
-                    self.__space.assign_unit(None)
+                    # Remove the unit from their previous space (Unless they are swapping with a Soldier)
+                    if self.__space.get_unit() == self:
+                        self.__space.assign_unit(None)
                     self.__space = space
                     self.__action_space = space
                     space.assign_unit(self)
@@ -418,7 +418,7 @@ class Peasant(Unit):
         attack_log = []
         self.__brave = True
         self.get_player().add_effected_unit(self)
-        attack_log.append(f"{unit_name} has a surge of bravery! They have temporarily unlocked unexpected strength.\n")
+        attack_log.append(f"{unit_name} has a {self.get_ability_name()}! They have temporarily unlocked unexpected strength.\n")
         if target != self:
             attack_log.extend(self.basic_attack(target))
         return attack_log
@@ -520,9 +520,8 @@ class Soldier(Unit):
         ability_log = []
         current_space = self.get_space()
         current_space.assign_unit(None)
-        ability_log.append(f"{unit_name} moves to defend {target_name}, taking their place.\n")
+        ability_log.append(f"{unit_name} makes a {self.get_ability_name()}, moving to defend {target_name} and taking their place.\n")
         target.move(current_space)
-        space.assign_unit(self)
         self.move(space)
         return ability_log
 
@@ -542,7 +541,7 @@ class Archer(Unit):
             sprite = SpriteType.ARCHER2
         name_list = Names.Commoner
         title_list = Titles.Archer
-        ability_name = "Ranged Attack"
+        ability_name = "Arrow Volley"
         ability_range = 5
         ability_min_range = 2
         ability_value = 8
@@ -559,7 +558,7 @@ class Archer(Unit):
         target_hp = target.get_curr_hp()
         self.attack(target, attack_damage, self.__special_damage_type)
         damage_dealt = target_hp - target.get_curr_hp()
-        attack_log.append(f"{unit_name} fires an arrow at {target_name}, dealing {damage_dealt} damage!\n")
+        attack_log.append(f"{unit_name} fires an {self.get_ability_name()} at {target_name}, dealing {damage_dealt} damage!\n")
         if target.is_dead():
             attack_log.append(f"{unit_name} has slain {target_name}!\n")
             target.get_space().assign_unit(None)
@@ -571,6 +570,11 @@ class Archer(Unit):
         damage = self.get_ability_value() + self.get_damage_mod()
         damage_dealt = self.calculate_damage(target, damage, self.__special_damage_type)
         return damage_dealt, 0
+    
+    def get_damage_mod(self):
+        damage_mod = super().get_damage_mod()
+        damage_mod += self.get_action_space().get_defense_mod()
+        return damage_mod
     
     # Variation of defense calculation that doubles terrain bonuses
     def get_defense_mod(self):
@@ -625,7 +629,7 @@ class Cavalry(Unit):
         target_hp = target.get_curr_hp()
         self.attack(target, ability_damage, self.get_damage_type())
         damage_dealt = target_hp - target.get_curr_hp()
-        attack_log.append(f"{self_name} unleashes a harrying strike at {target_name}, dealing {damage_dealt} damage!\n")
+        attack_log.append(f"{self_name} unleashes a {self.get_ability_name()} at {target_name}, dealing {damage_dealt} damage!\n")
         if target.is_dead(): # If the target is dead, remove them and take their place
             attack_log.append(f"{self_name} has slain {target_name}!\n")
             target_loc.assign_unit(None)
@@ -699,6 +703,7 @@ class Sorcerer(Unit):
         return f"{self.get_name()} heals {healing} hp by siphoning life force\n"
         
     def special_ability(self, target: Unit, space: Space):
+        ability_log = [f"{self.get_name()} releases a {self.get_ability_name()}!\n"]
         attack_log = []
         siphon_targets = 0
         main_damage = self.get_ability_value() + self.get_damage_mod()
@@ -719,9 +724,11 @@ class Sorcerer(Unit):
                 siphon_targets += 1
                 attack_log += (self.magic_power(right_target, splash_damage))
         if siphon_targets == 0:
-            return [f"{self.get_name()} blasts the darkness with arcane energy. It has no effect!\n"]
+            ability_log.append("There was no target, so it has no effect!\n")
+            return ability_log
         attack_log.append(self.siphon_message(siphon_targets))
-        return attack_log
+        ability_log.extend(attack_log)
+        return ability_log
     
     def magic_power(self, target: Unit, damage: int):
         unit_name = self.get_name()
@@ -733,7 +740,7 @@ class Sorcerer(Unit):
         target_hp = target.get_curr_hp()
         self.attack(target, damage, self.__special_damage_type)
         damage_dealt = target_hp - target.get_curr_hp()
-        attack_log.append(f"{unit_name} blasts {target_name} with arcane energy, dealing {damage_dealt} damage!\n")
+        attack_log.append(f"The {self.get_ability_name()} blasts {target_name}, dealing {damage_dealt} damage!\n")
         if target.is_dead():
             attack_log.append(f"{unit_name} has slain {target_name}!\n")
             target.get_space().assign_unit(None)
@@ -781,6 +788,7 @@ class Healer(Unit):
         self._ability_area_of_effect.extend([Direction.UP, Direction.LEFT, Direction.RIGHT, Direction.DOWN])
 
     def special_ability(self, target: Unit, space: Space):
+        ability_log = [f"{self.get_name()} infuses their surroundings with {self.get_ability_name()}.\n"]
         attack_log = []
         top_space = space.get_up()
         if top_space is not None:
@@ -804,19 +812,19 @@ class Healer(Unit):
             if down_target != None:
                 attack_log += (self.magic_power(down_target))
         if len(attack_log) == 0:
-            attack_log.append(f"{self.get_name()} infuses their surroundings with healing magic. The warmth is pleasant, but it has no effect!\n")
-        return attack_log
+            attack_log.append("The warmth is pleasant, but it has no effect!\n")
+        ability_log.extend(attack_log)
+        return ability_log
         
     def magic_power(self, target: Unit):
         if self.get_player() == target.get_player():
-            unit_name = self.get_name()
             target_name = target.get_name()
             attack_log = []
             target_hp = target.get_curr_hp()
             target.heal(self.get_ability_value())
             damage_healed = target.get_curr_hp() - target_hp
             if damage_healed > 0:
-                attack_log.append(f"{unit_name} infuses {target_name} with mystical energy, healing {damage_healed} damage!\n")
+                attack_log.append(f"The {self.get_ability_name()} heals {target_name} for {damage_healed} hp!\n")
         return attack_log
 
 class Archmage(Unit):
@@ -846,6 +854,7 @@ class Archmage(Unit):
         self._ability_area_of_effect.extend([Direction.UP, Direction.LEFT, Direction.RIGHT, Direction.DOWN])
 
     def special_ability(self, target: Unit, space: Space):
+        ability_log = [f"{self.get_name()} unleashes an {self.get_ability_name()}!\n"]
         attack_log = []
         main_damage = self.get_ability_value() + self.get_damage_mod()
         splash_damage = ceil(main_damage/2)
@@ -872,8 +881,9 @@ class Archmage(Unit):
             if down_target != None:
                 attack_log += (self.magic_power(down_target, splash_damage))
         if len(attack_log) == 0:
-            attack_log.append(f"{self.get_name()} blasts the darkness with arcane energy. It has no effect!\n")
-        return attack_log
+            attack_log.append("There was no target, so it has no effect!\n")
+        ability_log.extend(attack_log)
+        return ability_log
         
     def magic_power(self, target: Unit, damage: int):
         unit_name = self.get_name()
@@ -885,7 +895,7 @@ class Archmage(Unit):
         target_hp = target.get_curr_hp()
         self.attack(target, damage, self.__special_damage_type)
         damage_dealt = target_hp - target.get_curr_hp()
-        attack_log.append(f"{unit_name} blasts {target_name} with arcane energy, dealing {damage_dealt} damage!\n")
+        attack_log.append(f"The {self.get_ability_name()} strikes {target_name}, dealing {damage_dealt} damage!\n")
         if target.is_dead():
             attack_log.append(f"{unit_name} has slain {target_name}!\n")
             target.get_space().assign_unit(None)
@@ -937,7 +947,7 @@ class General(Unit):
         self.expend_ability()
         attack_log = []
         self.get_player().get_extra_turns(self.get_ability_value())
-        attack_log.append(f"{self.get_name()} lets out a rallying cry, spurring their forces on! Two of their units may now take an action.\n")
+        attack_log.append(f"{self.get_name()} spurs on their forces with an {self.get_ability_name()}! Two of their units may now take an action.\n")
         return attack_log
 
 
