@@ -159,9 +159,9 @@ class StatsPanel(Panel):
         if new != ' ':
             if diff != 0:
                 if diffType == 0:
-                    self.labels['health'].config(text= f" {new} (- {diff}) / {max}  ")
+                    self.labels['health'].config(text= f" {new} (-{diff}) / {max}  ")
                 else:
-                    self.labels['health'].config(text= f" {new} (+ {diff}) / {max}  ")
+                    self.labels['health'].config(text= f" {new} (+{diff}) / {max}  ")
             else:
                 self.labels['health'].config(text= f" {new} / {max}  ")
         else:
@@ -172,8 +172,8 @@ class StatsPanel(Panel):
             if diff > 0:
                 sign = "+"
             else:
-                sign = "-"
-            self.labels['damage'].config(text= f" {new} ({sign} {diff}) {type} ")
+                sign = ""
+            self.labels['damage'].config(text= f" {new} ({sign}{diff}) {type} ")
         else:
             self.labels['damage'].config(text= f" {new} {type} ")
 
@@ -182,8 +182,8 @@ class StatsPanel(Panel):
             if diff > 0:
                 sign = "+"
             else:
-                sign = "-"
-            self.labels['defense'].config(text= f" {new} ({sign} {diff}) {type} ")
+                sign = ""
+            self.labels['defense'].config(text= f" {new} ({sign}{diff}) {type} ")
         else:
             self.labels['defense'].config(text= f" {new} {type} ")
 
