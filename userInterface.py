@@ -123,7 +123,7 @@ class StatsPanel(Panel):
             'damage' : Label(self.frame, text=' ', image=self.icons['damage'], compound='right'),
             'defense' : Label(self.frame, text=' ', image=self.icons['defense'], compound='right'),
             'movement' : Label(self.frame, text=' ', image=self.icons['movement'], compound='right'),
-            'description' : Message(self.frame, text=' ', width=180)
+            'description' : Message(self.frame, text=' ', width=175)
         }
         
         index = -12
@@ -133,10 +133,9 @@ class StatsPanel(Panel):
             index += 35
 
         self.labels['name'].place(x=0, y=0, anchor='nw')
-        self.labels['description'].place(x=0, y=STATS_IMAGE_SIZE + 33, anchor='nw')
+        self.labels['description'].place(x=0, y=STATS_IMAGE_SIZE + 30, anchor='nw')
 
-        ## TEMP
-        self.update_description('Surge of Bravery', 'A long description describing the Surge of Bravery ability. Here is some extra text.')
+        
 
     # Clear all data from stat display
     def clear(self) -> None:
