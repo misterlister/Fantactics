@@ -325,7 +325,7 @@ class ControlBar(Panel):
         self.labels = {
             'attack' : Label(self.frame, text='Attack [Z]'),
             'ability' : Label(self.frame, text='Ability [X]'),
-            'confirm' : Label(self.frame, text='Confirm Move [Space]'),
+            'confirm' : Label(self.frame, text='Confirm [Space]'),
             'cancel' : Label(self.frame, text='Cancel [LShift]')
         }
 
