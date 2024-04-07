@@ -174,7 +174,7 @@ class Unit:
                     self.__space = space
                     self.__action_space = space
                     space.assign_unit(self)
-                    move_log.append(f"{self.get_name()} -> {space.get_row()},{space.get_col()}.\n")
+                    move_log.append(f"{self.get_name()} -> {chr(space.get_col() + 65)} {space.get_row() + 1}.\n")
                 else:
                     raise Exception("Error: Cannot move unit into another unit's space")
             except Exception as e:

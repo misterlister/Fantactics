@@ -283,8 +283,8 @@ class GameBoard:
             self.ui.statsPanel[panel].update_class(unit.get_unit_type())
             self.ui.statsPanel[panel].update_name(unit.get_name())
             self.ui.statsPanel[panel].update_health(unit.get_curr_hp(), unit.get_max_hp(), damage_preview)
-            self.ui.statsPanel[panel].update_damage(unit.get_damage_val(), '', unit.get_damage_mod())
-            self.ui.statsPanel[panel].update_defense(unit.get_defense_val(), '', unit.get_defense_mod())
+            self.ui.statsPanel[panel].update_damage(unit.get_damage_val(), unit.get_damage_type(), unit.get_damage_mod())
+            self.ui.statsPanel[panel].update_defense(unit.get_armour_type(), unit.get_defense_mod())
             self.ui.statsPanel[panel].update_movement(unit.get_movement())
         else:
             self.clear_stats_panel()

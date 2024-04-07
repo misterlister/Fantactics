@@ -15,7 +15,9 @@ from constants import (
     BORDER_WIDTH,
     FONT,
     DEFAULT_FONT_SIZE,
-    SPRITE_BUFFER
+    SPRITE_BUFFER,
+    DamageType,
+    ArmourType
     )
 
 # It does nothing
@@ -121,7 +123,7 @@ class StatsPanel(Panel):
             'damage' : Label(self.frame, text=' ', image=self.icons['damage'], compound='right'),
             'defense' : Label(self.frame, text=' ', image=self.icons['defense'], compound='right'),
             'movement' : Label(self.frame, text=' ', image=self.icons['movement'], compound='right'),
-            'description' : Message(self.frame, text=' ', width=240)
+            'description' : Message(self.frame, text=' ', width=180)
         }
         
         index = -12
@@ -167,7 +169,18 @@ class StatsPanel(Panel):
         else:
             self.labels['health'].config(text= f"  ")
 
-    def update_damage(self, new: str = ' ', type: str = '', diff: int = 0) -> None:
+    def update_damage(self, new: str = ' ', type: int = 0, diff: int = 0) -> None:
+        if type == DamageType.SLASH:
+            type = 'Slash'
+        elif type == DamageType.PIERCE:
+            type = 'Pierce'
+        elif type == DamageType.BLUDGEON:
+            type = 'Bludgeon'
+        elif type == DamageType.MAGIC:
+            type = 'Magic'
+        else:
+            type = ''
+
         if diff != 0:
             if diff > 0:
                 sign = "+"
@@ -177,15 +190,26 @@ class StatsPanel(Panel):
         else:
             self.labels['damage'].config(text= f" {new} {type} ")
 
-    def update_defense(self, new: str = ' ', type: str = '', diff: int = 0) -> None:
+    def update_defense(self, type: int = 0, diff: int = 0) -> None:
+        if type == ArmourType.ROBES:
+            type = 'Robes'
+        elif type == ArmourType.PADDED:
+            type = 'Padded'
+        elif type == ArmourType.CHAIN:
+            type = 'Chain'
+        elif type == ArmourType.PLATE:
+            type = 'Plate'
+        else:
+            type = ''
+
         if diff != 0:
             if diff > 0:
                 sign = "+"
             else:
                 sign = "-"
-            self.labels['defense'].config(text= f" {new} ({sign} {diff}) {type} ")
+            self.labels['defense'].config(text= f" ({sign} {diff}) {type} ")
         else:
-            self.labels['defense'].config(text= f" {new} {type} ")
+            self.labels['defense'].config(text= f" {type} ")
 
     def update_movement(self, new: str = ' ', type: str = '') -> None:
         self.labels['movement'].config(text= f" {new} {type} ")
@@ -270,12 +294,6 @@ class TerrainPanel(Panel):
             self.labels['movement'].config(text=f"+ {new}")
         else:
             self.labels['movement'].config(text=f"")
-
-    def update_healing(self, new: int = 0):
-        if new != 0:
-            self.labels['healing'].config(text=f"+ {new}")
-        else:
-            self.labels['healing'].config(text=f" ")
 
 # Attack, special ability, wait, cancel
 # Class for bottom side control bar
