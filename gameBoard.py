@@ -31,7 +31,7 @@ from space import (
     Path
     )
 from clientSender import Sender
-
+from random import randint
 class GameBoard:
     def __init__(
             self,
@@ -518,7 +518,7 @@ class GameBoard:
 
     def cancel_action(self):
         self.__action_space = None
-        self.draw_all_spaces()
+        #self.draw_all_spaces()
         self.deselect_space()
         self.clear_stats_panel()
         self.ui.controlBar.buttons['attack'].untoggle_keys()
@@ -578,7 +578,7 @@ class GameBoard:
     def set_unit_buttons(self, unit: Unit, space: Space):
         self.ui.controlBar.buttons['attack'].change_unclick_func(lambda: self.set_attack_spaces(unit, space))
         self.ui.controlBar.buttons['ability'].change_unclick_func(lambda: self.set_ability_spaces(unit, space))
-        self.ui.controlBar.buttons['confirm'].change_unclick_func(lambda: self.move_and_wait(unit, space))
+        self.ui.controlBar.buttons['confirm'].change_unclick_func(lambda: self.confirm(unit, space))
         self.ui.controlBar.buttons['cancel'].change_unclick_func(self.cancel_action)
 
     def unset_unit_buttons(self):
@@ -615,7 +615,7 @@ class GameBoard:
         for message in attack_log:
             self.ui.logItems['text'].add_text(message)
         self.__action_space = None
-        self.draw_all_spaces()
+        #self.draw_all_spaces()
         self.deselect_space()
         
     def preview_sprite(self, unit: Unit, space: Space):
@@ -644,15 +644,22 @@ class GameBoard:
         special_log = unit.special_ability(space.get_unit(), space)
         for message in special_log:
             self.ui.logItems['text'].add_text(message)
-        self.draw_all_spaces()
+        #self.draw_all_spaces()
 
     def end_turn(self):
         self.__game_state.next_turn()
 
+    def confirm(self, unit: Unit, space: Space):
+            self.sender.move(self.__action_space,unit,space)
+            self.move_and_wait(unit,space)
+
     def move_and_wait(self, unit: Unit, space: Space):
-        print("MOVE AND WAIT")
         self.ui.controlBar.buttons['attack'].untoggle_keys()
+        print("INSIDE MOVE_AND_WAIT!!!")
+
         self.move_unit(unit, space)
+        print("INSIDE MOVE_AND_WAIT!!! 2222")
+
         self.end_turn()
     
 class MapLayout:
@@ -661,35 +668,47 @@ class MapLayout:
     FT = TerrainType.FORTRESS
     PT = TerrainType.PATH
     Maps = {
-        "Great Plains": [
+        "Great_Plains": [
             PL, PL, PL, PL, PL, PL, PL, PL,
             PL, PL, PL, PL, PL, PL, PL, PL,
             FS, PT, PT, PL, FS, PT, PL, PT,
             PL, PT, FT, FS, PL, PT, PT, PT
         ],
-        "Checkered Woods": [
+        "Checkered_Woods": [
             PL, PL, PT, PL, PL, PL, PL, FS,
             PL, PL, PT, PL, PL, PL, FS, PL,
             PT, PT, PT, FS, PL, FS, PL, FS,
             PT, FT, FS, PL, FS, PL, FS, PL
         ],
-        "Forest Ambush": [
+        "Forest_Ambush": [
             FS, PL, PL, PL, PL, PT, PL, PL,
             FS, PL, PL, PT, PT, PT, FS, FS,
             PL, PL, FS, PT, FS, PT, PT, FS,
             PT, FS, FS, FT, FS, FS, PT, PT
         ],
-        "Centre Road": [
+        "Centre_Road": [
             PL, PL, PL, PL, PL, PT, PL, PL,
             PL, PL, FS, PT, PT, PT, PL, FS,
             FS, PL, PL, PT, FS, PL, PL, PL,
             FS, FS, PT, PT, PT, FT, PL, FS
         ],
-        "Fortresses of Altria": [
+        "Fortresses_of_Altria": [
             PL, PL, PT, PT, PT, PT, PT, PL,
             PL, PL, PT, PL, PL, PL, PT, PL,
             FT, PL, PT, FS, FS, PT, PT, FS,
             PT, PT, PT, FS, FS, FT, PL, FS
         ],
     }
+
+    def get_random_map(self):
+
+        map_names = []
+        for k in self.Maps.keys():
+            map_names.append(k)
+        num_maps = len(map_names)
+        num = randint(0,(num_maps-1))
+        return map_names[num]
+
+    def get_map(self,map_name:str):
+        return self.Maps[map_name]
     

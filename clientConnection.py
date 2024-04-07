@@ -54,6 +54,14 @@ class Receiver():
 
         if message == "[CLR:BLACK]":
             self.game.set_player_colour("black")
+            
+        if message[1:4] == "MAP":
+            mname = message[5:-1]
+            self.game.set_map_name(mname)
+
+        if message == "[CLR:BLACK]":
+            self.game.set_player_colour("black")
+
 
         if message == "[RDY]":
             self.menu.setOpponentReady()

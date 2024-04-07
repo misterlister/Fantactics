@@ -4,6 +4,7 @@ from constants import *
 from serverConnection import *
 from serverSender import ServerSender
 from errors import errorMessage
+from gameBoard import MapLayout
 
 this_file = "server.py"
 
@@ -40,9 +41,13 @@ if __name__ == "__main__":
     serverConn = ServerConnection(conn1, conn2)
     sender = ServerSender(serverConn)
     receiver = Receiver(serverConn, sender)
-    
-    sender.sendString(serverConn.get_white_conn(), "[CLR:WHITE]")
-    sender.sendString(serverConn.get_black_conn(), "[CLR:BLACK]")
+    layout = MapLayout()
+    my_map = layout.get_random_map()
+    white_msg = "[CLR:WHITE]\n [MAP:" + my_map + "]\n"
+    black_msg = "[CLR:BLACK]\n [MAP:" + my_map + "]\n"
+    sender.sendString(serverConn.get_white_conn(), white_msg)
+    sender.sendString(serverConn.get_black_conn(), black_msg)
+
 
     # Register the file opjects for each connections with receive_data as the callback.
     sel.register(conn1, selectors.EVENT_READ, receiver.receive_data)

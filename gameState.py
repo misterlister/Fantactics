@@ -106,10 +106,12 @@ class GameState:
             player2: Player,
             board: GameBoard,
             ui,
-            sender: Sender
+            sender: Sender,
+            map_name: str
             ) -> None:
         self.player1 = player1
         self.player2 = player2
+        self.map_name = map_name
         self.board = board
         self.ui = ui
         self.sender = sender
@@ -145,7 +147,7 @@ class GameState:
             self.setup_row(6, 7, p1_units_r2, True) 
             self.player1.assign_units(p1_units_r1+p1_units_r2)
             self.player1.join_game(self)
-            game_map = self.select_map()
+            game_map = self.get_map(self.map_name)
             self.board.setup_map(game_map)
             self.board.draw_all_spaces()
 
@@ -199,6 +201,12 @@ class GameState:
             unit._place(self.board.get_space(row, col))
             return True
         return False
+    
+    def get_map(self, map_name: str):
+        map =  MapLayout.Maps[map_name]
+        for i in range((len(map)-1), -1, -1):
+            map.append(map[i])
+        return map
     
     def select_map(self):
         map_size = BOARD_COLS * BOARD_ROWS
@@ -290,6 +298,8 @@ class GameState:
         
     
     def next_turn(self):
+
+        print("IT IS TURN # ", self.__turn_count)
         if self.check_victory_conditions():
             self.end_game()
         else:
@@ -308,11 +318,15 @@ class GameState:
                     self.player1.end_turn()
                     self.sender.end_turn()
                     self.set_turn(self.player2)
+                    if self.player1.get_team_colour == "black":
+                        self.__turn_count += 1
                     self.player2.advance_timed_effects()
                     self.ui.logItems['text'].insert_turn_divider()
                 else:
                     self.player2.end_turn()
                     self.set_turn(self.player1)
+                    if self.player2.get_team_colour == "black":
+                        self.__turn_count += 1
                     self.__turn_count += 1
                     self.player1.advance_timed_effects()
                     self.ui.logItems['text'].insert_turn_divider()

@@ -31,6 +31,7 @@ class Game():
         self.userInterface = None
         self.board = None
         self.state = None
+        self.map_name = None
         
     def start(self):
         self.userInterface = UserInterface(self.root)
@@ -43,10 +44,13 @@ class Game():
         else:
             self.player1 = Player("black")
             self.player2 = Player("white")
-        self.state = GameState(self.player1, self.player2, self.board, self.userInterface,self.sender)
+        self.state = GameState(self.player1, self.player2, self.board, self.userInterface,self.sender, self.map_name)
 
     def set_player_colour(self, colour:str):
         self.player_colour = colour
+
+    def set_map_name(self, map: str):
+        self.map_name = map
 
 class StartMenu(Panel):
     def __init__(
