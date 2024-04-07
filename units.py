@@ -22,7 +22,8 @@ class Unit:
             ability_name,
             ability_range,
             ability_min_range,
-            ability_value
+            ability_value,
+            ability_description
             ) -> None:
         
         self.__unit_type = unit_type
@@ -40,6 +41,7 @@ class Unit:
         self.__ability_range = ability_range
         self.__ability_min_range = ability_min_range
         self.__ability_value = ability_value
+        self.__ability_description = ability_description
         self.__ability_disabled_duration = 0
         self.__ability_used = False
         self.__space = None # Space where a unit currently is
@@ -102,6 +104,9 @@ class Unit:
     
     def get_ability_value(self):
         return self.__ability_value
+    
+    def get_ability_description(self):
+        return self.__ability_description
     
     def get_ability_targets(self):
         return self.__ability_targets
@@ -265,14 +270,7 @@ class Unit:
         return atk_damage
 
     def special_ability(self, target, space):
-        # TEMP
-        messages = []
-        if target == None or target == self:
-            messages.append(f"{self.__name} used {self.__ability_name} on themself")
-        else:
-            messages.append(f"{self.__name} used {self.__ability_name} on {target.get_name()}")
-        return messages
-        #
+        pass
 
     def die(self):
         self.__dead = True
@@ -410,8 +408,10 @@ class Peasant(Unit):
         ability_range = 1
         ability_min_range = 0
         ability_value = 1
-        super().__init__(unit_type, hp, dam_val, dam_type, def_val, arm_type, move, move_type, 
-                         sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
+        ability_description = f"Increases attack and defense by {ability_value} for one turn, usable once per game"
+        super().__init__(unit_type, hp, dam_val, dam_type, def_val, arm_type, move, 
+                         move_type, sprite, name_list, title_list, ability_name, 
+                         ability_range, ability_min_range, ability_value, ability_description)
         self.set_ability_targets(TARGET_SELF_ENEMIES)
         self.__brave = False
         
@@ -499,7 +499,7 @@ class Soldier(Unit):
         hp=16
         dam_val=6
         dam_type=DamageType.PIERCE
-        def_val=0#1
+        def_val=0
         arm_type=ArmourType.CHAIN
         move=MoveSpeed.MED
         move_type = MoveType.FOOT
@@ -513,8 +513,10 @@ class Soldier(Unit):
         ability_range = 1
         ability_min_range = 1
         ability_value = None
-        super().__init__(unit_type, hp, dam_val, dam_type, def_val, arm_type, move, move_type, 
-                         sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
+        ability_description = "A Soldier may swap places with an adjacent ally"
+        super().__init__(unit_type, hp, dam_val, dam_type, def_val, arm_type, move, 
+                         move_type, sprite, name_list, title_list, ability_name, 
+                         ability_range, ability_min_range, ability_value, ability_description)
         self.set_ability_targets(TARGET_ALLIES)
 
     def special_ability(self, target: Unit, space: Space):
@@ -548,8 +550,10 @@ class Archer(Unit):
         ability_range = 5
         ability_min_range = 2
         ability_value = 8
-        super().__init__(unit_type, hp, dam_val, dam_type, def_val, arm_type, move, move_type, 
-                         sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
+        ability_description = f"Attack a foe from between {ability_min_range} and {ability_range} spaces away"
+        super().__init__(unit_type, hp, dam_val, dam_type, def_val, arm_type, move, 
+                         move_type, sprite, name_list, title_list, ability_name, 
+                         ability_range, ability_min_range, ability_value, ability_description)
         self.set_ability_targets(TARGET_ENEMIES)
         self.__special_damage_type = DamageType.PIERCE
 
@@ -591,7 +595,7 @@ class Cavalry(Unit):
         hp=18
         dam_val=7
         dam_type=DamageType.SLASH
-        def_val=0#1
+        def_val=0
         arm_type=ArmourType.PLATE
         move=MoveSpeed.FAST
         move_type = MoveType.HORSE
@@ -605,10 +609,13 @@ class Cavalry(Unit):
         ability_range = 1
         ability_min_range = 0
         ability_value = 6
-        super().__init__(unit_type, hp, dam_val, dam_type, def_val, arm_type, move, move_type, 
-                         sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
-        self.set_ability_targets(TARGET_ENEMIES)
         self.__ability_duration = 2
+        ability_description = f"A slightly weaker attack that disables an enemy's ability for {self.__ability_duration} turns"
+        super().__init__(unit_type, hp, dam_val, dam_type, def_val, arm_type, move, 
+                         move_type, sprite, name_list, title_list, ability_name, 
+                         ability_range, ability_min_range, ability_value, ability_description)
+        self.set_ability_targets(TARGET_ENEMIES)
+        
     
     # Variation of movement verification that can pass all units except Enemy-aligned Soldiers
     def verify_space_pass(self, space: Space, target_dict, action) -> bool:
@@ -679,8 +686,10 @@ class Sorcerer(Unit):
         ability_range = 4
         ability_min_range = 0
         ability_value = 7
-        super().__init__(unit_type, hp, dam_val, dam_type, def_val, arm_type, move, move_type, 
-                         sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
+        ability_description = f"Attack up to three targets in a horizontal line, up to {ability_range} spaces away"
+        super().__init__(unit_type, hp, dam_val, dam_type, def_val, arm_type, move, 
+                         move_type, sprite, name_list, title_list, ability_name, 
+                         ability_range, ability_min_range, ability_value, ability_description)
         self.set_ability_targets(TARGET_ALL)
         self.__special_damage_type = DamageType.MAGIC
         self._ability_area_of_effect.extend([Direction.LEFT, Direction.RIGHT])
@@ -774,7 +783,7 @@ class Healer(Unit):
         hp=15
         dam_val=6
         dam_type=DamageType.BLUDGEON
-        def_val=0#1
+        def_val=0
         arm_type=ArmourType.CHAIN
         move=MoveSpeed.MED
         move_type = MoveType.FOOT
@@ -788,8 +797,10 @@ class Healer(Unit):
         ability_range = 0
         ability_min_range = 0
         ability_value = 5
-        super().__init__(unit_type, hp, dam_val, dam_type, def_val, arm_type, move, move_type, 
-                         sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
+        ability_description = f"Restore up to {ability_value} hp to all adjacent allies"
+        super().__init__(unit_type, hp, dam_val, dam_type, def_val, arm_type, move, 
+                         move_type, sprite, name_list, title_list, ability_name, 
+                         ability_range, ability_min_range, ability_value, ability_description)
         self.set_ability_targets(TARGET_SELF)
         self._ability_area_of_effect.extend([Direction.UP, Direction.LEFT, Direction.RIGHT, Direction.DOWN])
 
@@ -853,8 +864,10 @@ class Archmage(Unit):
         ability_range = 3
         ability_min_range = 0
         ability_value = 8
-        super().__init__(unit_type, hp, dam_val, dam_type, def_val, arm_type, move, move_type, 
-                         sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
+        ability_description = f"Attack up to 5 enemies in a cross pattern, up to {ability_range} spaces away"
+        super().__init__(unit_type, hp, dam_val, dam_type, def_val, arm_type, move, 
+                         move_type, sprite, name_list, title_list, ability_name, 
+                         ability_range, ability_min_range, ability_value, ability_description)
         self.set_ability_targets(TARGET_ALL)
         self.__special_damage_type = DamageType.MAGIC
         self._ability_area_of_effect.extend([Direction.UP, Direction.LEFT, Direction.RIGHT, Direction.DOWN])
@@ -934,7 +947,7 @@ class General(Unit):
         hp=24
         dam_val=8
         dam_type=DamageType.SLASH
-        def_val=0#2
+        def_val=0
         arm_type=ArmourType.PLATE
         move=MoveSpeed.SLOW
         move_type = MoveType.FOOT
@@ -948,15 +961,18 @@ class General(Unit):
         ability_range = 0
         ability_min_range = 0
         ability_value = 2
-        super().__init__(unit_type, hp, dam_val, dam_type, def_val, arm_type, move, move_type, 
-                         sprite, name_list, title_list, ability_name, ability_range, ability_min_range, ability_value)
+        ability_description = f"Allows {ability_value} allies to take an action this turn, usable once per game"
+        super().__init__(unit_type, hp, dam_val, dam_type, def_val, arm_type, move, 
+                         move_type, sprite, name_list, title_list, ability_name, 
+                         ability_range, ability_min_range, ability_value, ability_description)
         self.set_ability_targets(TARGET_SELF)
         
     def special_ability(self, target: Unit, space: Space):
         self.expend_ability()
         attack_log = []
-        self.get_player().get_extra_turns(self.get_ability_value())
-        attack_log.append(f"{self.get_name()} spurs on their forces with an {self.get_ability_name()}! Two of their units may now take an action.\n")
+        ability_val = self.get_ability_value()
+        self.get_player().get_extra_turns(ability_val)
+        attack_log.append(f"{self.get_name()} spurs on their forces with an {self.get_ability_name()}! {ability_val} of their units may now take an action.\n")
         return attack_log
 
 
