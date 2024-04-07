@@ -240,13 +240,13 @@ class TerrainPanel(Panel):
         self.empty = ImageTk.PhotoImage(Image.open(EMPTY_SPRITE))
         self.bgImg = ImageTk.PhotoImage(Image.open('Assets/terrain_image_background.png'))
         self.selectedSprite = self.spriteCanvas.create_image(0, 0, anchor='nw', image=self.bgImg)
-        self.selectedSprite = self.spriteCanvas.create_image(SPRITE_BUFFER, SPRITE_BUFFER, anchor = 'nw', image=self.empty)
+        self.selectedSprite = self.spriteCanvas.create_image(SPRITE_BUFFER*2, SPRITE_BUFFER*2, anchor = 'nw', image=self.empty)
 
         self.nameLabel = Label(self.frame, text='', bg=bgColour, fg=textColour, font=(FONT, 2 * DEFAULT_FONT_SIZE))
-        self.nameLabel.place(x=STATS_IMAGE_SIZE + (2 * BORDER_WIDTH) + 1 , y=0)
+        self.nameLabel.place(x=STATS_IMAGE_SIZE + (6 * BORDER_WIDTH) + 1 , y=0)
 
         self.descriptionLabel = Message(self.frame, text='', bg=bgColour, fg=textColour, font=(FONT, DEFAULT_FONT_SIZE), width=160)
-        self.descriptionLabel.place(x=STATS_IMAGE_SIZE + (2 * BORDER_WIDTH) + 1 , y=40)
+        self.descriptionLabel.place(x=STATS_IMAGE_SIZE + (5 * BORDER_WIDTH) + 1 , y=40)
 
         self.icons = {
             'defense' : ImageTk.PhotoImage(Image.open('Assets/Icons/armour.png')),
@@ -261,7 +261,7 @@ class TerrainPanel(Panel):
         index = 34
         for item in self.labels:
             self.labels[item].config(bg=bgColour, fg=textColour, font=(FONT, DEFAULT_FONT_SIZE))
-            self.labels[item].place(x=index, y=STATS_IMAGE_SIZE + 8, anchor='n')
+            self.labels[item].place(x=index, y=STATS_IMAGE_SIZE + 10, anchor='n')
             index += 64
 
 
@@ -288,9 +288,18 @@ class TerrainPanel(Panel):
 
     def update_movement(self, new: int = 0):
         if new != 0:
-            self.labels['movement'].config(text=f"+ {new}")
+            self.labels['movement'].config(text=f"{new}")
         else:
             self.labels['movement'].config(text=f"")
+            
+    def update_terrain_panel(self, image: ImageTk=None, name: str="", description:str="", defense: int=0, movement: int=0):
+        if image == None:
+            image = self.empty
+        self.update_image(image)
+        self.update_name(name)
+        self.update_description(description)
+        self.update_defense(defense)
+        self.update_movement(movement)
 
 # Attack, special ability, wait, cancel
 # Class for bottom side control bar

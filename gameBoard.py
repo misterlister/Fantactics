@@ -150,6 +150,7 @@ class GameBoard:
                 return
             self.deselect_space()
         self.select_space(space)
+        self.update_terrain_panel(space)
         self.update_stats_panel(self.__selected_unit)
         return
 
@@ -158,6 +159,7 @@ class GameBoard:
         if unit.get_player().is_current_turn():
             if self.__attack_spaces != None: # Attack range is active
                 if space in self.__attack_spaces: # A valid target is selected
+                    self.update_terrain_panel(space)
                     if space == self.__target_space and self.__action_confirmed:
                         ### Send self.__action_space, unit, space, attack_action to server
                         self.attack_action(unit, space)
@@ -170,6 +172,7 @@ class GameBoard:
                     self.unconfirm_action()
                     return
                 if space in self.__ability_spaces: # A valid target is selected
+                    self.update_terrain_panel(space)
                     if space == self.__target_space and self.__action_confirmed:
                         ### Send self.__action_space, unit, space, ability_action to server
                         self.ability_action(unit, space)
@@ -186,6 +189,7 @@ class GameBoard:
             elif space in self.__valid_moves: # A new action space is selected
                 self.set_action_space(unit, space)
                 self.set_attack_spaces(unit, space)
+                self.update_terrain_panel(space)
                 return
         else:
             if self.__game_state.game_is_over():
@@ -307,6 +311,18 @@ class GameBoard:
     def clear_stats_panel(self):
         for panel in self.ui.statsPanel:
             self.ui.statsPanel[panel].clear()
+            
+    def update_terrain_panel(self, space):
+        terrain = space.get_terrain()
+        image = self.window.get_sprite(terrain.get_sprite())
+        name = terrain.get_name()
+        description = terrain.get_description()
+        defense = terrain.get_defense_mod()
+        movement = terrain.get_move_cost()
+        self.ui.statsPanel["terrainPanel"].update_terrain_panel(image, name, description, defense, movement)
+            
+    def clear_terrain_panel(self):
+        self.ui.statsPanel["terrainPanel"].update_terrain_panel()
 
     def outline_space(self, space: Space, colour: str) -> None:
         row = space.get_row()
@@ -512,6 +528,7 @@ class GameBoard:
         self.draw_all_spaces()
         self.deselect_space()
         self.clear_stats_panel()
+        self.clear_terrain_panel()
         self.ui.controlBar.buttons['attack'].untoggle_keys()
 
     def get_col_x(self, col):
