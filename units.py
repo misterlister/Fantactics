@@ -2,7 +2,28 @@ from math import ceil
 from graphics import SpriteType
 from random import randint
 from names import Names, Titles
-from constants import *
+from constants import (
+    TARGET_NONE,
+    TARGET_ALL,
+    TARGET_ALLIES,
+    TARGET_ENEMIES,
+    TARGET_SELF,
+    TARGET_SELF_ENEMIES,
+    TargetType,
+    DamageType,
+    ArmourType,
+    MoveType,
+    MoveSpeed,
+    FIRST_STRIKE_BOOST,
+    Direction,
+    BOARD_ROWS,
+    Effect,
+    POOR_EFFECT_MOD,
+    STRONG_EFFECT_MOD,
+    ActionType,
+    AURA_MOD,
+    AURA_RANGE
+)
 from space import Space
 
 class Unit:
