@@ -21,17 +21,31 @@ bound = int(WINDOW_WIDTH/3)
 
 class Game():
     def __init__(self, root, window) -> None:
-        self.userInterface = UserInterface(root)
-        self.board = GameBoard(window, root, self.userInterface)
-        self.player1 = Player("white")
-        self.player2 = Player("black")
+        self.root = root
+        self.window = window
+    
+    def start(self):
+        self.userInterface = UserInterface(self.root)
+        self.board = GameBoard(self.window, self.root, self.userInterface)
+        
+        if(self.player_colour == "white"):
+            self.player1 = Player("white")
+            self.player2 = Player("black")
+
+        else:
+            self.player1 = Player("black")
+            self.player2 = Player("white")
         self.gameState = GameState(self.player1, self.player2, self.board, self.userInterface)
+
+    def set_player_colour(self, colour:str):
+        self.player_colour = colour
 
 class StartMenu(Panel):
     def __init__(
             self, 
             root: Tk,
             window: Window, 
+            game: Game,
             xPos: int = 0, 
             yPos: int = 0, 
             width: int = WINDOW_WIDTH, 
@@ -51,6 +65,9 @@ class StartMenu(Panel):
         self.sprites = [[],[]]
         self.img = [[],[]]
         self.speed = [[],[]]
+        self.__playerReady = False
+        self.__opponentReady = True
+        self.game = game
 
         for i in range(numSprites):
             self.sprites[0].append(self.canvas.create_image(random.randint(0, bound), random.uniform(1.0, floatRange) * -60, anchor='nw'))
@@ -121,12 +138,11 @@ class StartMenu(Panel):
         load = load.resize((int((16 * 4) * self.scale), int((17 * 4) * self.scale)), Image.LANCZOS)
         self.img[colour][index] = ImageTk.PhotoImage(load)
         self.canvas.itemconfig(sprite, image=self.img[colour][index])
-        
 
     def play(self):
-        Game(self.root, self.window)
-        self.enabled = False
-        self.canvas.destroy()
+        self.__playerReady = True
+        if self.__opponentReady:
+            self.start()
 
     def options(self):
         pass
@@ -134,3 +150,13 @@ class StartMenu(Panel):
     def exit(self):
         self.enabled = False
         self.root.destroy()
+
+    def start(self):
+        self.game.start()
+        self.enabled = False
+        self.canvas.destroy()
+
+    def setOpponentReady(self):
+        self.__opponentReady = True
+        if self.__playerReady:
+            self.start()

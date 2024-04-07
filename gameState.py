@@ -118,18 +118,27 @@ class GameState:
 
     def setup_board(self):
         try:
-            p2_units_r1 = [Archer(False), Cavalry(False), Healer(False), Archmage(False), 
-                           General(False), Sorcerer(False), Cavalry(False), Archer(False)]
+            
+            if self.player1.get_team_colour() == "white":
+                player_white = True
+                opp_white = False
+
+            else:
+                player_white = False
+                opp_white = True
+
+            p2_units_r1 = [Archer(opp_white), Cavalry(opp_white), Healer(opp_white), Archmage(opp_white), 
+                           General(opp_white), Sorcerer(opp_white), Cavalry(opp_white), Archer(opp_white)]
             self.setup_row(0, 0, p2_units_r1, False)        
-            p2_units_r2 = [Peasant(False), Peasant(False), Soldier(False), Soldier(False), 
-                           Soldier(False), Soldier(False), Peasant(False), Peasant(False)]
+            p2_units_r2 = [Peasant(opp_white), Peasant(opp_white), Soldier(opp_white), Soldier(opp_white), 
+                           Soldier(opp_white), Soldier(opp_white), Peasant(opp_white), Peasant(opp_white)]
             self.setup_row(1, 0, p2_units_r2, False) 
             self.player2.assign_units(p2_units_r1+p2_units_r2)
             self.player2.join_game(self)
 
-            p1_units_r1 = [Archer(), Cavalry(), Healer(), Archmage(), General(), Sorcerer(), Cavalry(), Archer()]
+            p1_units_r1 = [Archer(player_white), Cavalry(player_white), Healer(player_white), Archmage(player_white), General(player_white), Sorcerer(player_white), Cavalry(player_white), Archer(player_white)]
             self.setup_row(7, 7, p1_units_r1, True)          
-            p1_units_r2 = [Peasant(), Peasant(), Soldier(), Soldier(), Soldier(), Soldier(), Peasant(), Peasant()]
+            p1_units_r2 = [Peasant(player_white), Peasant(player_white), Soldier(player_white), Soldier(player_white), Soldier(player_white), Soldier(player_white), Peasant(player_white), Peasant(player_white)]
             self.setup_row(6, 7, p1_units_r2, True) 
             self.player1.assign_units(p1_units_r1+p1_units_r2)
             self.player1.join_game(self)

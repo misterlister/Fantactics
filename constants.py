@@ -221,3 +221,14 @@ TARGET_SELF_ENEMIES = {
     TargetType.NONE: False
 }
 
+# Maximum length of message and size of message buffer
+MAX_MESSAGE_SIZE = 256
+
+#Receiver timeout length in seconds
+TIMEOUT_LENGTH = 2
+
+#IP Address of Host:
+IP = "localhost"
+
+#Port used for server listen socket.
+PORT = 5000
