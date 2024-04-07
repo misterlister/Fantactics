@@ -190,7 +190,7 @@ class StatsPanel(Panel):
         else:
             self.labels['damage'].config(text= f" {new} {type} ")
 
-    def update_defense(self, type: int = 0, diff: int = 0) -> None:
+    def update_defense(self, new: str = ' ', type: int = 0, diff: int = 0) -> None:
         if type == ArmourType.ROBES:
             type = 'Robes'
         elif type == ArmourType.PADDED:
