@@ -123,7 +123,7 @@ class StatsPanel(Panel):
             'damage' : Label(self.frame, text=' ', image=self.icons['damage'], compound='right'),
             'defense' : Label(self.frame, text=' ', image=self.icons['defense'], compound='right'),
             'movement' : Label(self.frame, text=' ', image=self.icons['movement'], compound='right'),
-            'description' : Message(self.frame, text=' ', width=175)
+            'description' : Message(self.frame, text=' ', width=165)
         }
         
         index = -12
@@ -133,9 +133,7 @@ class StatsPanel(Panel):
             index += 35
 
         self.labels['name'].place(x=0, y=0, anchor='nw')
-        self.labels['description'].place(x=0, y=STATS_IMAGE_SIZE + 30, anchor='nw')
-
-        
+        self.labels['description'].place(x=0, y=STATS_IMAGE_SIZE + 35, anchor='nw')
 
     # Clear all data from stat display
     def clear(self) -> None:
@@ -508,10 +506,7 @@ class CombatLog():
             colour: str = UI_BG_COLOUR
             ) -> None:
         
-        #self.bar = Scrollbar(root, orient='vertical')
-        #self.bar.pack(side='right', fill='y')
-        
-        self.text = Text(root, state='disabled', bg=colour, fg='white', bd=0, font=(FONT, DEFAULT_FONT_SIZE), wrap='word') # Add ', yscrollcommand=self.bar.set' for scrollbar, not currently functional
+        self.text = Text(root, state='disabled', bg=colour, fg='white', bd=0, font=(FONT, DEFAULT_FONT_SIZE), wrap='word') 
         self.text.pack(side='left', expand='True', anchor='nw', fill='both')
         self.text.place(x=xPos, y=yPos, height=height - xPos, width=width)
         #self.text.tag_config("red", foreground='red')

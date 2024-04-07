@@ -134,6 +134,3 @@ class StartMenu(Panel):
     def exit(self):
         self.enabled = False
         self.root.destroy()
-
-    
-
