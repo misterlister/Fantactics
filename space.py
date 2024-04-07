@@ -1,11 +1,12 @@
 from constants import TerrainType
 
 class Terrain:
-    def __init__(self, space, sprite, move_cost, defense_mod) -> None:
+    def __init__(self, space, sprite, move_cost, defense_mod, description) -> None:
         self.__space = space
         self._sprite = sprite
         self.__move_cost = move_cost
         self.__defense_mod = defense_mod
+        self.__description = description
         
     def get_space(self):
         return self.__space
@@ -19,19 +20,24 @@ class Terrain:
     def get_defense_mod(self):
         return self.__defense_mod
     
+    def get_description(self):
+        return self.__description
+    
 class Plains(Terrain):
     def __init__(self, space) -> None:
         sprite = TerrainType.PLAINS
         move_cost = 1
         defense_mod = 0
-        super().__init__(space, sprite, move_cost, defense_mod)
+        description = "A basic terrain that provides no bonuses or penalties"
+        super().__init__(space, sprite, move_cost, defense_mod, description)
         
 class Forest(Terrain):
     def __init__(self, space) -> None:
         sprite = None
         move_cost = 1.5
         defense_mod = 1
-        super().__init__(space, sprite, move_cost, defense_mod)
+        description = "Provides cover at the cost of mobility, particularly for mounted units"
+        super().__init__(space, sprite, move_cost, defense_mod, description)
         
     def get_sprite(self):
         if self._sprite == None:
@@ -66,14 +72,16 @@ class Fortress(Terrain):
         sprite = TerrainType.FORTRESS
         move_cost = 1
         defense_mod = 2
-        super().__init__(space, sprite, move_cost, defense_mod)
+        description = "Provides a substantial defensive bonus, with no cost to mobility"
+        super().__init__(space, sprite, move_cost, defense_mod, description)
         
 class Path(Terrain):
     def __init__(self, space) -> None:
         sprite = None
         move_cost = 0.7
         defense_mod = 0
-        super().__init__(space, sprite, move_cost, defense_mod)
+        description = "Provides additional mobility when traveled upon"
+        super().__init__(space, sprite, move_cost, defense_mod, description)
         
     def get_sprite(self):
         if self._sprite == None:
