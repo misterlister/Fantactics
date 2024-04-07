@@ -294,6 +294,7 @@ class GameBoard:
             self.ui.statsPanel[panel].update_damage(damage_val, damage_type, unit.get_damage_mod())
             self.ui.statsPanel[panel].update_defense(unit.get_armour_type(), unit.get_defense_mod())
             self.ui.statsPanel[panel].update_movement(unit.get_movement())
+            self.ui.statsPanel[panel].update_description(unit.get_ability_name(), unit.get_ability_description())
         else:
             self.clear_stats_panel()
             
