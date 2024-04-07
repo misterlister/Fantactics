@@ -23,7 +23,6 @@ from constants import (
 from random import randint
 
 from clientSender import Sender
-
 class Player:
     def __init__(self, team: str) -> None:
         self.__units = []
@@ -132,10 +131,10 @@ class GameState:
                 opp_white = True
 
             p2_units_r1 = [Archer(opp_white), Cavalry(opp_white), Healer(opp_white), Archmage(opp_white), 
-                           General(opp_white), Sorcerer(opp_white), Cavalry(opp_white), Archer(opp_white)]
+                            General(opp_white), Sorcerer(opp_white), Cavalry(opp_white), Archer(opp_white)]
             self.setup_row(0, 0, p2_units_r1, False)        
             p2_units_r2 = [Peasant(opp_white), Peasant(opp_white), Soldier(opp_white), Soldier(opp_white), 
-                           Soldier(opp_white), Soldier(opp_white), Peasant(opp_white), Peasant(opp_white)]
+                            Soldier(opp_white), Soldier(opp_white), Peasant(opp_white), Peasant(opp_white)]
             self.setup_row(1, 0, p2_units_r2, False) 
             self.player2.assign_units(p2_units_r1+p2_units_r2)
             self.player2.join_game(self)
@@ -298,6 +297,8 @@ class GameState:
                 self.__turn_count += 1
                 if self.player1.get_team_colour() == "white":
                     self.set_turn(self.player1)
+                else:
+                    self.set_turn(self.player2)
                 self.ui.logItems['text'].insert_turn_divider()
             else:
                 # If the current player has an extra turn, don't change turns
@@ -305,7 +306,7 @@ class GameState:
                     self.__current_player.use_extra_turn()
                 elif self.__current_player == self.player1:
                     self.player1.end_turn()
-                    self.sender.send("[ENDTURN]")
+                    self.sender.end_turn()
                     self.set_turn(self.player2)
                     self.player2.advance_timed_effects()
                     self.ui.logItems['text'].insert_turn_divider()

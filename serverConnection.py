@@ -62,29 +62,74 @@ class Receiver:
             if conn.fileno() == self.conn.get_black_fileno():
                 receiver = self.conn.get_white_conn()
                 sender = self.conn.get_black_conn()
-
                 msg_sender = "black"
 
 
-            message = data.decode('ascii')
-            message = message.strip()
-            
-            print("Msg:", message)
-            
-            if(message == "[RDY]"):
-                if msg_sender == "white":
-                    self.white_ready = True
+            message_string = data.decode('ascii')
+            messages = data.decode('ascii').split()
 
-                if msg_sender == "black":
-                    self.black_ready = True
+            for msg in messages:
 
-                if self.white_ready and self.black_ready:
-                    self.sender.sendString(sender,"[RDY]")
-                    self.sender.sendString(receiver,"[RDY]")
-            
-            if(message == "[ENDTURN]"):
-                self.sender.sendString(receiver,"[YOURTURN]")
+                print("Msg:", msg)
                 
+                if(msg == "[RDY]"):
+                    if msg_sender == "white":
+                        self.white_ready = True
+
+                    if msg_sender == "black":
+                        self.black_ready = True
+
+                    if self.white_ready and self.black_ready:
+                        self.sender.sendString(sender,"[RDY]")
+                        self.sender.sendString(receiver,"[RDY]")
+                
+                #if(msg == "[ENDTURN]"):
+                    #self.sender.sendString(receiver,"[YOURTURN]")
+                
+                if(msg[1:5]=="MOVE"):
+                    move_str = msg[6:-1]
+                    move_params = move_str.split(",")
+
+                    new_msg = "[MOVE:" + move_params[0] + ","
+                    for i in range(1,7):
+                        new_msg += (str(abs(int(move_params[i])-7))) 
+                        if i < 6:
+                            new_msg += ","                            
+
+                    new_msg += "]"
+                    print("Outgoing MEssage: ", new_msg)
+                    self.sender.sendString(receiver,new_msg)
+
+                if(msg[1:5]=="ATTK"):
+                    attk_str = msg[6:-1]
+                    params = attk_str.split(",")
+
+                    new_msg = "[ATTK:" + params[0] + ","
+                    for i in range(1,7):
+                        new_msg += (str(abs(int(params[i])-7))) 
+                        if i < 6:
+                            new_msg += ","                            
+
+                    new_msg += "]"
+                    self.sender.sendString(receiver,new_msg)
+
+    
+                if(msg[1:5]=="ABIL"):
+                    abil_str = msg[6:-1]
+                    params = abil_str.split(",")
+
+                    new_msg = "[ABIL:" + params[0] + ","
+                    for i in range(1,7):
+                        new_msg += (str(abs(int(params[i])-7))) 
+                        if i < 6:
+                            new_msg += ","                            
+
+                    new_msg += "]"
+                    self.sender.sendString(receiver,new_msg)
+
+
+
+ 
         else:
             sel.unregister(conn)
             conn.close()

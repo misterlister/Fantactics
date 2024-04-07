@@ -91,41 +91,22 @@ class GameBoard:
         self.unset_unit_buttons()
     
     def draw_board(self) -> None:
-        print("My colour: ", self.__player_colour)
 
-        if self.__player_colour == "white":
-            for i in range (BOARD_ROWS + 1):
-                y_position = self.get_row_y(i)
-                self.rowLabel.append(Label(self.root, text=BOARD_ROWS - i, anchor='center', bg=BG_COL, font=(FONT, DEFAULT_FONT_SIZE)))
-                self.rowLabel[i].place(x=330, y=(i * DEFAULT_SQUARE_SIZE) + 60)
-                p1 = Point(self.__x_start, y_position)
-                p2 = Point(self.x_end, y_position)
-                self.window.draw_line(p1, p2)
+        for i in range (BOARD_ROWS + 1):
+            y_position = self.get_row_y(i)
+            self.rowLabel.append(Label(self.root, text= i + 1 , anchor='center', bg=BG_COL, font=(FONT, DEFAULT_FONT_SIZE)))
+            self.rowLabel[i].place(x=330, y=(i * DEFAULT_SQUARE_SIZE) + 60)
+            p1 = Point(self.__x_start, y_position)
+            p2 = Point(self.x_end, y_position)
+            self.window.draw_line(p1, p2)
 
-            for j in range(BOARD_COLS + 1):
-                x_position = self.get_col_x(j)
-                self.colLabel.append(Label(self.root, text=chr(65 + j), anchor='center', bg=BG_COL, font=(FONT, DEFAULT_FONT_SIZE)))
-                self.colLabel[j].place(x=(j * DEFAULT_SQUARE_SIZE) + 380, y=614)
-                p1 = Point(x_position, self.__y_start)
-                p2 = Point(x_position, self.y_end)
-                self.window.draw_line(p1, p2)
-
-        else:
-            for i in range (BOARD_ROWS + 1):
-                y_position = self.get_row_y(i)
-                self.rowLabel.append(Label(self.root, text=i+1, anchor='center', bg=BG_COL, font=(FONT, DEFAULT_FONT_SIZE)))
-                self.rowLabel[i].place(x=330, y=(i * DEFAULT_SQUARE_SIZE) + 60)
-                p1 = Point(self.__x_start, y_position)
-                p2 = Point(self.x_end, y_position)
-                self.window.draw_line(p1, p2)
-
-            for j in range(BOARD_COLS + 1):
-                x_position = self.get_col_x(j)
-                self.colLabel.append(Label(self.root, text=chr(65 + BOARD_COLS - 1- j), anchor='center', bg=BG_COL, font=(FONT, DEFAULT_FONT_SIZE)))
-                self.colLabel[j].place(x=(j * DEFAULT_SQUARE_SIZE) + 380, y=614)
-                p1 = Point(x_position, self.__y_start)
-                p2 = Point(x_position, self.y_end)
-                self.window.draw_line(p1, p2)
+        for j in range(BOARD_COLS + 1):
+            x_position = self.get_col_x(j)
+            self.colLabel.append(Label(self.root, text=chr(65 + j), anchor='center', bg=BG_COL, font=(FONT, DEFAULT_FONT_SIZE)))
+            self.colLabel[j].place(x=(j * DEFAULT_SQUARE_SIZE) + 380, y=614)
+            p1 = Point(x_position, self.__y_start)
+            p2 = Point(x_position, self.y_end)
+            self.window.draw_line(p1, p2)
 
         # Destroy excess labels, not most elegant solution but least code
         self.rowLabel[i].destroy()
@@ -185,9 +166,7 @@ class GameBoard:
             if self.__attack_spaces != None: # Attack range is active
                 if space in self.__attack_spaces: # A valid target is selected
                     if space == self.__target_space and self.__action_confirmed:
-                        uspace = unit.get_space()
-                        
-                        self.sender.send("[ATK:")
+                        self.sender.attack(self.__action_space,unit,space)
                         self.attack_action(unit, space)
                     else:
                         self.setup_action(self.attack_action, unit, space, "red")
@@ -200,6 +179,7 @@ class GameBoard:
                 if space in self.__ability_spaces: # A valid target is selected
                     if space == self.__target_space and self.__action_confirmed:
                         ### Send self.__action_space, unit, space, ability_action to server
+                        self.sender.ability(self.__action_space,unit,space)
                         self.ability_action(unit, space)
                     else:
                         self.setup_action(self.ability_action, unit, space, "yellow")
@@ -207,6 +187,7 @@ class GameBoard:
             if self.__action_space == space: # Movement to a new space is confirmed
                 if self.__action_confirmed:
                     ### Send self.__action_space, unit, space, move_and_wait to server
+                    self.sender.move(self.__action_space,unit,space)
                     self.move_and_wait(unit, space)
                 else:
                     self.setup_action(self.move_and_wait, unit, space, "green")
@@ -549,7 +530,8 @@ class GameBoard:
     def get_row_y(self, row):
         y = self.__y_start + (row * (self.square_size))
         return y
-    
+    def chng_action_space(self, action_space:Space):
+        self.__action_space = action_space
     def set_action_space(self, unit: Unit, space: Space):
         if self.__action_space is not None: # If a new action space is being selected, overriding another
             self.draw_space(self.__selected_space)
@@ -668,10 +650,10 @@ class GameBoard:
         self.__game_state.next_turn()
 
     def move_and_wait(self, unit: Unit, space: Space):
+        print("MOVE AND WAIT")
         self.ui.controlBar.buttons['attack'].untoggle_keys()
         self.move_unit(unit, space)
         self.end_turn()
-
     
 class MapLayout:
     PL = TerrainType.PLAINS

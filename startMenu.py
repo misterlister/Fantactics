@@ -25,19 +25,25 @@ class Game():
         self.root = root
         self.window = window
         self.sender = sender
-
+        self.player_colour = None
+        self.player1 = None
+        self.player2 = None
+        self.userInterface = None
+        self.board = None
+        self.state = None
+        
     def start(self):
         self.userInterface = UserInterface(self.root)
         self.board = GameBoard(self.window, self.root, self.userInterface, self.player_colour, self.sender)
-        
-        if(self.player_colour == "white"):
+        print("INSIDE START. Game Colour: ", self.player_colour)
+        if self.player_colour == "white":
             self.player1 = Player("white")
             self.player2 = Player("black")
 
         else:
             self.player1 = Player("black")
             self.player2 = Player("white")
-        self.gameState = GameState(self.player1, self.player2, self.board, self.userInterface,self.sender)
+        self.state = GameState(self.player1, self.player2, self.board, self.userInterface,self.sender)
 
     def set_player_colour(self, colour:str):
         self.player_colour = colour

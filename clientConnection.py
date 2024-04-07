@@ -23,7 +23,7 @@ class Receiver():
         self.p1 = None
         self.p2 = None
         self.menu = menu
-        self.game = self.menu.game
+        self.game = menu.game
 
     def __threadFunction(self) -> None:
         
@@ -59,20 +59,44 @@ class Receiver():
             self.menu.setOpponentReady()
         
         if message == "[YOURTURN]":
-            self.menu.setOpponentReady()
-            self.state.next_turn()
+            pass
+            #self.menu.setOpponentReady()
+            #self.state.next_turn()
 
+        if(message[1:5]=="MOVE"):
+            move_str = message[6:-1]
+            params = move_str.split(",")
+            action_space = self.game.board.get_space(int(params[1]),int(params[2]))
+            target_space = self.game.board.get_space(int(params[5]),int(params[6]))
+            unit_space = self.game.board.get_space(int(params[3]),int(params[4]))
+            unit = unit_space.get_unit()
+            self.game.board.chng_action_space(action_space)
+            self.game.board.move_and_wait(unit,target_space)
+
+        if(message[1:5]=="ATTK"):
+            move_str = message[6:-1]
+            params = move_str.split(",")
+            print ("ATTACK PARAMS:")
+            print(params)
+            action_space = self.game.board.get_space(int(params[1]),int(params[2]))
+            target_space = self.game.board.get_space(int(params[5]),int(params[6]))
+            unit_space = self.game.board.get_space(int(params[3]),int(params[4]))
+            unit = unit_space.get_unit()
+            self.game.board.chng_action_space(action_space)
+            self.game.board.attack_action(unit,target_space)
+    
+        if(message[1:5]=="ABIL"):
+            move_str = message[6:-1]
+            params = move_str.split(",")
+            print ("ABILITY PARAMS:")
+            print(params)
+            action_space = self.game.board.get_space(int(params[1]),int(params[2]))
+            target_space = self.game.board.get_space(int(params[5]),int(params[6]))
+            unit_space = self.game.board.get_space(int(params[3]),int(params[4]))
+            unit = unit_space.get_unit()
+            self.game.board.chng_action_space(action_space)
+            self.game.board.ability_action(unit,target_space)
         return True
-
-    def setPlayerColours(self, playerColour: str, opponentColour: str):
-                    
-        print("Setting player to: ", playerColour)
-
-        print("Player get_colour()", self.player.get_colour())
-
-    def intializeBoards(self):
-        self.gamestate.setup_board()
-        self.opponent.setup_board()
 
     def killConnection(self):
         setConnClosed()
