@@ -258,11 +258,11 @@ class TerrainPanel(Panel):
             "movement" : Label(self.frame, text = ' ', image=self.icons['movement'], compound='top'),
         }
 
-        index = 34
+        index = 30
         for item in self.labels:
             self.labels[item].config(bg=bgColour, fg=textColour, font=(FONT, DEFAULT_FONT_SIZE))
             self.labels[item].place(x=index, y=STATS_IMAGE_SIZE + 10, anchor='n')
-            index += 64
+            index += 50
 
 
     def update_image(self, image: ImageTk):
@@ -284,13 +284,13 @@ class TerrainPanel(Panel):
         if new != 0:
             self.labels['defense'].config(text=f"+ {new}")
         else:
-            self.labels['defense'].config(text=f"")
+            self.labels['defense'].config(text=f" ")
 
     def update_movement(self, new: int = 0):
         if new != 0:
             self.labels['movement'].config(text=f"{new}")
         else:
-            self.labels['movement'].config(text=f"")
+            self.labels['movement'].config(text=f" ")
             
     def update_terrain_panel(self, image: ImageTk=None, name: str="", description:str="", defense: int=0, movement: int=0):
         if image == None:
