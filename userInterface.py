@@ -377,6 +377,7 @@ class CanvasButton():
             frame: LabelFrame, 
             xPos: int = 0, 
             yPos: int = 0,
+            bg = UI_BG_COLOUR,
             unpressed: str = ERROR_UNPRESSED,
             pressed: str = ERROR_PRESSED,
             clickFunc: Callable = do_nothing,
@@ -384,9 +385,9 @@ class CanvasButton():
             enabled: bool = True,
             ) -> None:
         
-        self.button = Canvas(frame, bg=UI_BG_COLOUR, bd=0, highlightthickness=0, cursor='hand2') # Create the button object
+        self.button = Canvas(frame, bg=bg, bd=0, highlightthickness=0, cursor='hand2') # Create the button object
         self.button.pack_propagate(0) # Prevent the Canvas from shrinking
-        self.button.place(x=xPos, y=yPos)
+        self.place(xPos, yPos)
         self.bind(self.click, self.unclick)
         self.__create_image(unpressed, pressed)
         self.currentImage = self.button.create_image(0, 0, anchor = 'nw', image=self.unpressed)
@@ -394,6 +395,12 @@ class CanvasButton():
         self.clickFunc = clickFunc
         self.unclickFunc = unclickFunc
         self.enabled = enabled
+
+    def place(self, xPos, yPos, anchor: str = 'nw'):
+        self.button.place(x=xPos, y=yPos, anchor=anchor)
+
+    def destroy(self):
+        self.button.destroy()
 
     def bind(self, click: Callable = do_nothing, unclick: Callable = do_nothing):
         self.button.bind('<Button-1>', click)
@@ -422,6 +429,10 @@ class CanvasButton():
 
     def get_button(self): return self.button
 
+    def hide(self): self.button.place_forget()
+
+    def show(self): self.button.place
+
     def __create_image(self, unpressed, pressed) -> None:
         self.unpressed = ImageTk.PhotoImage(Image.open(unpressed))
         self.pressed = ImageTk.PhotoImage(Image.open(pressed))
@@ -449,10 +460,13 @@ class ToggleButton(CanvasButton):
                 clickFunc: Callable = do_nothing, 
                 unclickFunc: Callable = do_nothing, 
                 enabled: bool = True,
-                toggled: bool = False
+                toggled: bool = False,
+                bg = UI_BG_COLOUR,
+                disable = True
                 ) -> None:
-        super().__init__(frame, xPos, yPos, unpressed, pressed, clickFunc, unclickFunc, enabled)
+        super().__init__(frame, xPos, yPos, bg, unpressed, pressed, clickFunc, unclickFunc, enabled)
         self.toggled = toggled
+        self.disabling = disable
 
         # Must override parent class else it will behave like parent
         self.bind(self.click, self.unclick)
@@ -483,7 +497,7 @@ class ToggleButton(CanvasButton):
     def toggle(self):
         self.toggled = True
         self.button.itemconfig(self.currentImage, image=self.pressed)
-        self.disable()
+        if self.disabling: self.disable()
 
     def untoggle(self):
         self.toggled = False
@@ -496,13 +510,14 @@ class ToggleButton(CanvasButton):
 
     def unclick(self, event) -> None:
         if self.enabled:
-            self.untoggle_keys()
+            if self.disabling: self.untoggle_keys()
             if self.get_toggle_status() == False:
                 self.toggle()
-                
                 self.unclickFunc()
             else:
-                pass
+                self.untoggle()
+                self.unclickFunc()
+
 
 class CombatLog():
     def __init__(
