@@ -50,9 +50,9 @@ class StartMenu():
         self.background = self.canvas.create_image(0, 0, image=self.backgroundImage, anchor='nw')
 
         self.waiting = [
-            ImageTk.PhotoImage(Image.open('Assets/Text/Waiting_1.png')),
-            ImageTk.PhotoImage(Image.open('Assets/Text/Waiting_2.png')),
-            ImageTk.PhotoImage(Image.open('Assets/Text/Waiting_3.png')),
+            ImageTk.PhotoImage(Image.open('Assets/Text/waiting_1.png')),
+            ImageTk.PhotoImage(Image.open('Assets/Text/waiting_2.png')),
+            ImageTk.PhotoImage(Image.open('Assets/Text/waiting_3.png')),
             
         ]
         self.sprites = [[],[]]
