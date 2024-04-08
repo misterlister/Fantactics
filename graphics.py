@@ -60,6 +60,7 @@ class Window:
         sprites[TerrainType.PLAINS] = ImageTk.PhotoImage(Image.open("Assets/Terrain/plains.png"))
         sprites[TerrainType.FOREST] = ImageTk.PhotoImage(Image.open("Assets/Terrain/forest.png"))
         sprites[TerrainType.FORTRESS] = ImageTk.PhotoImage(Image.open("Assets/Terrain/fortress.png"))
+        sprites[TerrainType.FORTRESS_N] = ImageTk.PhotoImage(Image.open("Assets/Terrain/fortress_n.png"))
         sprites[TerrainType.PATH_E] = ImageTk.PhotoImage(Image.open("Assets/Terrain/path_e.png"))
         sprites[TerrainType.PATH_ES] = ImageTk.PhotoImage(Image.open("Assets/Terrain/path_es.png"))
         sprites[TerrainType.PATH_ESW] = ImageTk.PhotoImage(Image.open("Assets/Terrain/path_esw.png"))
