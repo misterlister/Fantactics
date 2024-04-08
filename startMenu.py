@@ -48,6 +48,13 @@ class StartMenu():
         self.canvas.place(x=0, y=0)
         self.backgroundImage = ImageTk.PhotoImage(Image.open('Assets/title_background.png'))
         self.background = self.canvas.create_image(0, 0, image=self.backgroundImage, anchor='nw')
+
+        self.waiting = [
+            ImageTk.PhotoImage(Image.open('Assets/Text/Waiting_1.png')),
+            ImageTk.PhotoImage(Image.open('Assets/Text/Waiting_2.png')),
+            ImageTk.PhotoImage(Image.open('Assets/Text/Waiting_3.png')),
+            
+        ]
         self.sprites = [[],[]]
         self.img = [[],[]]
         self.speed = [[],[]]
@@ -142,13 +149,30 @@ class StartMenu():
             self.currentMenu = 1
             self.hide_buttons()
             self.back_button()
-            self.waiting = ImageTk.PhotoImage(Image.open('Assets/Text/Waiting.png'))
-            self.canvas.create_image(WINDOW_WIDTH/2, self.height/8 + 160, image=self.waiting)
+
+            self.waitImg = self.canvas.create_image(WINDOW_WIDTH/2, self.height/8 + 160, image=self.waiting[0])
+            self.currentImg = 3
+            self.waitingForOpponent = True
+            self.wait_anim()
 
             ### For Glen to add here --- Once both players are connected, call load_game()
 
         else:
             self.load_game()
+
+    def wait_anim(self):
+        if self.waitingForOpponent:
+            if self.currentImg == 1:
+                self.currentImg = 2
+                self.canvas.itemconfig(self.waitImg, image=self.waiting[1])
+            elif self.currentImg == 2:
+                self.currentImg = 3
+                self.canvas.itemconfig(self.waitImg, image=self.waiting[2])
+            elif self.currentImg == 3:
+                self.currentImg = 1
+                self.canvas.itemconfig(self.waitImg, image=self.waiting[0])
+            
+            self.root.after(1000, self.wait_anim)
 
     def load_game(self):
         Game(self.root, self.window)
@@ -176,7 +200,9 @@ class StartMenu():
         
     def back(self):
         self.backBtn.destroy()
-        if self.currentMenu == 1: del(self.waiting)
+        if self.currentMenu == 1: 
+            self.canvas.delete(self.waitImg)
+            self.waitingForOpponent = False
         elif self.currentMenu == 2: self.onlineBtn.destroy()
         self.place_buttons(self.index)
         self.currentMenu = 0
