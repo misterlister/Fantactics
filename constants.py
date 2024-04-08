@@ -1,7 +1,7 @@
 from enum import IntEnum
 
 # Background colour for the game window
-BG_COL = '#d9d9d9'
+BG_COL = '#a9a9a9'
 # Width and height of the game window
 WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
@@ -11,7 +11,7 @@ LINE_WIDTH = 3
 # Number of pixels between a sprite and the border of its square
 SPRITE_BUFFER = 8
 # Size of images in the stats display window
-STATS_IMAGE_SIZE = (2 * 64) + SPRITE_BUFFER
+STATS_IMAGE_SIZE = (1.5 * 64)
 # Assets for error unpressed and pressed button
 ERROR_UNPRESSED, ERROR_PRESSED = "Assets/Text/error_unpressed.png", "Assets/Text/error_pressed.png"
 # Placeholder for empty sprites
@@ -19,7 +19,7 @@ EMPTY_SPRITE = "Assets/Text/empty.png"
 # Default font
 FONT = 'consolas'
 # Default font size
-DEFAULT_FONT_SIZE = 12
+DEFAULT_FONT_SIZE = 11
 
 UI_BG_COLOUR = '#5d4037'
 DEFAULT_TEXT_COLOUR = '#ffffff'
@@ -55,6 +55,7 @@ class SpriteType:
     PEASANT1 = "Peasant1"
     SOLDIER1 = "Soldier1"
     SORCERER1 = "Sorcerer1"
+    CAVALRY1 = "Cavalry1"
     HEALER1 = "Healer1"
     ARCHMAGE1 = "Archmage1"
     GENERAL1 = "General1"
@@ -62,9 +63,47 @@ class SpriteType:
     PEASANT2 = "Peasant2"
     SOLDIER2 = "Soldier2"
     SORCERER2 = "Sorcerer2"
+    CAVALRY2 = "Cavalry2"
     HEALER2 = "Healer2"
     ARCHMAGE2 = "Archmage2"
     GENERAL2 = "General2"
+    
+class TerrainType:
+    PLAINS = "plains"
+    FOREST = "forest"
+    FOREST_E = "forest_e"
+    FOREST_ES = "forest_es"
+    FOREST_ESW = "forest_esw"
+    FOREST_EW = "forest_ew"
+    FOREST_N = "forest_n"
+    FOREST_NE = "forest_ne"
+    FOREST_NES = "forest_nes"
+    FOREST_NESW = "forest_nesw"
+    FOREST_NEW = "forest_new"
+    FOREST_NS = "forest_ns"
+    FOREST_NSW = "forest_nsw"
+    FOREST_NW = "forest_nw"
+    FOREST_S = "forest_s"
+    FOREST_SW = "forest_sw"
+    FOREST_W = "forest_w"
+    FORTRESS = "fortress"
+    FORTRESS_N = "fortress_n"
+    PATH_E = "path_e"
+    PATH_ES = "path_es"
+    PATH_ESW = "path_esw"
+    PATH_EW = "path_ew"
+    PATH_N = "path_n"
+    PATH_NE = "path_ne"
+    PATH_NES = "path_nes"
+    PATH_NESW = "path_nesw"
+    PATH_NEW = "path_new"
+    PATH_NS = "path_ns"
+    PATH_NSW = "path_nsw"
+    PATH_NW = "path_nw"
+    PATH_S = "path_s"
+    PATH_SW = "path_sw"
+    PATH_W = "path_w"
+    PATH = "path"
 
 # Damage multiplier for units initiating combat
 FIRST_STRIKE_BOOST = 1.2
@@ -72,6 +111,11 @@ FIRST_STRIKE_BOOST = 1.2
 POOR_EFFECT_MOD = 3/4
 # Damage multiplier for effective attacks
 STRONG_EFFECT_MOD = 4/3
+
+# Modifier bonus for aura abilities
+AURA_MOD = 1
+# Range for aura abilities
+AURA_RANGE = 2
 
 class Direction(IntEnum):
     UP = 1
@@ -168,6 +212,13 @@ TARGET_NONE = {
     TargetType.ITSELF: False,
     TargetType.ALLY: False,
     TargetType.ENEMY: False,
+    TargetType.NONE: False
+}
+
+TARGET_SELF_ENEMIES = {
+    TargetType.ITSELF: True,
+    TargetType.ALLY: False,
+    TargetType.ENEMY: True,
     TargetType.NONE: False
 }
 
