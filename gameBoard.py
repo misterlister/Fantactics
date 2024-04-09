@@ -331,8 +331,8 @@ class GameBoard:
         y1 = self.get_row_y(row) + (LINE_WIDTH)
         x2 = self.get_col_x(col+1) - (LINE_WIDTH + 2)
         y2 = self.get_row_y(row+1) - (LINE_WIDTH + 2)
-        self.window.canvas.create_rectangle(x1, y1, x2, y2, width=SELECTION_BUFFER, outline=colour)
-        self.window.canvas.create_rectangle(x1-2, y1-2, x2+2, y2+2, width=3, outline="black")
+        self.window.canvas.create_rectangle(x1, y1, x2, y2, width=SELECTION_BUFFER, outline=colour, tags=('temp'))
+        self.window.canvas.create_rectangle(x1-2, y1-2, x2+2, y2+2, width=3, outline="black", tags=('temp'))
 
     def outline_spaces(self, spaces: list, colour: str) -> None:
         for space in spaces:
@@ -345,7 +345,7 @@ class GameBoard:
         y1 = self.get_row_y(row) + ((LINE_WIDTH * 2)) 
         x2 = self.get_col_x(col+1) - (LINE_WIDTH * 2) - 2
         y2 = self.get_row_y(row+1) - (LINE_WIDTH * 2) - 2
-        self.window.canvas.create_oval(x1, y1, x2, y2, width=SELECTION_BUFFER, outline=colour)
+        self.window.canvas.create_oval(x1, y1, x2, y2, width=SELECTION_BUFFER, outline=colour, tags=('temp'))
 
     def x_out_space(self, space: Space, colour: str) -> None:
         row = space.get_row()
@@ -354,8 +354,8 @@ class GameBoard:
         y1 = self.get_row_y(row) + ((LINE_WIDTH * 2) - 1) 
         x2 = self.get_col_x(col+1) - (LINE_WIDTH * 2)
         y2 = self.get_row_y(row+1) - (LINE_WIDTH * 2)
-        self.window.canvas.create_line(x1, y1, x2, y2, width=LINE_WIDTH, fill=colour)
-        self.window.canvas.create_line(x2, y1, x1, y2, width=LINE_WIDTH, fill=colour)
+        self.window.canvas.create_line(x1, y1, x2, y2, width=LINE_WIDTH, fill=colour, tags=('temp'))
+        self.window.canvas.create_line(x2, y1, x1, y2, width=LINE_WIDTH, fill=colour, tags=('temp'))
 
     def check_square(self, row: int, col: int):
         if row > BOARD_ROWS or col > BOARD_COLS:
@@ -410,6 +410,8 @@ class GameBoard:
                 self.x_out_space(sp, "grey")
 
     def draw_all_spaces(self):
+        ### Delete any unneeded images.
+        self.window.canvas.delete('temp')
         for i in range(BOARD_ROWS):
             for j in range(BOARD_COLS):
                 self.draw_space(self.__spaces[i][j])
@@ -419,7 +421,7 @@ class GameBoard:
         y1 = self.get_row_y(row)
         x2 = self.get_col_x(col+1)
         y2 = self.get_row_y(row+1)
-        self.window.canvas.create_rectangle(x1, y1, x2, y2, fill=BG_COL, outline = 'grey', width=2)
+        self.window.canvas.create_rectangle(x1, y1, x2, y2, fill=BG_COL, outline = 'grey', width=2, tags=('temp'))
 
     def get_movement_spaces(self, unit: Unit, space: Space) -> set:
         range = unit.get_movement()
@@ -474,6 +476,7 @@ class GameBoard:
         self.__guarded_spaces = guarded_spaces
     
     def draw_space_list(self, spaces: list):
+        ### Delete any unneeded images.
         for space in spaces:
             self.draw_space(space)
 
@@ -634,7 +637,7 @@ class GameBoard:
         self.window.draw_sprite(sprite_x, sprite_y, preview)
         box_x = x + (LINE_WIDTH - 2) + SELECTION_BUFFER
         box_y = y + (LINE_WIDTH - 2) + SELECTION_BUFFER
-        self.window.canvas.create_image(box_x, box_y, image=self.__transparent_square, anchor='nw')
+        self.window.canvas.create_image(box_x, box_y, image=self.__transparent_square, anchor='nw', tags=('temp'))
         self.outline_space(space, "purple")
 
     def set_transparency(self):

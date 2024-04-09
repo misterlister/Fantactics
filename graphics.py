@@ -32,7 +32,9 @@ class Window:
 
     def draw_sprite(self, x: int, y: int, sprite: str) -> None:
         sprite_image = self.sprites[sprite]
-        self.canvas.create_image(x, y, anchor='nw', image=sprite_image)
+        
+        ### Tag the created image so it can be deleted later.
+        self.canvas.create_image(x, y, anchor='nw', image=sprite_image, tags=('temp'))
 
     def get_sprite(self, index):
         return self.sprites[index]
