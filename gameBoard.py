@@ -106,11 +106,22 @@ class GameBoard:
         self.rowLabel[i].destroy()
         self.colLabel[j].destroy()
         
-    def setup_map(self, game_map):
+    def setup_map(self, map_name):
         map_size = BOARD_COLS * BOARD_ROWS
-        if len(game_map) != map_size:
-            print("Alert: Map does not match the board size. Reverting to default map.")
+        if map_name not in MapLayout.Maps:
+            print("Alert: Map is not in the list of valid maps. Reverting to default map.")
             game_map = [TerrainType.PLAINS * (map_size)]
+            map_name = "Default Map"
+        else:
+            game_map = MapLayout.Maps[map_name]
+            if len(game_map)*2 != map_size:
+                print("Alert: Map does not match the board size. Reverting to default map.")
+                game_map = [TerrainType.PLAINS * (map_size)]
+                map_name = "Default Map"
+        self.ui.logItems["text"].display_map_name(map_name)
+        if map_name != "Default Map":
+            for i in range((len(game_map)-1), -1, -1):
+                    game_map.append(game_map[i])
         cell = 0
         for i in range(BOARD_ROWS):
             for j in range(BOARD_COLS):
@@ -528,7 +539,6 @@ class GameBoard:
 
     def cancel_action(self):
         self.__action_space = None
-        self.draw_all_spaces()
         self.deselect_space()
         self.clear_stats_panel()
         self.clear_terrain_panel()
@@ -625,7 +635,6 @@ class GameBoard:
         for message in attack_log:
             self.ui.logItems['text'].add_text(message)
         self.__action_space = None
-        self.draw_all_spaces()
         self.deselect_space()
         
     def preview_sprite(self, unit: Unit, space: Space):
@@ -701,5 +710,7 @@ class MapLayout:
             FT, PL, PT, FS, FS, PT, PT, FS,
             PT, PT, PT, FS, FS, FT, PL, FS
         ],
+        
+        
     }
     
