@@ -545,7 +545,7 @@ class CombatLog():
         self.label.config(text=f"Turn {self.get_turn()}: Player {self.get_player()}")
         
     def display_map_name(self, map_name) -> None:
-        self.map_label.place(x=PANEL_WIDTH/2, y=0)
+        self.map_label.place(x=0, y=25)
         self.map_label.config(text=f"Map: {map_name}")
         
     def add_text(self, text: str) -> None:
