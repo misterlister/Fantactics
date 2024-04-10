@@ -324,8 +324,8 @@ class GameBoard:
         y1 = self.get_row_y(row) + (LINE_WIDTH)
         x2 = self.get_col_x(col+1) - (LINE_WIDTH + 2)
         y2 = self.get_row_y(row+1) - (LINE_WIDTH + 2)
-        self.window.canvas.create_rectangle(x1, y1, x2, y2, width=SELECTION_BUFFER, outline=colour)
-        self.window.canvas.create_rectangle(x1-2, y1-2, x2+2, y2+2, width=3, outline="black")
+        self.window.canvas.create_rectangle(x1, y1, x2, y2, width=SELECTION_BUFFER, outline=colour, tags=('temp'))
+        self.window.canvas.create_rectangle(x1-2, y1-2, x2+2, y2+2, width=3, outline="black", tags=('temp'))
 
     def outline_spaces(self, spaces: list, colour: str) -> None:
         for space in spaces:
@@ -338,7 +338,7 @@ class GameBoard:
         y1 = self.get_row_y(row) + ((LINE_WIDTH * 2)) 
         x2 = self.get_col_x(col+1) - (LINE_WIDTH * 2) - 2
         y2 = self.get_row_y(row+1) - (LINE_WIDTH * 2) - 2
-        self.window.canvas.create_oval(x1, y1, x2, y2, width=SELECTION_BUFFER, outline=colour)
+        self.window.canvas.create_oval(x1, y1, x2, y2, width=SELECTION_BUFFER, outline=colour, tags=('temp'))
 
     def x_out_space(self, space: Space, colour: str) -> None:
         row = space.get_row()
@@ -347,8 +347,8 @@ class GameBoard:
         y1 = self.get_row_y(row) + ((LINE_WIDTH * 2) - 1) 
         x2 = self.get_col_x(col+1) - (LINE_WIDTH * 2)
         y2 = self.get_row_y(row+1) - (LINE_WIDTH * 2)
-        self.window.canvas.create_line(x1, y1, x2, y2, width=LINE_WIDTH, fill=colour)
-        self.window.canvas.create_line(x2, y1, x1, y2, width=LINE_WIDTH, fill=colour)
+        self.window.canvas.create_line(x1, y1, x2, y2, width=LINE_WIDTH, fill=colour, tags=('temp'))
+        self.window.canvas.create_line(x2, y1, x1, y2, width=LINE_WIDTH, fill=colour, tags=('temp'))
 
     def check_square(self, row: int, col: int):
         if row > BOARD_ROWS or col > BOARD_COLS:
@@ -374,7 +374,7 @@ class GameBoard:
         terrain_x = self.get_col_x(col)
         terrain_y = self.get_row_y(row)
         ### TEMPORARY
-        self.erase_space(row, col)
+        #self.erase_space(row, col)
         ###
         terrain_sprite = space.get_terrain_sprite()
         
@@ -403,6 +403,8 @@ class GameBoard:
                 self.x_out_space(sp, "grey")
 
     def draw_all_spaces(self):
+        self.window.canvas.delete('temp')
+        print("ITEMS IN CANVAS: ", len(self.window.canvas.find_all()))
         for i in range(BOARD_ROWS):
             for j in range(BOARD_COLS):
                 self.draw_space(self.__spaces[i][j])
@@ -518,7 +520,7 @@ class GameBoard:
 
     def cancel_action(self):
         self.__action_space = None
-        #self.draw_all_spaces()
+        self.draw_all_spaces()
         self.deselect_space()
         self.clear_stats_panel()
         self.ui.controlBar.buttons['attack'].untoggle_keys()
@@ -615,7 +617,7 @@ class GameBoard:
         for message in attack_log:
             self.ui.logItems['text'].add_text(message)
         self.__action_space = None
-        #self.draw_all_spaces()
+        self.draw_all_spaces()
         self.deselect_space()
         
     def preview_sprite(self, unit: Unit, space: Space):
@@ -627,7 +629,7 @@ class GameBoard:
         self.window.draw_sprite(sprite_x, sprite_y, preview)
         box_x = x + (LINE_WIDTH - 2) + SELECTION_BUFFER
         box_y = y + (LINE_WIDTH - 2) + SELECTION_BUFFER
-        self.window.canvas.create_image(box_x, box_y, image=self.__transparent_square, anchor='nw')
+        self.window.canvas.create_image(box_x, box_y, image=self.__transparent_square, anchor='nw', tags=('temp'))
         self.outline_space(space, "purple")
 
     def set_transparency(self):
@@ -644,7 +646,7 @@ class GameBoard:
         special_log = unit.special_ability(space.get_unit(), space)
         for message in special_log:
             self.ui.logItems['text'].add_text(message)
-        #self.draw_all_spaces()
+        self.draw_all_spaces()
 
     def end_turn(self):
         self.__game_state.next_turn()
@@ -655,10 +657,7 @@ class GameBoard:
 
     def move_and_wait(self, unit: Unit, space: Space):
         self.ui.controlBar.buttons['attack'].untoggle_keys()
-        print("INSIDE MOVE_AND_WAIT!!!")
-
         self.move_unit(unit, space)
-        print("INSIDE MOVE_AND_WAIT!!! 2222")
 
         self.end_turn()
     

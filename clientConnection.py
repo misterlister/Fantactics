@@ -78,7 +78,7 @@ class Receiver():
             target_space = self.game.board.get_space(int(params[5]),int(params[6]))
             unit_space = self.game.board.get_space(int(params[3]),int(params[4]))
             unit = unit_space.get_unit()
-            self.game.board.chng_action_space(action_space)
+            self.game.board.set_action_space(unit,action_space)
             self.game.board.move_and_wait(unit,target_space)
 
         if(message[1:5]=="ATTK"):
