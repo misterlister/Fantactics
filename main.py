@@ -4,14 +4,14 @@ from graphics import Window
 from startMenu import StartMenu, Game
 from constants import *
 
-doMainMenu = False
+doMainMenu = True
 online = False
 
 if __name__ == "__main__":
     map = None
     for arg in argv:
         if arg == '-g':
-            doMainMenu = True
+            doMainMenu = False
         if arg == '-o':
             online = True
         if arg.startswith("-m:"):
