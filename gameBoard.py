@@ -110,13 +110,13 @@ class GameBoard:
         map_size = BOARD_COLS * BOARD_ROWS
         if map_name not in MapLayout.Maps:
             print("Alert: Map is not in the list of valid maps. Reverting to default map.")
-            game_map = [TerrainType.PLAINS * (map_size)]
+            game_map = [TerrainType.PLAINS] * (map_size)
             map_name = "Default Map"
         else:
             game_map = MapLayout.Maps[map_name]
             if len(game_map)*2 != map_size:
                 print("Alert: Map does not match the board size. Reverting to default map.")
-                game_map = [TerrainType.PLAINS * (map_size)]
+                game_map = [TerrainType.PLAINS] * (map_size)
                 map_name = "Default Map"
         self.ui.logItems["text"].display_map_name(map_name)
         if map_name != "Default Map":
@@ -145,8 +145,6 @@ class GameBoard:
             if event.y > self.__y_start and event.y < self.y_end:
                 row = (event.y-self.__y_start) // self.square_size
                 col = (event.x-self.__x_start) // self.square_size
-                #contents = self.check_square(row, col)
-                #print(f"Clicked square {row},{col}. Contents: {contents}")
                 new_space = self.__spaces[row][col]
                 if self.__selected_unit is None: # No unit is currently selected
                     self.click_no_unit_selected(new_space)
@@ -367,15 +365,6 @@ class GameBoard:
         y2 = self.get_row_y(row+1) - (LINE_WIDTH * 2)
         self.window.canvas.create_line(x1, y1, x2, y2, width=LINE_WIDTH, fill=colour, tags=('temp'))
         self.window.canvas.create_line(x2, y1, x1, y2, width=LINE_WIDTH, fill=colour, tags=('temp'))
-
-    def check_square(self, row: int, col: int):
-        if row > BOARD_ROWS or col > BOARD_COLS:
-            return "Outside Grid"
-        else:
-            unit = self.__spaces[row][col].get_unit()
-            if unit is None:
-                return unit
-            return unit.get_name()
         
     def get_space(self, row, col):
         return self.__spaces[row][col]

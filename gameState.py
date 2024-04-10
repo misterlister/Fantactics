@@ -194,10 +194,10 @@ class GameState:
     def select_map(self):
         if self.__map != None:
             map_choice = self.__map.replace("_", " ")
-            return map_choice
+            if map_choice in MapLayout.Maps:
+                return map_choice
         map_size = BOARD_COLS * BOARD_ROWS
         valid_maps = []
-        map_choice = None
         for map in MapLayout.Maps:
             if (len(MapLayout.Maps[map]) * 2) == map_size:
                 valid_maps.append(map)
