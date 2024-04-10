@@ -10,12 +10,12 @@ online = False
 if __name__ == "__main__":
     map = None
     for arg in argv:
-        if arg == '-m':
+        if arg == '-g':
             doMainMenu = True
         if arg == '-o':
             online = True
-        if arg.startswith("-map_"):
-            map = arg[5:]
+        if arg.startswith("-m:"):
+            map = arg[3:]
 
     root = Tk()
     window = Window(WINDOW_WIDTH, WINDOW_HEIGHT, root)
