@@ -20,12 +20,12 @@ numSprites = 5
 bound = int(WINDOW_WIDTH/3)
 
 class Game():
-    def __init__(self, root, window) -> None:
+    def __init__(self, root, window, map = None) -> None:
         self.userInterface = UserInterface(root)
         self.board = GameBoard(window, root, self.userInterface)
         self.player1 = Player("white")
         self.player2 = Player("black")
-        self.gameState = GameState(self.player1, self.player2, self.board, self.userInterface)
+        self.gameState = GameState(self.player1, self.player2, self.board, self.userInterface, map)
 
 class StartMenu():
     def __init__(
@@ -35,7 +35,8 @@ class StartMenu():
             width: int = WINDOW_WIDTH, 
             height: int = WINDOW_HEIGHT, 
             bgColour: str = 'black',
-            online: bool = False
+            online: bool = False,
+            map = None
             ) -> None:
         self.root = root
         self.enabled = True
@@ -48,6 +49,7 @@ class StartMenu():
         self.canvas.place(x=0, y=0)
         self.backgroundImage = ImageTk.PhotoImage(Image.open('Assets/title_background.png'))
         self.background = self.canvas.create_image(0, 0, image=self.backgroundImage, anchor='nw')
+        self.map = map
 
         self.waiting = [
             ImageTk.PhotoImage(Image.open('Assets/Text/waiting_1.png')),
@@ -175,7 +177,7 @@ class StartMenu():
             self.root.after(1000, self.wait_anim)
 
     def load_game(self):
-        Game(self.root, self.window)
+        Game(self.root, self.window, self.map)
         self.enabled = False
         self.canvas.destroy()
 
