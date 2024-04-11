@@ -21,8 +21,8 @@ from constants import (
     )
 
 from random import randint
-
 from clientSender import Sender
+
 class Player:
     def __init__(self, team: str) -> None:
         self.__units = []
@@ -106,21 +106,25 @@ class GameState:
             player2: Player,
             board: GameBoard,
             ui,
-            map,
+            map : str,
             sender: Sender
             ) -> None:
         self.player1 = player1
         self.player2 = player2
         self.board = board
         self.ui = ui
-        self.sender = sender
         self.__turn_count = 0
         self.__current_player = None
         self.__game_over = False
+        print("****Map is: ", map)
         self.__map = map
+        if sender is None:
+            self.online = False
+        else:
+            self.online = True
+        self.sender = sender
+
         self.setup_board()
-        
-        
 
     def setup_board(self):
         try:
@@ -148,7 +152,7 @@ class GameState:
             self.setup_row(6, 7, p1_units_r2, True) 
             self.player1.assign_units(p1_units_r1+p1_units_r2)
             self.player1.join_game(self)
-            game_map = self.get_map(self.map_name)
+            game_map = self.select_map()
             self.board.setup_map(game_map)
             self.board.draw_all_spaces()
 
@@ -316,7 +320,8 @@ class GameState:
                     self.__current_player.use_extra_turn()
                 elif self.__current_player == self.player1:
                     self.player1.end_turn()
-                    self.sender.end_turn()
+                    if self.online:
+                        self.sender.end_turn()
                     self.set_turn(self.player2)
                     if self.player1.get_team_colour == "black":
                         self.__turn_count += 1

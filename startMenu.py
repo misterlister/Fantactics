@@ -21,7 +21,7 @@ numSprites = 5
 bound = int(WINDOW_WIDTH/3)
 
 class Game():
-    def __init__(self, root, window, sender) -> None:
+    def __init__(self, root, window, sender, map = None) -> None:
         self.root = root
         self.window = window
         self.sender = sender
@@ -31,12 +31,11 @@ class Game():
         self.userInterface = None
         self.board = None
         self.state = None
-        self.map_name = None
+        self.map = map
         
     def start(self):
         self.userInterface = UserInterface(self.root)
         self.board = GameBoard(self.window, self.root, self.userInterface, self.player_colour, self.sender)
-        print("INSIDE START. Game Colour: ", self.player_colour)
         if self.player_colour == "white":
             self.player1 = Player("white")
             self.player2 = Player("black")
@@ -44,13 +43,22 @@ class Game():
         else:
             self.player1 = Player("black")
             self.player2 = Player("white")
-        self.state = GameState(self.player1, self.player2, self.board, self.userInterface, map,self.sender)
+        self.state = GameState(self.player1, self.player2, self.board, self.userInterface, self.map ,self.sender)
 
     def set_player_colour(self, colour:str):
         self.player_colour = colour
 
-    def set_map_name(self, map: str):
-        self.map_name = map
+    def set_map(self, map: str):
+        self.map = map
+        print("Map set to: ", map)
+
+    def start_one_player(self):
+        self.userInterface = UserInterface(self.root)
+        self.board = GameBoard(self.window, self.root, self.userInterface, "white", None)
+        self.player1 = Player("white")
+        self.player2 = Player("black")
+        self.state = GameState(self.player1, self.player2, self.board, self.userInterface, self.map ,None)
+
 
 class StartMenu():
     def __init__(
@@ -59,15 +67,16 @@ class StartMenu():
             window: Window, 
             game: Game,
             sender: Sender,
+            onlineAvailable,
             width: int = WINDOW_WIDTH, 
             height: int = WINDOW_HEIGHT, 
             bgColour: str = 'black',
             online: bool = False,
-            map = None
             ) -> None:
         self.root = root
         self.enabled = True
         self.online = online
+        self.onlineAvailable = onlineAvailable
         self.width = width
         self.height = height
         self.bgColour = bgColour
@@ -76,7 +85,6 @@ class StartMenu():
         self.canvas.place(x=0, y=0)
         self.backgroundImage = ImageTk.PhotoImage(Image.open('Assets/title_background.png'))
         self.background = self.canvas.create_image(0, 0, image=self.backgroundImage, anchor='nw')
-        self.map = map
 
         self.waiting = [
             ImageTk.PhotoImage(Image.open('Assets/Text/waiting_1.png')),
@@ -178,25 +186,27 @@ class StartMenu():
         self.backBtn.change_unclick_func(self.back)
          
     def play(self):
-        if not self.__playerReady:
-            self.sender.send("[RDY]")
-        self.__playerReady = True
-        if self.__opponentReady:
+
+        if not self.onlineAvailable:
             self.start()
-        #if self.online:
-            self.currentMenu = 1
-            self.hide_buttons()
-            self.back_button()
-
-            self.waitImg = self.canvas.create_image(WINDOW_WIDTH/2, self.height/8 + 160, image=self.waiting[0])
-            self.currentImg = 3
-            self.waitingForOpponent = True
-            self.wait_anim()
-
-            ### For Glen to add here --- Once both players are connected, call load_game()
 
         else:
-            self.load_game()
+            self.__playerReady = True
+            self.sender.send("[RDY]")
+
+            if self.__opponentReady:
+                self.start_online()
+            else:
+                self.waitImg = self.canvas.create_image(WINDOW_WIDTH/2, self.height/8 + 160, image=self.waiting[0])
+                self.currentImg = 3
+                self.waitImg = self.canvas.create_image(WINDOW_WIDTH/2, self.height/8 + 160, image=self.waiting[0])
+                self.currentImg = 3
+                self.waitingForOpponent = True
+                self.wait_anim()
+                self.currentMenu = 1
+                self.hide_buttons()
+                self.back_button()
+
 
     def wait_anim(self):
         if self.waitingForOpponent:
@@ -211,11 +221,6 @@ class StartMenu():
                 self.canvas.itemconfig(self.waitImg, image=self.waiting[0])
             
             self.root.after(1000, self.wait_anim)
-
-    def load_game(self):
-        Game(self.root, self.window, self.map)
-        self.enabled = False
-        self.canvas.destroy()
 
     def options(self):
         self.currentMenu = 2
@@ -232,7 +237,6 @@ class StartMenu():
     def toggle_online(self):
         if self.online == True:
             self.online = False
-            print(self.online)
         else: 
             self.online = True
         
@@ -250,11 +254,17 @@ class StartMenu():
         self.root.destroy()
 
     def start(self):
-        self.game.start()
         self.enabled = False
         self.canvas.destroy()
+        self.game.start_one_player()
+
+    def start_online(self):
+        self.enabled = False
+        self.canvas.destroy()
+        self.game.start()
+
 
     def setOpponentReady(self):
         self.__opponentReady = True
         if self.__playerReady:
-            self.start()
+            self.start_online()

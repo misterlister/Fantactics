@@ -71,6 +71,10 @@ class GameBoard:
         self.__guarded_spaces = [] # Spaces which are guarded by soldiers, and cannot be targeted with ranged abilities
         self.__action_confirmed = False # Keeps track of if the current action has been confirmed
         self.__game_state = None # Links to game state object
+        if sender is None:
+            self.online = False
+        else:
+            self.online = True    
         self.sender = sender
         
     def bind_buttons(self):
@@ -172,12 +176,13 @@ class GameBoard:
     def click_unit_selected(self, unit: Unit, space: Space):
         unit = self.__selected_unit
         player = unit.get_player()
-        if player.is_current_turn() and player.get_team_colour() == self.__player_colour:
+        if player.is_current_turn() and (player.get_team_colour() == self.__player_colour or self.online == False):
             if self.__attack_spaces != None: # Attack range is active
                 if space in self.__attack_spaces: # A valid target is selected
                     self.update_terrain_panel(space)
                     if space == self.__target_space and self.__action_confirmed:
-                        self.sender.attack(self.__action_space,unit,space)
+                        if self.online:
+                            self.sender.attack(self.__action_space,unit,space)
                         self.attack_action(unit, space)
                     else:
                         self.setup_action(self.attack_action, unit, space, "red")
@@ -191,7 +196,8 @@ class GameBoard:
                     self.update_terrain_panel(space)
                     if space == self.__target_space and self.__action_confirmed:
                         ### Send self.__action_space, unit, space, ability_action to server
-                        self.sender.ability(self.__action_space,unit,space)
+                        if self.online:
+                            self.sender.ability(self.__action_space,unit,space)
                         self.ability_action(unit, space)
                     else:
                         self.setup_action(self.ability_action, unit, space, "yellow")
@@ -199,7 +205,8 @@ class GameBoard:
             if self.__action_space == space: # Movement to a new space is confirmed
                 if self.__action_confirmed:
                     ### Send self.__action_space, unit, space, move_and_wait to server
-                    self.sender.move(self.__action_space,unit,space)
+                    if self.online: 
+                        self.sender.move(self.__action_space,unit,space)
                     self.move_and_wait(unit, space)
                 else:
                     self.setup_action(self.move_and_wait, unit, space, "green")
@@ -389,11 +396,7 @@ class GameBoard:
         row = space.get_row()
         terrain_x = self.get_col_x(col)
         terrain_y = self.get_row_y(row)
-        ### TEMPORARY
-        #self.erase_space(row, col)
-        ###
         terrain_sprite = space.get_terrain_sprite()
-        
         self.window.draw_sprite(terrain_x, terrain_y, terrain_sprite)
         unit_x = terrain_x + SPRITE_BUFFER/2
         unit_y = terrain_y + SPRITE_BUFFER/2
@@ -668,7 +671,8 @@ class GameBoard:
         self.__game_state.next_turn()
 
     def confirm(self, unit: Unit, space: Space):
-            self.sender.move(self.__action_space,unit,space)
+            if self.online:
+                self.sender.move(self.__action_space,unit,space)
             self.move_and_wait(unit,space)
 
     def move_and_wait(self, unit: Unit, space: Space):
@@ -683,31 +687,31 @@ class MapLayout:
     FT = TerrainType.FORTRESS
     PT = TerrainType.PATH
     Maps = {
-        "Great_Plains": [
+        "Great Plains": [
             PL, PL, PL, PL, PL, PL, PL, PL,
             PL, PL, PL, PL, PL, PL, PL, PL,
             FS, PT, PT, PL, FS, PT, PL, PT,
             PL, PT, FT, FS, PL, PT, PT, PT
         ],
-        "Checkered_Woods": [
+        "Checkered Woods": [
             PL, PL, PT, PL, PL, PL, PL, FS,
             PL, PL, PT, PL, PL, PL, FS, PL,
             PT, PT, PT, FS, PL, FS, PL, FS,
             PT, FT, FS, PL, FS, PL, FS, PL
         ],
-        "Forest_Ambush": [
+        "Forest Ambush": [
             FS, PL, PL, PL, PL, PT, PL, PL,
             FS, PL, PL, PT, PT, PT, FS, FS,
             PL, PL, FS, PT, FS, PT, PT, FS,
             PT, FS, FS, FT, FS, FS, PT, PT
         ],
-        "Centre_Road": [
+        "Centre Road": [
             PL, PL, PL, PL, PL, PT, PL, PL,
             PL, PL, FS, PT, PT, PT, PL, FS,
             FS, PL, PL, PT, FS, PL, PL, PL,
             FS, FS, PT, PT, PT, FT, PL, FS
         ],
-        "Fortresses_of_Altria": [
+        "Fortresses of Altria": [
             PL, PL, PT, PT, PT, PT, PT, PL,
             PL, PL, PT, PL, PL, PL, PT, PL,
             FT, PL, PT, FS, FS, PT, PT, FS,

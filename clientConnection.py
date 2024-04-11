@@ -57,7 +57,8 @@ class Receiver():
             
         if message[1:4] == "MAP":
             mname = message[5:-1]
-            self.game.set_map_name(mname)
+            print("Setting MAP: ", mname)
+            self.game.set_map(mname)
 
         if message == "[CLR:BLACK]":
             self.game.set_player_colour("black")
@@ -116,6 +117,7 @@ class Receiver():
 def establishConn(ip, port) -> tuple[bool, socket.socket]:
     
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.settimeout(1)
     try:
         sock.connect((ip, port))
         sock.settimeout(TIMEOUT_LENGTH)
