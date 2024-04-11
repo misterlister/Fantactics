@@ -5,20 +5,30 @@ from serverConnection import *
 from serverSender import ServerSender
 from errors import errorMessage
 from gameBoard import MapLayout
+from time import *
 
 this_file = "server.py"
 
 if __name__ == "__main__":
     
+    print("Welcome to the Fantactics Server.\n")
 
     # Create socket to listen for incoming connections
-    listen_socket = socket.socket()
-    listen_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,1)
-    listen_socket.bind((IP, PORT))
-    listen_socket.listen()
+    port = DEFAULT_PORT
+    hostname = socket.gethostname()
+    ip = socket.gethostbyname(hostname)
+    listen_socket = None
+    while listen_socket is None:
+        try:
+            listen_socket = socket.socket()
+            listen_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,1)
+            listen_socket.bind((ip, port))
+            listen_socket.listen()
+        except:
+            port += 10
 
     # Message to users. 
-    print("Server listenining at hostname: ", IP, ", port: ", PORT)    
+    print(hostname," listenining at: ", ip, ", port: ", port)    
     
     # Accept the first connection.
     try:
@@ -42,7 +52,8 @@ if __name__ == "__main__":
     sender = ServerSender(serverConn)
     receiver = Receiver(serverConn, sender)
     layout = MapLayout()
-    my_map = layout.get_random_map()
+    my_map = layout.get_random_map().replace(" ", "_")
+    print("CHOSEN MAP: ", my_map)
     white_msg = "[CLR:WHITE]\n [MAP:" + my_map + "]\n"
     black_msg = "[CLR:BLACK]\n [MAP:" + my_map + "]\n"
     sender.sendString(serverConn.get_white_conn(), white_msg)

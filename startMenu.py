@@ -213,6 +213,7 @@ class StartMenu():
             elif self.currentImg == 3:
                 self.currentImg = 1
                 self.canvas.itemconfig(self.waitImg, image=self.waiting[0])
+            self.sender.send("[RDY]")
             self.root.after(500, self.wait_anim)
         else:
             self.start_online()
@@ -263,3 +264,4 @@ class StartMenu():
 
     def setOpponentReady(self):
         self.waitingForOpponent = False
+        print("Setting Opponent Ready")

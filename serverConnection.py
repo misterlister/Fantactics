@@ -56,7 +56,7 @@ class Receiver:
             data = conn.recv(MAX_MESSAGE_SIZE)
         
         except:
-            errorMessage(this_file,"Connection was closed")
+            print ("Connection to player was closed.")
         if data is not None:
             if conn.fileno() == self.conn.get_white_fileno():
                 receiver = self.conn.get_black_conn()
