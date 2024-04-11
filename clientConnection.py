@@ -1,10 +1,6 @@
-from constants import *
-import time
 import threading
-from tkinter import Tk
 from errors import *
 from queue import Queue
-from gameState import Player
 from clientSender import *
 from gameBoard import *
 from events import *

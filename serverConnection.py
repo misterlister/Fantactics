@@ -4,7 +4,6 @@ import selectors
 import random
 
 from serverSender import ServerSender
-import time
 
 this_file = "ServerConnection.py"
 
