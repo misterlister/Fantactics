@@ -84,7 +84,6 @@ class StartMenu():
         self.canvas.place(x=0, y=0)
         self.backgroundImage = ImageTk.PhotoImage(Image.open('Assets/title_background.png'))
         self.background = self.canvas.create_image(0, 0, image=self.backgroundImage, anchor='nw')
-
         self.waiting = [
             ImageTk.PhotoImage(Image.open('Assets/Text/waiting_1.png')),
             ImageTk.PhotoImage(Image.open('Assets/Text/waiting_2.png')),
@@ -94,10 +93,9 @@ class StartMenu():
         self.sprites = [[],[]]
         self.img = [[],[]]
         self.speed = [[],[]]
-        self.__playerReady = False
-        self.__opponentReady = False
         self.game = game
         self.sender = sender
+        self.waitingForOpponent = True
 
         for i in range(numSprites):
             self.sprites[0].append(self.canvas.create_image(random.randint(0, bound), random.uniform(1.0, floatRange) * -60, anchor='nw'))
@@ -190,10 +188,9 @@ class StartMenu():
             self.start()
 
         else:
-            self.__playerReady = True
             self.sender.send("[RDY]")
 
-            if self.__opponentReady:
+            if not self.waitingForOpponent:
                 self.start_online()
             else:
                 self.waitImg = self.canvas.create_image(WINDOW_WIDTH/2, self.height/8 + 160, image=self.waiting[0])
@@ -216,7 +213,7 @@ class StartMenu():
             elif self.currentImg == 3:
                 self.currentImg = 1
                 self.canvas.itemconfig(self.waitImg, image=self.waiting[0])
-            self.root.after(1000, self.wait_anim)
+            self.root.after(500, self.wait_anim)
         else:
             self.start_online()
 
@@ -265,5 +262,4 @@ class StartMenu():
 
 
     def setOpponentReady(self):
-        self.__opponentReady = True
         self.waitingForOpponent = False
