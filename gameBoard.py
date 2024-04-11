@@ -1,5 +1,6 @@
 from graphics import Window, Point
 from tkinter import Tk, Label
+from random import randint
 from PIL import ImageTk, Image
 from userInterface import UserInterface, do_nothing
 from constants import (
@@ -680,6 +681,51 @@ class GameBoard:
         self.move_unit(unit, space)
 
         self.end_turn()
+        
+def gen_randomized_map():
+    map_size = int((BOARD_COLS * BOARD_ROWS)/2)
+    map = []
+    terrain = ([TerrainType.PLAINS]*3) + ([TerrainType.FOREST]*2) + ([TerrainType.FORTRESS]*1) + ([TerrainType.PATH]*2)
+    for i in range(map_size):
+        cell_terrain = terrain[randint(0, len(terrain)-1)]
+        map.append(cell_terrain)
+    for i in range(len(map)):
+        if map[i] == TerrainType.PATH:
+            lone_space = True
+            adjacent_spaces = []
+            left_edge = False
+            right_edge = False
+            if (i - 7) % 8 == 0:
+                right_edge = True
+            elif i % 8 == 0:
+                left_edge = True
+            if i - 8 >= 0:
+                adjacent_spaces.append(i-8)
+            if i + 8 < map_size:
+                adjacent_spaces.append(i+8)
+            if not left_edge:
+                if i - 1 >= 0:
+                    adjacent_spaces.append(i-1)
+            if not right_edge:
+                if i + 1 < map_size:
+                    adjacent_spaces.append(i+1)
+            for space in adjacent_spaces:
+                if map[space] == TerrainType.PATH:
+                    lone_space = False
+            if lone_space == True:
+                new_path_space = adjacent_spaces[randint(0, len(adjacent_spaces)-1)]
+                map[new_path_space] = TerrainType.PATH
+                
+    fortresses = []
+    replacements = [TerrainType.FOREST, TerrainType.PLAINS]
+    for i in range(len(map)):
+        if map[i] == TerrainType.FORTRESS:
+            fortresses.append(i)
+    if len(fortresses) > 3:
+        for fortress in fortresses:
+            if randint(0, 1) > 0:
+                map[fortress] = replacements[randint(0, len(replacements)-1)]
+    return map
     
 class MapLayout:
     PL = TerrainType.PLAINS
@@ -693,11 +739,11 @@ class MapLayout:
             FS, PT, PT, PL, FS, PT, PL, PT,
             PL, PT, FT, FS, PL, PT, PT, PT
         ],
-        "Checkered_Woods": [
-            PL, PL, PT, PL, PL, PL, PL, FS,
-            PL, PL, PT, PL, PL, PL, FS, PL,
-            PT, PT, PT, FS, PL, FS, PL, FS,
-            PT, FT, FS, PL, FS, PL, FS, PL
+        "Checkered Woods": [
+            PT, PL, PL, PT, PL, PL, PL, FS,
+            PT, PT, PL, PT, PT, PL, FS, PL,
+            PL, PT, PT, FS, PT, FS, PL, PL,
+            FS, PL, FT, PL, FS, PT, FS, PL
         ],
         "Forest_Ambush": [
             FS, PL, PL, PL, PL, PT, PL, PL,
@@ -717,8 +763,13 @@ class MapLayout:
             FT, PL, PT, FS, FS, PT, PT, FS,
             PT, PT, PT, FS, FS, FT, PL, FS
         ],
-        
-        
+        "Dagger_Glade": [
+            FT, PL, FS, PL, FS, PT, PT, PL,
+            PL, FS, FS, FS, PL, PT, FS, PL,
+            PL, PL, FS, FT, FS, PT, FS, PL,
+            FS, PL, FS, PT, PT, PT, PL, PL
+        ],
+        "Random_Map": gen_randomized_map()
     }
 
     def get_random_map(self):
