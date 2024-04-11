@@ -15,10 +15,9 @@ if __name__ == "__main__":
     onlineAvailable = True
     connResult, conn = establishConn(IP, PORT)
     if not connResult:
-        errorMessage(this_file, "Could not establish connection")
         onlineAvailable = False
 
-    map = "Great_Plains"
+    map = None
 
     for arg in argv:
         if arg == '-g':

@@ -48,12 +48,16 @@ class Receiver:
         self.sender = sender
         self.white_ready = False
         self.black_ready = False
-
+    
     def receive_data(self,conn, mask):
-
-        data = conn.recv(MAX_MESSAGE_SIZE)
-
-        if data:
+        
+        data = None
+        try:
+            data = conn.recv(MAX_MESSAGE_SIZE)
+        
+        except:
+            errorMessage(this_file,"Connection was closed")
+        if data is not None:
             if conn.fileno() == self.conn.get_white_fileno():
                 receiver = self.conn.get_black_conn()
                 sender = self.conn.get_white_conn()
@@ -65,7 +69,6 @@ class Receiver:
                 msg_sender = "black"
 
 
-            message_string = data.decode('ascii')
             messages = data.decode('ascii').split()
 
             for msg in messages:

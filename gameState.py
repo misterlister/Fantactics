@@ -116,7 +116,6 @@ class GameState:
         self.__turn_count = 0
         self.__current_player = None
         self.__game_over = False
-        print("****Map is: ", map)
         self.__map = map
         if sender is None:
             self.online = False
@@ -303,7 +302,6 @@ class GameState:
             
     def next_turn(self):
 
-        print("IT IS TURN # ", self.__turn_count)
         if self.check_victory_conditions():
             self.end_game()
         else:

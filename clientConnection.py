@@ -123,7 +123,7 @@ def establishConn(ip, port) -> tuple[bool, socket.socket]:
         sock.settimeout(TIMEOUT_LENGTH)
 
     except:
-        errorMessage(this_file, "Could not establish connection.")
+        print("No server connection established.")
         setConnClosed()
         return False, None
 

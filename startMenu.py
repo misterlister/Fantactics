@@ -50,7 +50,6 @@ class Game():
 
     def set_map(self, map: str):
         self.map = map
-        print("Map set to: ", map)
 
     def start_one_player(self):
         self.userInterface = UserInterface(self.root)
@@ -202,11 +201,9 @@ class StartMenu():
                 self.waitImg = self.canvas.create_image(WINDOW_WIDTH/2, self.height/8 + 160, image=self.waiting[0])
                 self.currentImg = 3
                 self.waitingForOpponent = True
-                self.wait_anim()
                 self.currentMenu = 1
                 self.hide_buttons()
-                self.back_button()
-
+                self.wait_anim()
 
     def wait_anim(self):
         if self.waitingForOpponent:
@@ -219,8 +216,11 @@ class StartMenu():
             elif self.currentImg == 3:
                 self.currentImg = 1
                 self.canvas.itemconfig(self.waitImg, image=self.waiting[0])
-            
             self.root.after(1000, self.wait_anim)
+        else:
+            self.start_online()
+
+
 
     def options(self):
         self.currentMenu = 2
@@ -266,5 +266,4 @@ class StartMenu():
 
     def setOpponentReady(self):
         self.__opponentReady = True
-        if self.__playerReady:
-            self.start_online()
+        self.waitingForOpponent = False
