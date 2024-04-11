@@ -16,16 +16,18 @@ if __name__ == "__main__":
 
     print("Welcome to Fantactics.")
     hostname = input("Please enter the server's hostname or IP address: ")
-    port = int(input("Plese enter the host port: "))
-    ip_address = None
-    try:
-        ip_address = socket.gethostbyname(hostname)
-    except:
-        ip_address = hostname
-    onlineAvailable = True
-    connResult, conn = establishConn(ip_address, port)
-    if not connResult:
-        onlineAvailable = False
+    port = input("Plese enter the host port: ")
+    if hostname != "" and port != "":
+        port = int(port)
+        ip_address = None
+        try:
+            ip_address = socket.gethostbyname(hostname)
+        except:
+            ip_address = hostname
+        onlineAvailable = True
+        connResult, conn = establishConn(ip_address, port)
+        if not connResult:
+            onlineAvailable = False
 
     map = None
     for arg in argv:
