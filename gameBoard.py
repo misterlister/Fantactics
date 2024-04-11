@@ -687,31 +687,31 @@ class MapLayout:
     FT = TerrainType.FORTRESS
     PT = TerrainType.PATH
     Maps = {
-        "Great Plains": [
+        "Great_Plains": [
             PL, PL, PL, PL, PL, PL, PL, PL,
             PL, PL, PL, PL, PL, PL, PL, PL,
             FS, PT, PT, PL, FS, PT, PL, PT,
             PL, PT, FT, FS, PL, PT, PT, PT
         ],
-        "Checkered Woods": [
+        "Checkered_Woods": [
             PL, PL, PT, PL, PL, PL, PL, FS,
             PL, PL, PT, PL, PL, PL, FS, PL,
             PT, PT, PT, FS, PL, FS, PL, FS,
             PT, FT, FS, PL, FS, PL, FS, PL
         ],
-        "Forest Ambush": [
+        "Forest_Ambush": [
             FS, PL, PL, PL, PL, PT, PL, PL,
             FS, PL, PL, PT, PT, PT, FS, FS,
             PL, PL, FS, PT, FS, PT, PT, FS,
             PT, FS, FS, FT, FS, FS, PT, PT
         ],
-        "Centre Road": [
+        "Centre_Road": [
             PL, PL, PL, PL, PL, PT, PL, PL,
             PL, PL, FS, PT, PT, PT, PL, FS,
             FS, PL, PL, PT, FS, PL, PL, PL,
             FS, FS, PT, PT, PT, FT, PL, FS
         ],
-        "Fortresses of Altria": [
+        "Fortresses_of_Altria": [
             PL, PL, PT, PT, PT, PT, PT, PL,
             PL, PL, PT, PL, PL, PL, PT, PL,
             FT, PL, PT, FS, FS, PT, PT, FS,

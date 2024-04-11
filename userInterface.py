@@ -1,4 +1,4 @@
-from tkinter import Tk, LabelFrame, Canvas, Text, Label, Message, messagebox, Scrollbar
+from tkinter import Tk, LabelFrame, Canvas, Text, Label, Message, messagebox
 from PIL import ImageTk, Image
 from typing import Callable
 from constants import (
@@ -546,6 +546,7 @@ class CombatLog():
         
     def display_map_name(self, map_name) -> None:
         self.map_label.place(x=0, y=25)
+        map_name = map_name.replace("_", " ")
         self.map_label.config(text=f"Map: {map_name}")
         
     def add_text(self, text: str) -> None:
