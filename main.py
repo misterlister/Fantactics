@@ -7,16 +7,24 @@ from errors import errorMessage
 from clientConnection import Receiver, establishConn
 from clientSender import Sender
 
+doMainMenu = True
+online = False
 this_file = "main.py"
-doMainMenu = False
 
 if __name__ == "__main__":
-
-    connResult, conn = establishConn(IP, PORT)
     
+    connResult, conn = establishConn(IP, PORT)
     if not connResult:
         errorMessage(this_file, "Could not establish connection")
         exit()
+    map = None
+    for arg in argv:
+        if arg == '-g':
+            doMainMenu = False
+        if arg == '-o':
+            online = True
+        if arg.startswith("-m:"):
+            map = arg[3:]
 
     root = Tk()
     window = Window(WINDOW_WIDTH, WINDOW_HEIGHT, root)
@@ -25,5 +33,7 @@ if __name__ == "__main__":
     mainMenu = StartMenu(root, window,game, sender)
     receiver = Receiver(conn,mainMenu)
 
+    if doMainMenu: mainMenu = StartMenu(root, window, game, sender, online=online, map=map)
+    else: game = Game(root, window, map=map)
     root.mainloop()
 

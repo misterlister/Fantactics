@@ -240,13 +240,13 @@ class TerrainPanel(Panel):
         self.empty = ImageTk.PhotoImage(Image.open(EMPTY_SPRITE))
         self.bgImg = ImageTk.PhotoImage(Image.open('Assets/terrain_image_background.png'))
         self.selectedSprite = self.spriteCanvas.create_image(0, 0, anchor='nw', image=self.bgImg)
-        self.selectedSprite = self.spriteCanvas.create_image(SPRITE_BUFFER, SPRITE_BUFFER, anchor = 'nw', image=self.empty)
+        self.selectedSprite = self.spriteCanvas.create_image(SPRITE_BUFFER*2, SPRITE_BUFFER*2, anchor = 'nw', image=self.empty)
 
         self.nameLabel = Label(self.frame, text='', bg=bgColour, fg=textColour, font=(FONT, 2 * DEFAULT_FONT_SIZE))
-        self.nameLabel.place(x=STATS_IMAGE_SIZE + (2 * BORDER_WIDTH) + 1 , y=0)
+        self.nameLabel.place(x=STATS_IMAGE_SIZE + (6 * BORDER_WIDTH) + 1 , y=0)
 
         self.descriptionLabel = Message(self.frame, text='', bg=bgColour, fg=textColour, font=(FONT, DEFAULT_FONT_SIZE), width=160)
-        self.descriptionLabel.place(x=STATS_IMAGE_SIZE + (2 * BORDER_WIDTH) + 1 , y=40)
+        self.descriptionLabel.place(x=STATS_IMAGE_SIZE + (5 * BORDER_WIDTH) + 1 , y=40)
 
         self.icons = {
             'defense' : ImageTk.PhotoImage(Image.open('Assets/Icons/armour.png')),
@@ -258,11 +258,11 @@ class TerrainPanel(Panel):
             "movement" : Label(self.frame, text = ' ', image=self.icons['movement'], compound='top'),
         }
 
-        index = 34
+        index = 30
         for item in self.labels:
             self.labels[item].config(bg=bgColour, fg=textColour, font=(FONT, DEFAULT_FONT_SIZE))
-            self.labels[item].place(x=index, y=STATS_IMAGE_SIZE + 8, anchor='n')
-            index += 64
+            self.labels[item].place(x=index, y=STATS_IMAGE_SIZE + 10, anchor='n')
+            index += 50
 
 
     def update_image(self, image: ImageTk):
@@ -284,13 +284,22 @@ class TerrainPanel(Panel):
         if new != 0:
             self.labels['defense'].config(text=f"+ {new}")
         else:
-            self.labels['defense'].config(text=f"")
+            self.labels['defense'].config(text=f" ")
 
     def update_movement(self, new: int = 0):
         if new != 0:
-            self.labels['movement'].config(text=f"+ {new}")
+            self.labels['movement'].config(text=f"{new}")
         else:
-            self.labels['movement'].config(text=f"")
+            self.labels['movement'].config(text=f" ")
+            
+    def update_terrain_panel(self, image: ImageTk=None, name: str="", description:str="", defense: int=0, movement: int=0):
+        if image == None:
+            image = self.empty
+        self.update_image(image)
+        self.update_name(name)
+        self.update_description(description)
+        self.update_defense(defense)
+        self.update_movement(movement)
 
 # Attack, special ability, wait, cancel
 # Class for bottom side control bar
@@ -368,6 +377,7 @@ class CanvasButton():
             frame: LabelFrame, 
             xPos: int = 0, 
             yPos: int = 0,
+            bg = UI_BG_COLOUR,
             unpressed: str = ERROR_UNPRESSED,
             pressed: str = ERROR_PRESSED,
             clickFunc: Callable = do_nothing,
@@ -375,9 +385,9 @@ class CanvasButton():
             enabled: bool = True,
             ) -> None:
         
-        self.button = Canvas(frame, bg=UI_BG_COLOUR, bd=0, highlightthickness=0, cursor='hand2') # Create the button object
+        self.button = Canvas(frame, bg=bg, bd=0, highlightthickness=0, cursor='hand2') # Create the button object
         self.button.pack_propagate(0) # Prevent the Canvas from shrinking
-        self.button.place(x=xPos, y=yPos)
+        self.place(xPos, yPos)
         self.bind(self.click, self.unclick)
         self.__create_image(unpressed, pressed)
         self.currentImage = self.button.create_image(0, 0, anchor = 'nw', image=self.unpressed)
@@ -385,6 +395,12 @@ class CanvasButton():
         self.clickFunc = clickFunc
         self.unclickFunc = unclickFunc
         self.enabled = enabled
+
+    def place(self, xPos, yPos, anchor: str = 'nw'):
+        self.button.place(x=xPos, y=yPos, anchor=anchor)
+
+    def destroy(self):
+        self.button.destroy()
 
     def bind(self, click: Callable = do_nothing, unclick: Callable = do_nothing):
         self.button.bind('<Button-1>', click)
@@ -413,6 +429,10 @@ class CanvasButton():
 
     def get_button(self): return self.button
 
+    def hide(self): self.button.place_forget()
+
+    def show(self): self.button.place
+
     def __create_image(self, unpressed, pressed) -> None:
         self.unpressed = ImageTk.PhotoImage(Image.open(unpressed))
         self.pressed = ImageTk.PhotoImage(Image.open(pressed))
@@ -440,10 +460,13 @@ class ToggleButton(CanvasButton):
                 clickFunc: Callable = do_nothing, 
                 unclickFunc: Callable = do_nothing, 
                 enabled: bool = True,
-                toggled: bool = False
+                toggled: bool = False,
+                bg = UI_BG_COLOUR,
+                disable = True
                 ) -> None:
-        super().__init__(frame, xPos, yPos, unpressed, pressed, clickFunc, unclickFunc, enabled)
+        super().__init__(frame, xPos, yPos, bg, unpressed, pressed, clickFunc, unclickFunc, enabled)
         self.toggled = toggled
+        self.disabling = disable
 
         # Must override parent class else it will behave like parent
         self.bind(self.click, self.unclick)
@@ -474,7 +497,7 @@ class ToggleButton(CanvasButton):
     def toggle(self):
         self.toggled = True
         self.button.itemconfig(self.currentImage, image=self.pressed)
-        self.disable()
+        if self.disabling: self.disable()
 
     def untoggle(self):
         self.toggled = False
@@ -487,13 +510,14 @@ class ToggleButton(CanvasButton):
 
     def unclick(self, event) -> None:
         if self.enabled:
-            self.untoggle_keys()
+            if self.disabling: self.untoggle_keys()
             if self.get_toggle_status() == False:
                 self.toggle()
-                
                 self.unclickFunc()
             else:
-                pass
+                self.untoggle()
+                self.unclickFunc()
+
 
 class CombatLog():
     def __init__(
@@ -515,9 +539,14 @@ class CombatLog():
         self.__game_state = None
         self.label = Label(root, text='', bg=UI_BG_COLOUR, fg='white', font=(FONT, DEFAULT_FONT_SIZE))
         self.label.place(x=0, y=0)
+        self.map_label = Label(root, text='', bg=UI_BG_COLOUR, fg='white', font=(FONT, DEFAULT_FONT_SIZE))
 
     def update_label(self) -> None:
         self.label.config(text=f"Turn {self.get_turn()}: Player {self.get_player()}")
+        
+    def display_map_name(self, map_name) -> None:
+        self.map_label.place(x=0, y=25)
+        self.map_label.config(text=f"Map: {map_name}")
         
     def add_text(self, text: str) -> None:
         self.text.config(state='normal')

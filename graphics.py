@@ -32,7 +32,9 @@ class Window:
 
     def draw_sprite(self, x: int, y: int, sprite: str) -> None:
         sprite_image = self.sprites[sprite]
-        self.canvas.create_image(x, y, anchor='nw', image=sprite_image, tags=("temp"))
+        
+        ### Tag the created image so it can be deleted later.
+        self.canvas.create_image(x, y, anchor='nw', image=sprite_image, tags=('temp'))
 
     def get_sprite(self, index):
         return self.sprites[index]
@@ -60,6 +62,7 @@ class Window:
         sprites[TerrainType.PLAINS] = ImageTk.PhotoImage(Image.open("Assets/Terrain/plains.png"))
         sprites[TerrainType.FOREST] = ImageTk.PhotoImage(Image.open("Assets/Terrain/forest.png"))
         sprites[TerrainType.FORTRESS] = ImageTk.PhotoImage(Image.open("Assets/Terrain/fortress.png"))
+        sprites[TerrainType.FORTRESS_N] = ImageTk.PhotoImage(Image.open("Assets/Terrain/fortress_n.png"))
         sprites[TerrainType.PATH_E] = ImageTk.PhotoImage(Image.open("Assets/Terrain/path_e.png"))
         sprites[TerrainType.PATH_ES] = ImageTk.PhotoImage(Image.open("Assets/Terrain/path_es.png"))
         sprites[TerrainType.PATH_ESW] = ImageTk.PhotoImage(Image.open("Assets/Terrain/path_esw.png"))

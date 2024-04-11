@@ -112,11 +112,22 @@ class GameBoard:
         self.rowLabel[i].destroy()
         self.colLabel[j].destroy()
         
-    def setup_map(self, game_map):
+    def setup_map(self, map_name):
         map_size = BOARD_COLS * BOARD_ROWS
-        if len(game_map) != map_size:
-            print("Alert: Map does not match the board size. Reverting to default map.")
-            game_map = [TerrainType.PLAINS * (map_size)]
+        if map_name not in MapLayout.Maps:
+            print("Alert: Map is not in the list of valid maps. Reverting to default map.")
+            game_map = [TerrainType.PLAINS] * (map_size)
+            map_name = "Default Map"
+        else:
+            game_map = MapLayout.Maps[map_name]
+            if len(game_map)*2 != map_size:
+                print("Alert: Map does not match the board size. Reverting to default map.")
+                game_map = [TerrainType.PLAINS] * (map_size)
+                map_name = "Default Map"
+        self.ui.logItems["text"].display_map_name(map_name)
+        if map_name != "Default Map":
+            for i in range((len(game_map)-1), -1, -1):
+                    game_map.append(game_map[i])
         cell = 0
         for i in range(BOARD_ROWS):
             for j in range(BOARD_COLS):
@@ -140,8 +151,6 @@ class GameBoard:
             if event.y > self.__y_start and event.y < self.y_end:
                 row = (event.y-self.__y_start) // self.square_size
                 col = (event.x-self.__x_start) // self.square_size
-                #contents = self.check_square(row, col)
-                #print(f"Clicked square {row},{col}. Contents: {contents}")
                 new_space = self.__spaces[row][col]
                 if self.__selected_unit is None: # No unit is currently selected
                     self.click_no_unit_selected(new_space)
@@ -156,6 +165,7 @@ class GameBoard:
                 return
             self.deselect_space()
         self.select_space(space)
+        self.update_terrain_panel(space)
         self.update_stats_panel(self.__selected_unit)
         return
 
@@ -165,6 +175,7 @@ class GameBoard:
         if player.is_current_turn() and player.get_team_colour() == self.__player_colour:
             if self.__attack_spaces != None: # Attack range is active
                 if space in self.__attack_spaces: # A valid target is selected
+                    self.update_terrain_panel(space)
                     if space == self.__target_space and self.__action_confirmed:
                         self.sender.attack(self.__action_space,unit,space)
                         self.attack_action(unit, space)
@@ -177,6 +188,7 @@ class GameBoard:
                     self.unconfirm_action()
                     return
                 if space in self.__ability_spaces: # A valid target is selected
+                    self.update_terrain_panel(space)
                     if space == self.__target_space and self.__action_confirmed:
                         ### Send self.__action_space, unit, space, ability_action to server
                         self.sender.ability(self.__action_space,unit,space)
@@ -195,6 +207,7 @@ class GameBoard:
             elif space in self.__valid_moves: # A new action space is selected
                 self.set_action_space(unit, space)
                 self.set_attack_spaces(unit, space)
+                self.update_terrain_panel(space)
                 return
         else:
             if self.__game_state.game_is_over():
@@ -316,6 +329,18 @@ class GameBoard:
     def clear_stats_panel(self):
         for panel in self.ui.statsPanel:
             self.ui.statsPanel[panel].clear()
+            
+    def update_terrain_panel(self, space):
+        terrain = space.get_terrain()
+        image = self.window.get_sprite(terrain.get_sprite())
+        name = terrain.get_name()
+        description = terrain.get_description()
+        defense = terrain.get_defense_mod()
+        movement = terrain.get_move_cost()
+        self.ui.statsPanel["terrainPanel"].update_terrain_panel(image, name, description, defense, movement)
+            
+    def clear_terrain_panel(self):
+        self.ui.statsPanel["terrainPanel"].update_terrain_panel()
 
     def outline_space(self, space: Space, colour: str) -> None:
         row = space.get_row()
@@ -349,15 +374,6 @@ class GameBoard:
         y2 = self.get_row_y(row+1) - (LINE_WIDTH * 2)
         self.window.canvas.create_line(x1, y1, x2, y2, width=LINE_WIDTH, fill=colour, tags=('temp'))
         self.window.canvas.create_line(x2, y1, x1, y2, width=LINE_WIDTH, fill=colour, tags=('temp'))
-
-    def check_square(self, row: int, col: int):
-        if row > BOARD_ROWS or col > BOARD_COLS:
-            return "Outside Grid"
-        else:
-            unit = self.__spaces[row][col].get_unit()
-            if unit is None:
-                return unit
-            return unit.get_name()
         
     def get_space(self, row, col):
         return self.__spaces[row][col]
@@ -403,8 +419,8 @@ class GameBoard:
                 self.x_out_space(sp, "grey")
 
     def draw_all_spaces(self):
+        ### Delete any unneeded images.
         self.window.canvas.delete('temp')
-        print("ITEMS IN CANVAS: ", len(self.window.canvas.find_all()))
         for i in range(BOARD_ROWS):
             for j in range(BOARD_COLS):
                 self.draw_space(self.__spaces[i][j])
@@ -414,7 +430,7 @@ class GameBoard:
         y1 = self.get_row_y(row)
         x2 = self.get_col_x(col+1)
         y2 = self.get_row_y(row+1)
-        self.window.canvas.create_rectangle(x1, y1, x2, y2, fill=BG_COL, outline = 'grey', width=2)
+        self.window.canvas.create_rectangle(x1, y1, x2, y2, fill=BG_COL, outline = 'grey', width=2, tags=('temp'))
 
     def get_movement_spaces(self, unit: Unit, space: Space) -> set:
         range = unit.get_movement()
@@ -469,6 +485,7 @@ class GameBoard:
         self.__guarded_spaces = guarded_spaces
     
     def draw_space_list(self, spaces: list):
+        ### Delete any unneeded images.
         for space in spaces:
             self.draw_space(space)
 
@@ -520,9 +537,9 @@ class GameBoard:
 
     def cancel_action(self):
         self.__action_space = None
-        self.draw_all_spaces()
         self.deselect_space()
         self.clear_stats_panel()
+        self.clear_terrain_panel()
         self.ui.controlBar.buttons['attack'].untoggle_keys()
 
     def get_col_x(self, col):
@@ -617,7 +634,6 @@ class GameBoard:
         for message in attack_log:
             self.ui.logItems['text'].add_text(message)
         self.__action_space = None
-        self.draw_all_spaces()
         self.deselect_space()
         
     def preview_sprite(self, unit: Unit, space: Space):
@@ -697,6 +713,8 @@ class MapLayout:
             FT, PL, PT, FS, FS, PT, PT, FS,
             PT, PT, PT, FS, FS, FT, PL, FS
         ],
+        
+        
     }
 
     def get_random_map(self):

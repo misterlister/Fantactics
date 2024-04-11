@@ -87,6 +87,7 @@ class TerrainType:
     FOREST_SW = "forest_sw"
     FOREST_W = "forest_w"
     FORTRESS = "fortress"
+    FORTRESS_N = "fortress_n"
     PATH_E = "path_e"
     PATH_ES = "path_es"
     PATH_ESW = "path_esw"

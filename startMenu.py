@@ -2,7 +2,7 @@ import random
 import os
 from tkinter import Tk, Label, Canvas
 from PIL import ImageTk, Image
-from userInterface import Panel, CanvasButton
+from userInterface import CanvasButton, ToggleButton
 from constants import (
     WINDOW_WIDTH,
     WINDOW_HEIGHT,
@@ -44,7 +44,7 @@ class Game():
         else:
             self.player1 = Player("black")
             self.player2 = Player("white")
-        self.state = GameState(self.player1, self.player2, self.board, self.userInterface,self.sender, self.map_name)
+        self.state = GameState(self.player1, self.player2, self.board, self.userInterface, map,self.sender)
 
     def set_player_colour(self, colour:str):
         self.player_colour = colour
@@ -52,29 +52,38 @@ class Game():
     def set_map_name(self, map: str):
         self.map_name = map
 
-class StartMenu(Panel):
+class StartMenu():
     def __init__(
             self, 
             root: Tk,
             window: Window, 
             game: Game,
             sender: Sender,
-            xPos: int = 0, 
-            yPos: int = 0, 
             width: int = WINDOW_WIDTH, 
             height: int = WINDOW_HEIGHT, 
             bgColour: str = 'black',
-            bd: int = 0,
-            relief: str = 'solid',
-            textColour: str = 'white',
+            online: bool = False,
+            map = None
             ) -> None:
         self.root = root
         self.enabled = True
+        self.online = online
+        self.width = width
+        self.height = height
+        self.bgColour = bgColour
         self.canvas = Canvas(self.root, width=WINDOW_WIDTH, height=WINDOW_HEIGHT, bg='black', bd=0, highlightthickness=0)
         self.canvas.pack_propagate(0)
         self.canvas.place(x=0, y=0)
         self.backgroundImage = ImageTk.PhotoImage(Image.open('Assets/title_background.png'))
         self.background = self.canvas.create_image(0, 0, image=self.backgroundImage, anchor='nw')
+        self.map = map
+
+        self.waiting = [
+            ImageTk.PhotoImage(Image.open('Assets/Text/waiting_1.png')),
+            ImageTk.PhotoImage(Image.open('Assets/Text/waiting_2.png')),
+            ImageTk.PhotoImage(Image.open('Assets/Text/waiting_3.png')),
+            
+        ]
         self.sprites = [[],[]]
         self.img = [[],[]]
         self.speed = [[],[]]
@@ -86,6 +95,7 @@ class StartMenu(Panel):
         for i in range(numSprites):
             self.sprites[0].append(self.canvas.create_image(random.randint(0, bound), random.uniform(1.0, floatRange) * -60, anchor='nw'))
             self.img[0].append(ImageTk.PhotoImage(Image.open(EMPTY_SPRITE)))
+
             self.speed[0].append(random.uniform(1.00, speedRange))
 
             self.sprites[1].append(self.canvas.create_image(random.randint(2 * bound, WINDOW_WIDTH), random.uniform(1.0, floatRange) * -60, anchor='ne'))
@@ -110,17 +120,14 @@ class StartMenu(Panel):
             'exit' : CanvasButton(self.canvas, unpressed='Assets/Text/exit_unpressed.png', pressed='Assets/Text/exit_pressed.png')
         }
 
-        index = 160
+        self.index = 160
         # Bind clicks to buttons & set their position
-        for item in self.buttons:
-            item = self.buttons[item]
-            item.bind(item.click, item.unclick)
-            item.get_button().config(bg=bgColour)
-            item.get_button().place(x=WINDOW_WIDTH/2, y=(height / 8) + index, anchor='n')
-            index += 90
-
+        self.place_buttons(self.index)
         self.buttons['play'].change_unclick_func(self.play)
+        self.buttons['options'].change_unclick_func(self.options)
         self.buttons['exit'].change_unclick_func(self.exit)
+
+        self.currentMenu = 0
 
     def animate(self, sprite, index, colour):
         if self.enabled:
@@ -153,15 +160,90 @@ class StartMenu(Panel):
         self.img[colour][index] = ImageTk.PhotoImage(load)
         self.canvas.itemconfig(sprite, image=self.img[colour][index])
 
+    def place_buttons(self, index):
+        for item in self.buttons:
+            item = self.buttons[item]
+            item.bind(item.click, item.unclick)
+            item.get_button().config(bg=self.bgColour)
+            item.get_button().place(x=WINDOW_WIDTH/2, y=(self.height / 8) + index, anchor='n')
+            index += 90
+    
+    def hide_buttons(self):
+        for item in self.buttons:
+                self.buttons[item].hide()
+
+    def back_button(self):
+        self.backBtn = CanvasButton(self.canvas, bg=self.bgColour, unpressed='Assets/Text/back_unpressed.png', pressed='Assets/Text/back_pressed.png')
+        self.backBtn.place(WINDOW_WIDTH/2, self.height/8 + 360, anchor='n')
+        self.backBtn.change_unclick_func(self.back)
+         
     def play(self):
         if not self.__playerReady:
             self.sender.send("[RDY]")
         self.__playerReady = True
         if self.__opponentReady:
             self.start()
+        #if self.online:
+            self.currentMenu = 1
+            self.hide_buttons()
+            self.back_button()
+
+            self.waitImg = self.canvas.create_image(WINDOW_WIDTH/2, self.height/8 + 160, image=self.waiting[0])
+            self.currentImg = 3
+            self.waitingForOpponent = True
+            self.wait_anim()
+
+            ### For Glen to add here --- Once both players are connected, call load_game()
+
+        else:
+            self.load_game()
+
+    def wait_anim(self):
+        if self.waitingForOpponent:
+            if self.currentImg == 1:
+                self.currentImg = 2
+                self.canvas.itemconfig(self.waitImg, image=self.waiting[1])
+            elif self.currentImg == 2:
+                self.currentImg = 3
+                self.canvas.itemconfig(self.waitImg, image=self.waiting[2])
+            elif self.currentImg == 3:
+                self.currentImg = 1
+                self.canvas.itemconfig(self.waitImg, image=self.waiting[0])
+            
+            self.root.after(1000, self.wait_anim)
+
+    def load_game(self):
+        Game(self.root, self.window, self.map)
+        self.enabled = False
+        self.canvas.destroy()
 
     def options(self):
-        pass
+        self.currentMenu = 2
+        self.hide_buttons()
+        self.back_button()
+        self.onlineBtn = ToggleButton(self.canvas, bg=self.bgColour, disable=False, unpressed='Assets/Text/online_unpressed.png', pressed='Assets/Text/online_pressed.png')
+        self.toggleKey = [self.onlineBtn]
+        self.onlineBtn.set_key(self.toggleKey)
+        self.onlineBtn.change_unclick_func(self.toggle_online)
+        if self.online:
+            self.onlineBtn.toggle()
+        self.onlineBtn.place(WINDOW_WIDTH/2, self.height/8 + 270, anchor='n')
+    
+    def toggle_online(self):
+        if self.online == True:
+            self.online = False
+            print(self.online)
+        else: 
+            self.online = True
+        
+    def back(self):
+        self.backBtn.destroy()
+        if self.currentMenu == 1: 
+            self.canvas.delete(self.waitImg)
+            self.waitingForOpponent = False
+        elif self.currentMenu == 2: self.onlineBtn.destroy()
+        self.place_buttons(self.index)
+        self.currentMenu = 0
 
     def exit(self):
         self.enabled = False

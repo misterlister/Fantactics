@@ -106,19 +106,20 @@ class GameState:
             player2: Player,
             board: GameBoard,
             ui,
-            sender: Sender,
-            map_name: str
+            map,
+            sender: Sender
             ) -> None:
         self.player1 = player1
         self.player2 = player2
-        self.map_name = map_name
         self.board = board
         self.ui = ui
         self.sender = sender
         self.__turn_count = 0
         self.__current_player = None
         self.__game_over = False
+        self.__map = map
         self.setup_board()
+        
         
 
     def setup_board(self):
@@ -209,20 +210,21 @@ class GameState:
         return map
     
     def select_map(self):
+        if self.__map != None:
+            map_choice = self.__map.replace("_", " ")
+            if map_choice in MapLayout.Maps:
+                return map_choice
         map_size = BOARD_COLS * BOARD_ROWS
         valid_maps = []
-        map_choice = None
         for map in MapLayout.Maps:
             if (len(MapLayout.Maps[map]) * 2) == map_size:
-                valid_maps.append(MapLayout.Maps[map])
+                valid_maps.append(map)
         num_maps = len(valid_maps)
         if num_maps == 0:
-            return []
+            return ""
         else:
             map_choice_num = randint(0, num_maps-1)
             map_choice = valid_maps[map_choice_num]
-            for i in range((len(map_choice)-1), -1, -1):
-                map_choice.append(map_choice[i])
         return map_choice
     
     def set_turn(self, player: Player):
@@ -295,8 +297,6 @@ class GameState:
             return True
         return False
             
-        
-    
     def next_turn(self):
 
         print("IT IS TURN # ", self.__turn_count)
