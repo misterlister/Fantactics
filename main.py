@@ -8,16 +8,16 @@ from clientConnection import Receiver, establishConn
 from clientSender import Sender
 import socket
 
-doMainMenu = True
-online = True
-sender = None
-conn = None
-hostname = None
-port = None
+
 this_file = "main.py"
 
 if __name__ == "__main__":
-    
+    doMainMenu = True
+    online = True
+    sender = None
+    conn = None
+    hostname = None
+    port = None
     map = None
     for arg in argv:
         if arg == '-g':
@@ -48,7 +48,10 @@ if __name__ == "__main__":
 
     root = Tk()
     window = Window(WINDOW_WIDTH, WINDOW_HEIGHT, root)
-    game = Game(root, window, sender)
+    if online:
+        game = Game(root, window, sender)
+    else:
+        game = Game(root, window, None, map)
     mainMenu = StartMenu(root, window, game, sender, online)
     if online:
         receiver = Receiver(conn, mainMenu)
