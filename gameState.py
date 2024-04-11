@@ -207,7 +207,7 @@ class GameState:
         return False
     
     def get_map(self, map_name: str):
-        map =  MapLayout.Maps[map_name]
+        map = MapLayout.Maps[map_name]
         for i in range((len(map)-1), -1, -1):
             map.append(map[i])
         return map
