@@ -722,7 +722,6 @@ class MapLayout:
     }
 
     def get_random_map(self):
-
         map_names = []
         for k in self.Maps.keys():
             map_names.append(k)
