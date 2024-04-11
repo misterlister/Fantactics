@@ -83,6 +83,15 @@ class StartMenu():
         self.canvas.place(x=0, y=0)
         self.backgroundImage = ImageTk.PhotoImage(Image.open('Assets/title_background.png'))
         self.background = self.canvas.create_image(0, 0, image=self.backgroundImage, anchor='nw')
+        self.map = map
+
+        self.credImg = [
+            ImageTk.PhotoImage(Image.open('Assets/Text/hayden.png')),
+            ImageTk.PhotoImage(Image.open('Assets/Text/glen.png')),
+            ImageTk.PhotoImage(Image.open('Assets/Text/shane.png')),
+        ]
+        self.cred = []
+
         self.waiting = [
             ImageTk.PhotoImage(Image.open('Assets/Text/waiting_1.png')),
             ImageTk.PhotoImage(Image.open('Assets/Text/waiting_2.png')),
@@ -121,6 +130,7 @@ class StartMenu():
         self.buttons = {
             'play' : CanvasButton(self.canvas, unpressed='Assets/Text/play_unpressed.png', pressed='Assets/Text/play_pressed.png'),
             'options' : CanvasButton(self.canvas, unpressed='Assets/Text/options_unpressed.png', pressed='Assets/Text/options_pressed.png'),
+            'credits' : CanvasButton(self.canvas, unpressed='Assets/Text/credits_unpressed.png', pressed='Assets/Text/credits_pressed.png'),
             'exit' : CanvasButton(self.canvas, unpressed='Assets/Text/exit_unpressed.png', pressed='Assets/Text/exit_pressed.png')
         }
 
@@ -129,6 +139,7 @@ class StartMenu():
         self.place_buttons(self.index)
         self.buttons['play'].change_unclick_func(self.play)
         self.buttons['options'].change_unclick_func(self.options)
+        self.buttons['credits'].change_unclick_func(self.credits)
         self.buttons['exit'].change_unclick_func(self.exit)
 
         self.currentMenu = 0
@@ -176,9 +187,9 @@ class StartMenu():
         for item in self.buttons:
                 self.buttons[item].hide()
 
-    def back_button(self):
+    def back_button(self, x=WINDOW_WIDTH/2, y=720 - 200):
         self.backBtn = CanvasButton(self.canvas, bg=self.bgColour, unpressed='Assets/Text/back_unpressed.png', pressed='Assets/Text/back_pressed.png')
-        self.backBtn.place(WINDOW_WIDTH/2, self.height/8 + 360, anchor='n')
+        self.backBtn.place(x, y, anchor='n')
         self.backBtn.change_unclick_func(self.back)
          
     def play(self):
@@ -230,6 +241,17 @@ class StartMenu():
         if self.online:
             self.onlineBtn.toggle()
         self.onlineBtn.place(WINDOW_WIDTH/2, self.height/8 + 270, anchor='n')
+
+    def credits(self):
+        self.currentMenu = 3
+        
+        index = 50
+        for img in self.credImg:
+            self.cred.append(self.canvas.create_image(WINDOW_WIDTH/2, self.index + index, image=img, anchor='n'))
+    
+            index += 150
+        self.hide_buttons()
+        self.back_button(y=self.height - 60)
     
     def toggle_online(self):
         if self.online == True:
@@ -243,6 +265,9 @@ class StartMenu():
             self.canvas.delete(self.waitImg)
             self.waitingForOpponent = False
         elif self.currentMenu == 2: self.onlineBtn.destroy()
+        elif self.currentMenu == 3: 
+            for item in self.cred:
+                self.canvas.delete(item)
         self.place_buttons(self.index)
         self.currentMenu = 0
 
