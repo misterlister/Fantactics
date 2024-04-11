@@ -12,6 +12,8 @@ doMainMenu = True
 online = True
 sender = None
 conn = None
+hostname = None
+port = None
 this_file = "main.py"
 
 if __name__ == "__main__":
@@ -22,13 +24,21 @@ if __name__ == "__main__":
             doMainMenu = False
         if arg == '-o':
             online = False
+        if arg.startswith("-h:"):
+            args = arg.split(":")
+            print(args)
+            if len(args) == 3:
+                hostname = args[1]
+                port = int(args[2])
         if arg.startswith("-m:"):
             map = arg[3:]
-            
+        
     if online:
-        hostname = socket.gethostname()
+        if hostname == None:
+            hostname = socket.gethostname()
         ip_address = socket.gethostbyname(hostname)
-        port = 5000
+        if port == None:
+            port = 5000
         online = True
         connResult, conn = establishConn(ip_address, port)
         if not connResult:
