@@ -769,6 +769,12 @@ class MapLayout:
             PL, PL, FS, FT, FS, PT, FS, PL,
             FS, PL, FS, PT, PT, PT, PL, PL
         ],
+        "The_Great_Maze": [
+            FS, PT, FS, PL, PL, PT, PT, PL,
+            PL, PT, PT, FS, FS, FS, PT, PT,
+            FS, FS, PT, PT, PT, PT, PT, FS,
+            PT, PT, PT, FS, FT, PT, FS, FS
+        ],
         "Random_Map": gen_randomized_map()
     }
 
