@@ -5,7 +5,7 @@ from serverConnection import *
 from serverSender import ServerSender
 from errors import errorMessage
 from gameBoard import MapLayout
-from time import *
+import time
 
 this_file = "server.py"
 
@@ -13,8 +13,9 @@ if __name__ == "__main__":
     
     print("Welcome to the Fantactics Server.\n")
 
+
     # Create socket to listen for incoming connections
-    port = DEFAULT_PORT
+    port = 5500
     hostname = socket.gethostname()
     ip = socket.gethostbyname(hostname)
     listen_socket = None
@@ -26,7 +27,29 @@ if __name__ == "__main__":
             listen_socket.listen()
         except:
             port += 10
+   
+    broadcast_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+    broadcast_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+    broadcast_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
+    broadcast_sock.settimeout(0.5)
+    broadcast_sock.bind(("", 6000))
+    message = "[HOST:" + hostname + "," + ip + "," + str(port) + "]"
+    num_connections = 0
+    while num_connections < 2:
+        broadcast_sock.sendto(message.encode('ascii'), ('<broadcast>', 6100))
+        print("message sent: ", message)
+
+        data = None
+        try: 
+            data, addr = broadcast_sock.recvfrom(MAX_MESSAGE_SIZE)
+        except:
+            pass
+        if data is not None:
+            if data == message.encode('ascii'):
+                num_connections += 1
+        time.sleep(1)
+    broadcast_sock.close()
     # Message to users. 
     print(hostname," listenining at: ", ip, ", port: ", port)    
     

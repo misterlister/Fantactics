@@ -7,6 +7,7 @@ from errors import errorMessage
 from clientConnection import Receiver, establishConn, check_conn_status
 from clientSender import Sender
 import socket
+import re
 
 
 this_file = "main.py"
@@ -19,6 +20,8 @@ if __name__ == "__main__":
     hostname = None
     port = None
     map = None
+
+    
     for arg in argv:
         if arg == '-g':
             doMainMenu = False
@@ -35,16 +38,39 @@ if __name__ == "__main__":
         
     if online:
         if hostname == None:
-            hostname = socket.gethostname()
-        ip_address = socket.gethostbyname(hostname)
-        if port == None:
-            port = 5000
-        online = True
-        connResult, conn = establishConn(ip_address, port)
-        if not connResult:
-            online = False
-        else:
-            sender = Sender(conn)
+            broadcast_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
+            broadcast_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+            broadcast_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            broadcast_sock.settimeout(2)
+            broadcast_sock.bind(("", 6100))
+            try:
+                data, addr = broadcast_sock.recvfrom(MAX_MESSAGE_SIZE)
+            except:
+                online = False
+                broadcast_sock.close()
+
+            
+            if online: 
+                broadcast_sock.sendto(data, (addr))
+                msg = data.decode('ascii')
+                msg = msg.strip('[]')
+                msg = msg.replace(",", ":")
+                tokens = msg.split(":")
+                broadcast_sock.close()
+                if hostname == None:
+                    ip_address = tokens[2]        
+                
+                if hostname == None:
+                    hostname = tokens[1]
+                    
+                if port == None:
+                    port = int(tokens[3])
+
+                connResult, conn = establishConn(ip_address, port)
+                if not connResult:
+                    online = False
+                else:
+                    sender = Sender(conn)
 
     root = Tk()
     window = Window(WINDOW_WIDTH, WINDOW_HEIGHT, root)
