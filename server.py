@@ -32,7 +32,7 @@ if __name__ == "__main__":
     broadcast_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
     broadcast_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-    broadcast_sock.settimeout(0.5)
+    broadcast_sock.settimeout(1)
     broadcast_sock.bind(("", 6000))
     message = "[HOST:" + hostname + "," + ip + "," + str(port) + "]"
     num_connections = 0
@@ -48,7 +48,6 @@ if __name__ == "__main__":
         if data is not None:
             if data == message.encode('ascii'):
                 num_connections += 1
-        time.sleep(1)
     broadcast_sock.close()
     # Message to users. 
     print(hostname," listenining at: ", ip, ", port: ", port)    
@@ -76,7 +75,7 @@ if __name__ == "__main__":
     sender = ServerSender(serverConn)
     receiver = Receiver(serverConn, sender)
     layout = MapLayout()
-    my_map = layout.get_random_map().replace(" ", "_")
+    my_map = layout.get_random_map()
     print("CHOSEN MAP: ", my_map)
     white_msg = "[CLR:WHITE]\n [MAP:" + my_map + "]\n"
     black_msg = "[CLR:BLACK]\n [MAP:" + my_map + "]\n"

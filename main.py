@@ -37,11 +37,12 @@ if __name__ == "__main__":
             map = arg[3:]
         
     if online:
+        print("Looking for host...")
         if hostname == None:
             broadcast_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
             broadcast_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
             broadcast_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            broadcast_sock.settimeout(2)
+            broadcast_sock.settimeout(3)
             broadcast_sock.bind(("", 6100))
             try:
                 data, addr = broadcast_sock.recvfrom(MAX_MESSAGE_SIZE)

@@ -781,7 +781,8 @@ class MapLayout:
     def get_random_map(self):
         map_names = []
         for k in self.Maps.keys():
-            map_names.append(k)
+            if k != "Random_Map":
+                map_names.append(k)
         num_maps = len(map_names)
         num = randint(0,(num_maps-1))
         return map_names[num]
