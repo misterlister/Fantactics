@@ -739,7 +739,7 @@ class MapLayout:
             FS, PT, PT, PL, FS, PT, PL, PT,
             PL, PT, FT, FS, PL, PT, PT, PT
         ],
-        "Checkered Woods": [
+        "Checkered_Woods": [
             PT, PL, PL, PT, PL, PL, PL, FS,
             PT, PT, PL, PT, PT, PL, FS, PL,
             PL, PT, PT, FS, PT, FS, PL, PL,
