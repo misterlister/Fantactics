@@ -9,6 +9,7 @@ this_file = "ServerConnection.py"
 
 p1_active = False
 p2_active = False
+connection_active = False
 sel = selectors.DefaultSelector()
     
 class ServerConnection:
@@ -47,6 +48,13 @@ class Receiver:
         self.sender = sender
         self.white_ready = False
         self.black_ready = False
+        self.connection_active = False
+    
+    def set_connection_active(self):
+        self.connection_active = True
+
+    def is_connection_active(self):
+        return self.connection_active
     
     def receive_data(self,conn, mask):
         
@@ -56,6 +64,7 @@ class Receiver:
         
         except:
             print ("Connection to player was closed.")
+            self.connection_active = False
         if data is not None:
             if conn.fileno() == self.conn.get_white_fileno():
                 receiver = self.conn.get_black_conn()
@@ -85,9 +94,6 @@ class Receiver:
                         self.sender.sendString(sender,"[RDY]")
                         self.sender.sendString(receiver,"[RDY]")
                 
-                #if(msg == "[ENDTURN]"):
-                    #self.sender.sendString(receiver,"[YOURTURN]")
-                
                 if(msg[1:5]=="MOVE"):
                     move_str = msg[6:-1]
                     move_params = move_str.split(",")
@@ -115,8 +121,7 @@ class Receiver:
                     new_msg += "]"
                     self.sender.sendString(receiver,new_msg)
 
-    
-                if(msg[1:5]=="ABIL"):
+                if msg[1:5]=="ABIL":
                     abil_str = msg[6:-1]
                     params = abil_str.split(",")
 
@@ -129,9 +134,11 @@ class Receiver:
                     new_msg += "]"
                     self.sender.sendString(receiver,new_msg)
 
+                if msg == "[END]":
+                    print("Game closed by client.")
+                    self.connection_active = False
+                    self.sender.sendString(receiver, "[END]")
 
-
- 
         else:
             sel.unregister(conn)
             conn.close()

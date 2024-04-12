@@ -47,6 +47,7 @@ if __name__ == "__main__":
     except:
         errorMessage(this_file,"Could not establish connection with player 2.")
 
+        
     # Assign each connection to be randomly either the light or dark player.
     serverConn = ServerConnection(conn1, conn2)
     sender = ServerSender(serverConn)
@@ -59,6 +60,8 @@ if __name__ == "__main__":
     sender.sendString(serverConn.get_white_conn(), white_msg)
     sender.sendString(serverConn.get_black_conn(), black_msg)
 
+    if p1_active and p2_active:
+        receiver.set_connection_active()
 
     # Register the file opjects for each connections with receive_data as the callback.
     sel.register(conn1, selectors.EVENT_READ, receiver.receive_data)
@@ -68,7 +71,7 @@ if __name__ == "__main__":
     listen_socket.close() 
 
     # Keep listening while both connections are active. 
-    while p1_active or p2_active:
+    while receiver.is_connection_active():
         try:
             events = sel.select()
         except:

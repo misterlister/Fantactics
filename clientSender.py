@@ -79,10 +79,11 @@ class Sender:
 
 
 
-    def endfGame(self,event,root):
-        self.sender("[Game:END]")
-        gameClosedEvent.set()
+    def exit(self, root):
+        self.send("[END]")
+        print("Closing game.")
         root.destroy()
+        gameClosedEvent.set()
 
         
 def setConnClosed():

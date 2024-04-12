@@ -287,4 +287,3 @@ class StartMenu():
 
     def setOpponentReady(self):
         self.waitingForOpponent = False
-        print("Setting Opponent Ready")
