@@ -6,5 +6,10 @@ if ! test -d .venv; then
     pip install -r requirements.txt
     echo "Virtual Environment created and dependencies installed!"
 else
-    echo "Already set up! Enter './startServer.sh' to start the server or './startGame.sh' to play."
+    echo "   ---------   "
+    echo "Already set up!" 
+    echo "Start virtual environment with the command 'python3 .venv/bin/activate'"
+    echo "If playing across different machines, one player must start the server with the command 'python3 server.py'"
+    echo "Start the game with the command 'python3 main.py'"
+    echo "   ---------   "
 fi
