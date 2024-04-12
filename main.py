@@ -45,11 +45,11 @@ if __name__ == "__main__":
             broadcast_sock.bind(("", 6100))
             try:
                 data, addr = broadcast_sock.recvfrom(MAX_MESSAGE_SIZE)
+                print("Received: ", data.decode('ascii'))
             except:
                 online = False
                 broadcast_sock.close()
 
-            
             if online: 
                 broadcast_sock.sendto(data, (addr))
                 msg = data.decode('ascii')
@@ -71,6 +71,7 @@ if __name__ == "__main__":
                     online = False
                 else:
                     sender = Sender(conn)
+                    print("Connected to Game Server")
 
     root = Tk()
     window = Window(WINDOW_WIDTH, WINDOW_HEIGHT, root)
