@@ -98,6 +98,9 @@ class Player:
                 if not unit.ability_disabled():
                     self.__effected_units.remove(unit)
                     
+    def surrender(self):
+        self.__game_state.team_surrender(self)
+                    
 
 class GameState:
     def __init__(
@@ -258,8 +261,8 @@ class GameState:
     def check_victory_conditions(self):
         p1_units = self.player1.get_unit_list()
         p2_units = self.player2.get_unit_list()
-        p1_team = "White"
-        p2_team = "Black"
+        p1_team = "white"
+        p2_team = "black"
         messages = []
         p2_victory = self.check_unit_death(self.player1, p1_units, p1_team, messages)
         p1_victory = self.check_unit_death(self.player2, p2_units, p2_team, messages)        
@@ -269,19 +272,35 @@ class GameState:
             p1_victory = True
         if p1_victory or p2_victory:
             if p1_victory and not p2_victory:
-                messages.append(f"The {p1_team} army is victorious!\n")
-                ### VICTORY SCREEN HERE
+                victory_message = f"The {p1_team} army is victorious!\n"
+                messages.append(victory_message)
+                self.ui.end_game(victory_message)
             elif p2_victory and not p1_victory:
-                messages.append(f"The {p2_team} army is victorious!\n")
-                ### VICTORY SCREEN HERE
+                victory_message = f"The {p2_team} army is victorious!\n"
+                messages.append(victory_message)
+                self.ui.end_game(victory_message)
             elif p2_victory and p1_victory:
-                messages.append(f"The {p1_team} and {p2_team} armies have fought to a stalemate!\n")
-                ### VICTORY SCREEN HERE
+                victory_message = f"The {p1_team} and {p2_team} armies have fought to a stalemate!\n"
+                messages.append(victory_message)
+                self.ui.end_game(victory_message)
             self.ui.logItems['text'].insert_endgame_divider()
             for message in messages:
                 self.ui.logItems['text'].add_text(message)
             return True
         return False
+    
+    def team_surrender(self, vanquished: Player, message: str):
+        if vanquished == self.player1:
+            winning_team = self.player2.get_team_colour()
+        else:
+            winning_team = self.player1.get_team_colour()  
+        surrender_message = f"The {vanquished.get_team_colour()} army has surrendered!\n"
+        victory_message = f"The {winning_team} army is victorious!\n"
+        self.ui.logItems['text'].insert_endgame_divider()
+        self.ui.logItems['text'].add_text(surrender_message)
+        self.ui.logItems['text'].add_text(victory_message)
+        self.ui.end_game(victory_message)
+        self.end_game()
     
     def check_unit_death(self, player, units, team, messages):
         victory = False
@@ -333,5 +352,3 @@ class GameState:
                     self.player1.advance_timed_effects()
                     self.ui.logItems['text'].insert_turn_divider()
             self.ui.logItems['text'].update_label()
-            #for panel in self.ui.statsPanel:
-            #self.ui.statsPanel[panel].clear()
