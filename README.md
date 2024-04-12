@@ -81,8 +81,8 @@ The weakest of a player's units, *Peasants* have below average capabilities in a
 
 - **Damage Type:** Bludgeoning
 - **Armour Type:** Padded
-- **Passive Ability:** *Promotion* - If a *Peasant* reaches the far side of the board, they can promote to any other type of unit (Other than *General* or *Archmage*)
-- **Active Ability:** *Surge of Bravery* - Once per game, each *Peasant* can increase their stats for the duration of a single turn. 
+- **Passive Ability:** *Promotion* - If a *Peasant* reaches the far side of the board, they can promote to another type of unit, depending on the space they reach (which includes all unit types other than *General* or *Archmage*).
+- **Active Ability:** *Surge of Bravery* - Once per game, each *Peasant* can increase their attack and defense for the duration of a single turn.
 
 ### Soldier
 
@@ -109,7 +109,7 @@ Swift and mighty, *Cavalry* can quickly dispatch lightly armoured targets, and h
 - **Damage Type:** Slashing
 - **Armour Type:** Plate
 - **Passive Ability:** *Swift Charge* - *Cavalry* can move through spaces of allied units, and through all enemies except *Soldiers*
-- **Active Ability:** *Harrying Strike* - *Cavalry* can strike a foe with a slightly weaker attack that disables the enemy from using abilities for 2 turns.
+- **Active Ability:** *Harrying Strike* - *Cavalry* can strike a foe with an attack that does less damage than usual, but also disables the enemy from using their ability for 2 turns.
 
 ### Sorcerer
 
