@@ -6,29 +6,46 @@ A two-player turn-based game, based on a fusion of chess and turn-based strategy
 
 To run this program, execute the following commands in the directory containing the game:
 
-### Create a virtual environment
+### Create the virtual environment and install dependencies (first time only)
+
+Run the setup script the first time the game is being used on a machine.
+This command will create a virtual environment under the name '.venv', and will install all dependencies
 
 ```bash
-python3 -m venv .venv
+./setup.sh
 ```
 
-### Activate the virtual environment
+### Activate Virtual Environment
+
+Next, the virtual environment needs to be activated with the following command
 
 ```bash
 source .venv/bin/activate
 ```
 
-### Install requirements
+### Start the server (optional)
+
+Next, if playing across different machines on a network, one player must start a server with the following command
 
 ```bash
-pip install -r requirements.txt
+python3 server.py
 ```
 
-### Start the game
+### Start the game client
+
+- If no server is running, this command will start the game as single-client hotseat mode
+- If a server is running, this command will connect to the server
 
 ```bash
 python3 main.py
 ```
+
+### Begin
+
+From here, simply select 'Play' on the main menu to begin the game
+
+- If playing with a server, the client will wait for the second player to join to begin
+- If not playing with a server, the game will begin immediately
 
 ## Game Rules
 
