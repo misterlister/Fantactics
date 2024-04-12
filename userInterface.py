@@ -47,7 +47,8 @@ class UserInterface():
         ### Bottom button bar for game controls
         self.controlBar = ControlBar(root, PANEL_WIDTH, PANEL_HEIGHT - CONTROL_PANEL_HEIGHT, width=WINDOW_WIDTH - (2 * PANEL_WIDTH), height=CONTROL_PANEL_HEIGHT)
 
-        #self.end = EndScreen(root, 1)
+    def end_game(self, message):
+        self.victory_window = messagebox.showinfo('Game End', message)
 
     def link_to_state(self, state):
         self.__game_state = state
@@ -582,7 +583,6 @@ class EndScreen(Panel):
     def __init__(
             self,
             root: Tk,
-            winner, 
             xPos: int = 0, 
             yPos: int = 0, 
             width: int = PANEL_WIDTH, 
@@ -595,9 +595,9 @@ class EndScreen(Panel):
             ) -> None:
         super().__init__(root, xPos, yPos, width, height, colour, bd, relief)
 
-        self.message = messagebox.showinfo('Game End', f"Player {winner} Wins!")
-        # self.winnerLabel = Label(self.frame, text=f"Player {winner} Wins!", bg=bgColour, fg=textColour)
-        # self.winnerLabel.place(x=width / 2, y=0, anchor='n')
+        
+        #self.winnerLabel = Label(self.frame, text=f"Player {winner} Wins!", bg=bgColour, fg=textColour)
+        #self.winnerLabel.place(x=width / 2, y=0, anchor='n')
 
     def return_to_start(self):
         pass
