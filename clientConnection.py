@@ -53,20 +53,13 @@ class Receiver():
             
         if message[1:4] == "MAP":
             mname = message[5:-1]
-            print("Setting MAP: ", mname)
             self.game.set_map(mname)
 
         if message == "[CLR:BLACK]":
             self.game.set_player_colour("black")
 
-
         if message == "[RDY]":
             self.menu.setOpponentReady()
-        
-        if message == "[YOURTURN]":
-            pass
-            #self.menu.setOpponentReady()
-            #self.state.next_turn()
 
         if(message[1:5]=="MOVE"):
             move_str = message[6:-1]
@@ -81,7 +74,6 @@ class Receiver():
         if(message[1:5]=="ATTK"):
             move_str = message[6:-1]
             params = move_str.split(",")
-            print ("ATTACK PARAMS:")
             print(params)
             action_space = self.game.board.get_space(int(params[1]),int(params[2]))
             target_space = self.game.board.get_space(int(params[5]),int(params[6]))
@@ -93,7 +85,6 @@ class Receiver():
         if(message[1:5]=="ABIL"):
             move_str = message[6:-1]
             params = move_str.split(",")
-            print ("ABILITY PARAMS:")
             print(params)
             action_space = self.game.board.get_space(int(params[1]),int(params[2]))
             target_space = self.game.board.get_space(int(params[5]),int(params[6]))
@@ -101,6 +92,11 @@ class Receiver():
             unit = unit_space.get_unit()
             self.game.board.chng_action_space(action_space)
             self.game.board.ability_action(unit,target_space)
+
+        if(message == "[END]"):
+            connClosedEvent.set()
+            print("Game closed by server")
+
         return True
 
     def killConnection(self):
@@ -127,4 +123,8 @@ def establishConn(ip, port) -> tuple[bool, socket.socket]:
     print("Connected to server.")
     return True, sock
 
-
+def check_conn_status(root):
+    if connClosedEvent.is_set():
+        root.destroy()
+    else:
+        root.after(1, lambda: check_conn_status(root))

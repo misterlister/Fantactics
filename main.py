@@ -4,7 +4,7 @@ from graphics import Window
 from startMenu import StartMenu, Game
 from constants import *
 from errors import errorMessage
-from clientConnection import Receiver, establishConn
+from clientConnection import Receiver, establishConn, check_conn_status
 from clientSender import Sender
 import socket
 
@@ -55,6 +55,9 @@ if __name__ == "__main__":
     mainMenu = StartMenu(root, window, game, sender, online)
     if online:
         receiver = Receiver(conn, mainMenu)
-
+        root.protocol("WM_DELETE_WINDOW", lambda: sender.exit(root))
+    
+    root.after(1, lambda:check_conn_status(root))
     root.mainloop()
+
 
