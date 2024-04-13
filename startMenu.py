@@ -129,7 +129,6 @@ class StartMenu():
 
         self.buttons = {
             'play' : CanvasButton(self.canvas, unpressed='Assets/Text/play_unpressed.png', pressed='Assets/Text/play_pressed.png'),
-            'options' : CanvasButton(self.canvas, unpressed='Assets/Text/options_unpressed.png', pressed='Assets/Text/options_pressed.png'),
             'credits' : CanvasButton(self.canvas, unpressed='Assets/Text/credits_unpressed.png', pressed='Assets/Text/credits_pressed.png'),
             'exit' : CanvasButton(self.canvas, unpressed='Assets/Text/exit_unpressed.png', pressed='Assets/Text/exit_pressed.png')
         }
@@ -138,7 +137,6 @@ class StartMenu():
         # Bind clicks to buttons & set their position
         self.place_buttons(self.index)
         self.buttons['play'].change_unclick_func(self.play)
-        self.buttons['options'].change_unclick_func(self.options)
         self.buttons['credits'].change_unclick_func(self.credits)
         self.buttons['exit'].change_unclick_func(self.exit)
 
@@ -227,20 +225,6 @@ class StartMenu():
             self.root.after(500, self.wait_anim)
         else:
             self.start_online()
-
-
-
-    def options(self):
-        self.currentMenu = 2
-        self.hide_buttons()
-        self.back_button()
-        self.onlineBtn = ToggleButton(self.canvas, bg=self.bgColour, disable=False, unpressed='Assets/Text/online_unpressed.png', pressed='Assets/Text/online_pressed.png')
-        self.toggleKey = [self.onlineBtn]
-        self.onlineBtn.set_key(self.toggleKey)
-        self.onlineBtn.change_unclick_func(self.toggle_online)
-        if self.online:
-            self.onlineBtn.toggle()
-        self.onlineBtn.place(WINDOW_WIDTH/2, self.height/8 + 270, anchor='n')
 
     def credits(self):
         self.currentMenu = 3
