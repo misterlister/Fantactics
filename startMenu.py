@@ -123,7 +123,7 @@ class StartMenu():
 
         self.window = window
         self.titleImg = ImageTk.PhotoImage(Image.open('Assets/Text/fantactics_title.png'))
-        self.title = self.canvas.create_image(WINDOW_WIDTH/2, height/6, image=self.titleImg, anchor='n')
+        self.title = self.canvas.create_image(WINDOW_WIDTH/2, height/8, image=self.titleImg, anchor='n')
         
         self.onlineIndImg = ImageTk.PhotoImage(Image.open("Assets/Text/online_pressed.png"))
         self.offlineIndImg = ImageTk.PhotoImage(Image.open("Assets/Text/online_unpressed.png"))
