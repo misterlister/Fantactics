@@ -37,7 +37,7 @@ if __name__ == "__main__":
             map = arg[3:]
         
     if online:
-        print("Looking for host...")
+        print("Looking for host...\n")
         if hostname == None:
             broadcast_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
             broadcast_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -48,10 +48,12 @@ if __name__ == "__main__":
                 data, addr = broadcast_sock.recvfrom(MAX_MESSAGE_SIZE)
                 print("Received: ", data.decode('ascii'))
             except:
+                print("Could not find host. Starting in single-player mode.\n")
                 online = False
                 broadcast_sock.close()
 
             if online: 
+                print("Host found! Starting in two-player mode.\n")
                 broadcast_sock.sendto(data, (addr))
                 msg = data.decode('ascii')
                 msg = msg.strip('[]')
