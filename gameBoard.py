@@ -227,7 +227,9 @@ class GameBoard:
     def right_click(self, event):
         self.cancel_action()
 
-    def attack_action(self, unit: Unit, space: Space):
+    def attack_action(self, unit: Unit, space: Space, from_setup: bool = False):
+        if self.online and from_setup: 
+            self.sender.attack(self.__action_space,unit,space)
         self.update_stats_panel(space.get_unit()) 
         self.move_unit(unit, self.__action_space)
         self.combat(unit, space.get_unit())
@@ -235,7 +237,10 @@ class GameBoard:
         self.end_turn()
         return
     
-    def ability_action(self, unit: Unit, space: Space):
+    def ability_action(self, unit: Unit, space: Space, from_setup: bool = False):
+        
+        if self.online and from_setup:
+            self.sender.ability(self.__action_space,unit,space)
         self.move_unit(unit, self.__action_space)
         self.update_stats_panel(space.get_unit()) 
         self.activate_ability(unit, space)
@@ -252,7 +257,7 @@ class GameBoard:
         self.draw_space(self.__action_space)
         self.preview_sprite(unit, self.__action_space)
         target = space.get_unit()
-        self.ui.controlBar.buttons['confirm'].change_unclick_func(lambda: action(unit, space))
+        self.ui.controlBar.buttons['confirm'].change_unclick_func(lambda: action(unit, space, True))
         if action == self.ability_action: # If this is an ability, highlight the area of effect
             self.__area_of_effect_spaces = unit.get_area_of_effect(space)
             for effect_space in self.__area_of_effect_spaces:
@@ -676,7 +681,10 @@ class GameBoard:
                 self.sender.move(self.__action_space,unit,space)
             self.move_and_wait(unit,space)
 
-    def move_and_wait(self, unit: Unit, space: Space):
+    def move_and_wait(self, unit: Unit, space: Space, from_setup: bool = False):
+        
+        if self.online and from_setup:
+            self.sender.move(self.__action_space,unit,space)
         self.ui.controlBar.buttons['attack'].untoggle_keys()
         self.move_unit(unit, space)
 

@@ -1,8 +1,6 @@
 from constants import *
-from errors import errorMessage
 import selectors
 import random
-
 from serverSender import ServerSender
 
 this_file = "ServerConnection.py"
@@ -11,7 +9,8 @@ p1_active = False
 p2_active = False
 connection_active = False
 sel = selectors.DefaultSelector()
-    
+
+#ServerConnection class houses the socket connections for both players.
 class ServerConnection:
     def __init__(self, conn1, conn2):
 
@@ -40,9 +39,8 @@ class ServerConnection:
     def get_black_fileno(self):
         return self.__dark_id
     
-
+# Receiver class parses input from players and makes decisions.
 class Receiver:
-
     def __init__(self, serverConn: ServerConnection, sender: ServerSender):
         self.conn = serverConn 
         self.sender = sender
