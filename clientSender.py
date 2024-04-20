@@ -1,9 +1,12 @@
 from errors import errorMessage
-from constants import *
+from constants import MAX_MESSAGE_SIZE
 import socket
-from events import *
-from units import *
-from space import *
+from events import (
+    connClosedEvent,
+    gameClosedEvent
+)
+from units import Unit
+from space import Space
 
 this_file = "clientSend.py"
 
