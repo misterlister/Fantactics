@@ -6,29 +6,46 @@ A two-player turn-based game, based on a fusion of chess and turn-based strategy
 
 To run this program, execute the following commands in the directory containing the game:
 
-### Create a virtual environment
+### Create the virtual environment and install dependencies (first time only)
+
+Run the setup script the first time the game is being used on a machine.
+This command will create a virtual environment under the name '.venv', and will install all dependencies
 
 ```bash
-python3 -m venv .venv
+./setup.sh
 ```
 
-### Activate the virtual environment
+### Activate Virtual Environment
+
+Next, the virtual environment needs to be activated with the following command
 
 ```bash
 source .venv/bin/activate
 ```
 
-### Install requirements
+### Start the server (optional)
+
+Next, if playing across different machines on a network, one player must start a server with the following command
 
 ```bash
-pip install -r requirements.txt
+python3 server.py
 ```
 
-### Start the game
+### Start the game client
+
+- If no server is running, this command will start the game as single-client hotseat mode
+- If a server is running, this command will connect to the server
 
 ```bash
 python3 main.py
 ```
+
+### Begin
+
+From here, simply select 'Play' on the main menu to begin the game
+
+- If playing with a server, the client will wait for the second player to join to begin
+- If not playing with a server, the game will begin immediately
 
 ## Game Rules
 
@@ -64,8 +81,8 @@ The weakest of a player's units, *Peasants* have below average capabilities in a
 
 - **Damage Type:** Bludgeoning
 - **Armour Type:** Padded
-- **Passive Ability:** *Promotion* - If a *Peasant* reaches the far side of the board, they can promote to any other type of unit (Other than *General* or *Archmage*)
-- **Active Ability:** *Surge of Bravery* - Once per game, each *Peasant* can increase their stats for the duration of a single turn. 
+- **Passive Ability:** *Promotion* - If a *Peasant* reaches the far side of the board, they can promote to another type of unit, depending on the space they reach (which includes all unit types other than *General* or *Archmage*).
+- **Active Ability:** *Surge of Bravery* - Once per game, each *Peasant* can increase their attack and defense for the duration of a single turn.
 
 ### Soldier
 
@@ -92,7 +109,7 @@ Swift and mighty, *Cavalry* can quickly dispatch lightly armoured targets, and h
 - **Damage Type:** Slashing
 - **Armour Type:** Plate
 - **Passive Ability:** *Swift Charge* - *Cavalry* can move through spaces of allied units, and through all enemies except *Soldiers*
-- **Active Ability:** *Harrying Strike* - *Cavalry* can strike a foe with a slightly weaker attack that disables the enemy from using abilities for 2 turns.
+- **Active Ability:** *Harrying Strike* - *Cavalry* can strike a foe with an attack that does less damage than usual, but also disables the enemy from using their ability for 2 turns.
 
 ### Sorcerer
 

@@ -1,4 +1,14 @@
-from units import *
+from units import (
+    Peasant,
+    Soldier,
+    Sorcerer,
+    Healer,
+    Archer,
+    Cavalry,
+    Archmage,
+    General,
+    Unit
+)
 
 LG_DIVIDER = "\n" + ("*" * 10) + "\n"
 SM_DIVIDER = "-" * 3

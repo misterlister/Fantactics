@@ -122,7 +122,7 @@ class Path(Terrain):
                 path_string += "w"
         if path_string == "path_":
             path_string = "path_n"
-            print(f"Error: disconnected path object at row: {space.get_row()} col: {space.get_col()}")
+            print(f"Error: disconnected path object at row: {space.get_row()-1} col: {space.get_col()-1}")
         self._sprite = path_string
         
 

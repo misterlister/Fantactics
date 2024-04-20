@@ -21,6 +21,7 @@ from constants import (
     )
 
 from random import randint
+from clientSender import Sender
 
 class Player:
     def __init__(self, team: str) -> None:
@@ -97,6 +98,9 @@ class Player:
                 if not unit.ability_disabled():
                     self.__effected_units.remove(unit)
                     
+    def surrender(self):
+        self.__game_state.team_surrender(self)
+                    
 
 class GameState:
     def __init__(
@@ -104,7 +108,9 @@ class GameState:
             player1: Player,
             player2: Player,
             board: GameBoard,
-            ui
+            ui,
+            map : str,
+            sender: Sender
             ) -> None:
         self.player1 = player1
         self.player2 = player2
@@ -113,23 +119,38 @@ class GameState:
         self.__turn_count = 0
         self.__current_player = None
         self.__game_over = False
+        self.__map = map
+        if sender is None:
+            self.online = False
+        else:
+            self.online = True
+        self.sender = sender
+
         self.setup_board()
-        
 
     def setup_board(self):
         try:
-            p2_units_r1 = [Archer(False), Cavalry(False), Healer(False), Archmage(False), 
-                           General(False), Sorcerer(False), Cavalry(False), Archer(False)]
+            
+            if self.player1.get_team_colour() == "white":
+                player_white = True
+                opp_white = False
+
+            else:
+                player_white = False
+                opp_white = True
+
+            p2_units_r1 = [Archer(opp_white), Cavalry(opp_white), Healer(opp_white), Archmage(opp_white), 
+                            General(opp_white), Sorcerer(opp_white), Cavalry(opp_white), Archer(opp_white)]
             self.setup_row(0, 0, p2_units_r1, False)        
-            p2_units_r2 = [Peasant(False), Peasant(False), Soldier(False), Soldier(False), 
-                           Soldier(False), Soldier(False), Peasant(False), Peasant(False)]
+            p2_units_r2 = [Peasant(opp_white), Peasant(opp_white), Soldier(opp_white), Soldier(opp_white), 
+                            Soldier(opp_white), Soldier(opp_white), Peasant(opp_white), Peasant(opp_white)]
             self.setup_row(1, 0, p2_units_r2, False) 
             self.player2.assign_units(p2_units_r1+p2_units_r2)
             self.player2.join_game(self)
 
-            p1_units_r1 = [Archer(), Cavalry(), Healer(), Archmage(), General(), Sorcerer(), Cavalry(), Archer()]
+            p1_units_r1 = [Archer(player_white), Cavalry(player_white), Healer(player_white), Archmage(player_white), General(player_white), Sorcerer(player_white), Cavalry(player_white), Archer(player_white)]
             self.setup_row(7, 7, p1_units_r1, True)          
-            p1_units_r2 = [Peasant(), Peasant(), Soldier(), Soldier(), Soldier(), Soldier(), Peasant(), Peasant()]
+            p1_units_r2 = [Peasant(player_white), Peasant(player_white), Soldier(player_white), Soldier(player_white), Soldier(player_white), Soldier(player_white), Peasant(player_white), Peasant(player_white)]
             self.setup_row(6, 7, p1_units_r2, True) 
             self.player1.assign_units(p1_units_r1+p1_units_r2)
             self.player1.join_game(self)
@@ -188,21 +209,27 @@ class GameState:
             return True
         return False
     
+    def get_map(self, map_name: str):
+        map = MapLayout.Maps[map_name]
+        for i in range((len(map)-1), -1, -1):
+            map.append(map[i])
+        return map
+    
     def select_map(self):
+        if self.__map != None:
+            if self.__map in MapLayout.Maps:
+                return self.__map
         map_size = BOARD_COLS * BOARD_ROWS
         valid_maps = []
-        map_choice = None
         for map in MapLayout.Maps:
             if (len(MapLayout.Maps[map]) * 2) == map_size:
-                valid_maps.append(MapLayout.Maps[map])
+                valid_maps.append(map)
         num_maps = len(valid_maps)
         if num_maps == 0:
-            return []
+            return ""
         else:
             map_choice_num = randint(0, num_maps-1)
             map_choice = valid_maps[map_choice_num]
-            for i in range((len(map_choice)-1), -1, -1):
-                map_choice.append(map_choice[i])
         return map_choice
     
     def set_turn(self, player: Player):
@@ -234,8 +261,8 @@ class GameState:
     def check_victory_conditions(self):
         p1_units = self.player1.get_unit_list()
         p2_units = self.player2.get_unit_list()
-        p1_team = "White"
-        p2_team = "Black"
+        p1_team = "white"
+        p2_team = "black"
         messages = []
         p2_victory = self.check_unit_death(self.player1, p1_units, p1_team, messages)
         p1_victory = self.check_unit_death(self.player2, p2_units, p2_team, messages)        
@@ -245,19 +272,35 @@ class GameState:
             p1_victory = True
         if p1_victory or p2_victory:
             if p1_victory and not p2_victory:
-                messages.append(f"The {p1_team} army is victorious!\n")
-                ### VICTORY SCREEN HERE
+                victory_message = f"The {p1_team} army is victorious!\n"
+                messages.append(victory_message)
+                self.ui.end_game(victory_message)
             elif p2_victory and not p1_victory:
-                messages.append(f"The {p2_team} army is victorious!\n")
-                ### VICTORY SCREEN HERE
+                victory_message = f"The {p2_team} army is victorious!\n"
+                messages.append(victory_message)
+                self.ui.end_game(victory_message)
             elif p2_victory and p1_victory:
-                messages.append(f"The {p1_team} and {p2_team} armies have fought to a stalemate!\n")
-                ### VICTORY SCREEN HERE
+                victory_message = f"The {p1_team} and {p2_team} armies have fought to a stalemate!\n"
+                messages.append(victory_message)
+                self.ui.end_game(victory_message)
             self.ui.logItems['text'].insert_endgame_divider()
             for message in messages:
                 self.ui.logItems['text'].add_text(message)
             return True
         return False
+    
+    def team_surrender(self, vanquished: Player, message: str):
+        if vanquished == self.player1:
+            winning_team = self.player2.get_team_colour()
+        else:
+            winning_team = self.player1.get_team_colour()  
+        surrender_message = f"The {vanquished.get_team_colour()} army has surrendered!\n"
+        victory_message = f"The {winning_team} army is victorious!\n"
+        self.ui.logItems['text'].insert_endgame_divider()
+        self.ui.logItems['text'].add_text(surrender_message)
+        self.ui.logItems['text'].add_text(victory_message)
+        self.ui.end_game(victory_message)
+        self.end_game()
     
     def check_unit_death(self, player, units, team, messages):
         victory = False
@@ -275,15 +318,17 @@ class GameState:
             return True
         return False
             
-        
-    
     def next_turn(self):
+
         if self.check_victory_conditions():
             self.end_game()
         else:
             if self.__current_player == None: # At start of game, set turn to Player 1
                 self.__turn_count += 1
-                self.set_turn(self.player1)
+                if self.player1.get_team_colour() == "white":
+                    self.set_turn(self.player1)
+                else:
+                    self.set_turn(self.player2)
                 self.ui.logItems['text'].insert_turn_divider()
             else:
                 # If the current player has an extra turn, don't change turns
@@ -291,15 +336,19 @@ class GameState:
                     self.__current_player.use_extra_turn()
                 elif self.__current_player == self.player1:
                     self.player1.end_turn()
+                    if self.online:
+                        self.sender.end_turn()
                     self.set_turn(self.player2)
+                    if self.player1.get_team_colour == "black":
+                        self.__turn_count += 1
                     self.player2.advance_timed_effects()
                     self.ui.logItems['text'].insert_turn_divider()
                 else:
                     self.player2.end_turn()
                     self.set_turn(self.player1)
+                    if self.player2.get_team_colour == "black":
+                        self.__turn_count += 1
                     self.__turn_count += 1
                     self.player1.advance_timed_effects()
                     self.ui.logItems['text'].insert_turn_divider()
             self.ui.logItems['text'].update_label()
-            #for panel in self.ui.statsPanel:
-            #self.ui.statsPanel[panel].clear()
