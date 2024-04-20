@@ -1,11 +1,16 @@
 import socket
 import selectors
-from constants import *
-from serverConnection import *
+from constants import (
+    MAX_MESSAGE_SIZE
+)
+from serverConnection import (
+    ServerConnection,
+    Receiver,
+    sel
+)
 from serverSender import ServerSender
 from errors import errorMessage
 from gameBoard import MapLayout
-import time
 
 this_file = "server.py"
 
