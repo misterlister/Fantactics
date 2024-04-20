@@ -1,6 +1,11 @@
 from tkinter import Tk, BOTH, Canvas
 from PIL import ImageTk, Image
-from constants import *
+from constants import (
+    BG_COL,
+    LINE_WIDTH,
+    SpriteType,
+    TerrainType
+)
 
 class Point:
     def __init__(self, x:int, y:int) -> None:
