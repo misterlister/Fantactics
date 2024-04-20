@@ -1,9 +1,18 @@
 import threading
-from errors import *
 from queue import Queue
-from clientSender import *
-from gameBoard import *
-from events import *
+from clientSender import (
+    setConnClosed,
+    socket,
+    setConnOpen,
+)
+from constants import (
+    TIMEOUT_LENGTH,
+    MAX_MESSAGE_SIZE
+)
+from events import (
+    gameClosedEvent,
+    connClosedEvent
+)
 
 this_file = "clientConnection.py"
 
