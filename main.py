@@ -2,12 +2,14 @@ from tkinter import Tk
 from sys import argv
 from graphics import Window
 from startMenu import StartMenu, Game
-from constants import *
-from errors import errorMessage
+from constants import (
+    MAX_MESSAGE_SIZE,
+    WINDOW_HEIGHT,
+    WINDOW_WIDTH
+)
 from clientConnection import Receiver, establishConn, check_conn_status
 from clientSender import Sender
 import socket
-import re
 
 
 this_file = "main.py"
@@ -21,7 +23,6 @@ if __name__ == "__main__":
     port = None
     map = None
 
-    
     for arg in argv:
         if arg == '-g':
             doMainMenu = False
