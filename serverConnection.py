@@ -1,4 +1,6 @@
-from constants import *
+from constants import (
+    MAX_MESSAGE_SIZE
+)
 import selectors
 import random
 from serverSender import ServerSender
