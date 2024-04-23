@@ -54,7 +54,7 @@ class GameBoard:
         self.x_end = x_start + (BOARD_COLS * square_size) 
         self.y_end = y_start + (BOARD_ROWS * square_size)
         self.square_size = square_size
-        self.__spaces = [[Space(i, j) for j in range(BOARD_COLS)] for i in range(BOARD_ROWS)]
+        self.__spaces = [[Space(i, j, self) for j in range(BOARD_COLS)] for i in range(BOARD_ROWS)]
         self.rowLabel = []
         self.colLabel = []
         self.connect_spaces(self.__spaces)
@@ -635,6 +635,11 @@ class GameBoard:
         if len(area_spaces_reset) > 0:
             for sp in area_spaces_reset:
                 self.draw_space(sp)
+                
+    def reset_marked_spaces(self):
+        for row in self.__spaces:
+            for space in row:
+                space.reset_marked_range()
 
     def combat(self, unit: Unit, target: Unit):
         attack_log = unit.basic_attack(target)
