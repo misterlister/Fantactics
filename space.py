@@ -130,8 +130,7 @@ class Space:
     def __init__(
             self,
             row: int,
-            col: int,
-            board
+            col: int
             ) -> None:
         self.__row = row
         self.__col = col
@@ -142,8 +141,6 @@ class Space:
         self.__up = None
         self.__right = None
         self.__down = None
-        self.__marked_range = 0
-        self.__board = board
 
     def get_unit(self):
         return self.__unit
@@ -236,15 +233,3 @@ class Space:
         if isinstance(self.get_terrain(), Fortress):
             return True
         return False
-    
-    def get_marked_range(self) -> int:
-        return self.__marked_range
-    
-    def set_marked_range(self, range: int) -> None:
-        self.__marked_range = range
-        
-    def reset_marked_range(self) -> None:
-        self.__marked_range = 0
-        
-    def get_board(self):
-        return self.__board
