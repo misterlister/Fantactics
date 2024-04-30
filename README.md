@@ -2,6 +2,8 @@
 
 A two-player turn-based game, based on a fusion of chess and turn-based strategy video games.
 
+![demo](Assets/Video/fantactics-demo.gif)
+
 ## Set up
 
 To run this program, execute the following commands in the directory containing the game:
