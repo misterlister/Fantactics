@@ -300,12 +300,6 @@ class Unit:
         self.__dead = False
         
     def find_target_spaces(self, space, range: int, target_dict: dict, action = None, pass_dict: dict = TARGET_ALL) -> set:
-        target_spaces = self.find_target_spaces_r(space, range, target_dict, action, pass_dict)
-        board = space.get_board()
-        board.reset_marked_spaces()
-        return target_spaces
-    
-    def find_target_spaces_r(self, space, range: int, target_dict: dict, action = None, pass_dict: dict = TARGET_ALL) -> set:
         # Add this space if it is a valid target
         target_spaces = set()
         if range < 0:
@@ -324,21 +318,18 @@ class Unit:
     def check_target_spaces(self, space, range: int, target_dict: dict, action, pass_dict: dict) -> set:
         valid_spaces = set()
         if space != None: # If this space doesn't exist, return
-            if range > space.get_marked_range(): # If this is the first visit, or the current range is better than a previous visit
-                if self.verify_space_pass(space, pass_dict, action):
-                    move_cost = 1
-                    # If this is a move action, determine the move cost of the terrain
-                    if action == ActionType.MOVE:
-                        # Flying units ignore terrain
-                        if self.get_move_type() != MoveType.FLY:
-                            move_cost = space.get_move_cost()
-                            # If this unit is riding a horse, increase difficult terrain movement cost
-                            if self.get_move_type() == MoveType.HORSE:
-                                if move_cost > 1:
-                                    move_cost = move_cost * 2
-                    new_range = range - move_cost
-                    space.set_marked_range(new_range)
-                    valid_spaces = valid_spaces.union(self.find_target_spaces_r(space, new_range, target_dict, action, pass_dict))
+            if self.verify_space_pass(space, pass_dict, action):
+                move_cost = 1
+                # If this is a move action, determine the move cost of the terrain
+                if action == ActionType.MOVE:
+                    # Flying units ignore terrain
+                    if self.get_move_type() != MoveType.FLY:
+                        move_cost = space.get_move_cost()
+                        # If this unit is riding a horse, increase difficult terrain movement cost
+                        if self.get_move_type() == MoveType.HORSE:
+                            if move_cost > 1:
+                                move_cost = move_cost * 2
+                valid_spaces = valid_spaces.union(self.find_target_spaces(space, (range - move_cost), target_dict, action, pass_dict))
         return valid_spaces
     
     def verify_space_pass(self, space, target_dict, action) -> bool:
