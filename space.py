@@ -130,7 +130,7 @@ class Space:
     def __init__(
             self,
             row: int,
-            col: int,
+            col: int
             ) -> None:
         self.__row = row
         self.__col = col
