@@ -299,7 +299,7 @@ class Unit:
     def revive(self):
         self.__dead = False
         
-    def find_target_spaces(self, space, range: int, target_dict: dict, action = None, pass_dict: dict = TARGET_ALL) -> set:
+    def find_target_spaces(self, space, range: int, target_dict: dict, action = None, pass_dict: dict = TARGET_ALL, from_dir: Direction = None) -> set:
         # Add this space if it is a valid target
         target_spaces = set()
         if range < 0:
@@ -308,14 +308,18 @@ class Unit:
             target_spaces = {space}
         if range == 0:
             return target_spaces
-        
-        target_spaces = target_spaces.union(self.check_target_spaces(space.get_left(), range, target_dict, action, pass_dict))
-        target_spaces = target_spaces.union(self.check_target_spaces(space.get_up(), range, target_dict, action, pass_dict))
-        target_spaces = target_spaces.union(self.check_target_spaces(space.get_right(), range, target_dict, action, pass_dict))
-        target_spaces = target_spaces.union(self.check_target_spaces(space.get_down(), range, target_dict, action, pass_dict))
+        # Check all directions, except the one that led here
+        if from_dir != Direction.LEFT:
+            target_spaces = target_spaces.union(self.check_target_spaces(space.get_left(), range, target_dict, action, pass_dict, Direction.RIGHT))
+        if from_dir != Direction.UP:
+            target_spaces = target_spaces.union(self.check_target_spaces(space.get_up(), range, target_dict, action, pass_dict, Direction.DOWN))
+        if from_dir != Direction.RIGHT:
+            target_spaces = target_spaces.union(self.check_target_spaces(space.get_right(), range, target_dict, action, pass_dict, Direction.LEFT))
+        if from_dir != Direction.DOWN:
+            target_spaces = target_spaces.union(self.check_target_spaces(space.get_down(), range, target_dict, action, pass_dict, Direction.UP))
         return target_spaces
     
-    def check_target_spaces(self, space, range: int, target_dict: dict, action, pass_dict: dict) -> set:
+    def check_target_spaces(self, space, range: int, target_dict: dict, action, pass_dict: dict, from_dir: Direction) -> set:
         valid_spaces = set()
         if space != None: # If this space doesn't exist, return
             if self.verify_space_pass(space, pass_dict, action):
@@ -329,7 +333,7 @@ class Unit:
                         if self.get_move_type() == MoveType.HORSE:
                             if move_cost > 1:
                                 move_cost = move_cost * 2
-                valid_spaces = valid_spaces.union(self.find_target_spaces(space, (range - move_cost), target_dict, action, pass_dict))
+                valid_spaces = valid_spaces.union(self.find_target_spaces(space, (range - move_cost), target_dict, action, pass_dict, from_dir))
         return valid_spaces
     
     def verify_space_pass(self, space, target_dict, action) -> bool:
