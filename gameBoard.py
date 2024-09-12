@@ -219,7 +219,7 @@ class GameBoard:
                 return
         else:
             if self.__game_state.game_is_over():
-                self.update_info_panel("The game is over, no more actions can be taken.")
+                self.update_info_panel("The game is over. No more actions can be taken.")
             else:
                 self.update_info_panel("You cannot move enemy units")
         self.cancel_action()
