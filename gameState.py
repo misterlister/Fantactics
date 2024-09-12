@@ -23,84 +23,7 @@ from constants import (
 from random import randint
 from clientSender import Sender
 
-class Player:
-    def __init__(self, team: str) -> None:
-        self.__units = []
-        self.__effected_units = []
-        self.__game_state = None
-        self.__turn = False
-        self.__extra_turns = 0
-        self.__team = team
-        
-    def get_state(self):
-        return self.__game_state
-    
-    def get_team_colour(self):
-        return self.__team
-    
-    def get_unit_list(self):
-        return self.__units
-
-    def assign_units(self, unit_list: list):
-        for unit in unit_list:
-            self.assign_unit(unit)
-            
-    def assign_unit(self, unit: Unit):
-        self.__units.append(unit)
-        unit.set_player(self)
-        
-    def remove_unit(self, unit: Unit):
-        self.__units.remove(unit)
-            
-    def add_effected_unit(self, unit: Unit):
-        self.__effected_units.append(unit)
-
-    def join_game(self, game):
-        self.__game_state = game
-
-    def start_turn(self):
-        self.__turn = True
-        
-    def end_turn(self):
-        self.__turn = False
-
-    def is_current_turn(self):
-        return self.__turn
-
-    def has_extra_turn(self):
-        if self.__extra_turns > 0:
-            return True
-        return False
-    
-    def get_extra_turns(self, turns: int):
-        self.__extra_turns += turns
-    
-    def use_extra_turn(self):
-        if self.__extra_turns > 0:
-            self.__extra_turns -= 1
-            
-    def advance_timed_effects(self):
-        if len(self.__effected_units) > 0:
-            self.end_bravery()
-            self.ability_disable_timer()
-        
-    def end_bravery(self):
-        for unit in self.__effected_units:
-            if isinstance(unit, Peasant):
-                if unit.is_brave():
-                    unit.end_brave()
-                    self.__effected_units.remove(unit)
-                    
-    def ability_disable_timer(self):
-        for unit in self.__effected_units:
-            if unit.ability_disabled():
-                unit.decrement_disabled_counter()
-                if not unit.ability_disabled():
-                    self.__effected_units.remove(unit)
-                    
-    def surrender(self):
-        self.__game_state.team_surrender(self)
-                    
+from player import Player
 
 class GameState:
     def __init__(
@@ -112,14 +35,14 @@ class GameState:
             map : str,
             sender: Sender
             ) -> None:
-        self.player1 = player1
-        self.player2 = player2
-        self.board = board
-        self.ui = ui
-        self.__turn_count = 0
-        self.__current_player = None
-        self.__game_over = False
-        self.__map = map
+        self.player1 = player1 # Reference to this game's player 1 object
+        self.player2 = player2 # Reference to this game's player 2 object
+        self.board = board # Reference to this game's GameBoard object
+        self.ui = ui # Reference to this game's UserInterface object
+        self.__turn_count = 0 # Keeps track of the current game turn
+        self.__current_player = None # Reference to the current turn's player
+        self.__game_over = False # Is the game over?
+        self.__map = map # Reference to this game's map name
         if sender is None:
             self.online = False
         else:

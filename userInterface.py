@@ -543,7 +543,7 @@ class CombatLog():
         self.map_label = Label(root, text='', bg=UI_BG_COLOUR, fg='white', font=(FONT, DEFAULT_FONT_SIZE))
 
     def update_label(self) -> None:
-        self.label.config(text=f"Turn {self.get_turn()}: Player {self.get_player()}")
+        self.label.config(text=f"Turn {self.get_turn()}: {self.get_player()} Team")
         
     def display_map_name(self, map_name) -> None:
         self.map_label.place(x=0, y=25)
@@ -558,7 +558,7 @@ class CombatLog():
         
     def insert_turn_divider(self):
         self.text.config(state='normal')
-        self.text.insert('end', f"-----[Turn {self.get_turn()} - Player {self.get_player()}]-----\n")
+        self.text.insert('end', f"-----[Turn {self.get_turn()} - {self.get_player()} Team]-----\n")
         self.text.tag_add("boldtext", 'end-2c linestart', 'end-2c lineend')
         self.text.see('end')
         self.text.config(state='disabled')
@@ -577,7 +577,7 @@ class CombatLog():
         return self.__game_state.get_turn()
     
     def get_player(self):
-        return self.__game_state.get_current_player_num()
+        return self.__game_state.get_current_player().get_team_colour().title()
 
 class EndScreen(Panel):
     def __init__(

@@ -88,7 +88,7 @@ class Receiver():
             target_space = self.game.board.get_space(int(params[5]),int(params[6]))
             unit_space = self.game.board.get_space(int(params[3]),int(params[4]))
             unit = unit_space.get_unit()
-            self.game.board.chng_action_space(action_space)
+            self.game.board.change_action_space(action_space)
             self.game.board.attack_action(unit,target_space)
     
         if(message[1:5]=="ABIL"):
@@ -99,7 +99,7 @@ class Receiver():
             target_space = self.game.board.get_space(int(params[5]),int(params[6]))
             unit_space = self.game.board.get_space(int(params[3]),int(params[4]))
             unit = unit_space.get_unit()
-            self.game.board.chng_action_space(action_space)
+            self.game.board.change_action_space(action_space)
             self.game.board.ability_action(unit,target_space)
 
         if(message == "[END]"):
