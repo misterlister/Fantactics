@@ -5,12 +5,12 @@ from units import (
 
 class Player:
     def __init__(self, team: str) -> None:
-        self.__units = []
-        self.__effected_units = []
-        self.__game_state = None
-        self.__turn = False
-        self.__extra_turns = 0
-        self.__team = team
+        self.__units = [] # List of all the player's units
+        self.__effected_units = [] # List of this player's units who have time-based effects on them
+        self.__game_state = None # Reference to the GameState object
+        self.__turn = False # Is it this player's turn?
+        self.__extra_turns = 0 # Number of extra turns a player has
+        self.__team = team # Colour name of the player's team
         
     def get_state(self):
         return self.__game_state

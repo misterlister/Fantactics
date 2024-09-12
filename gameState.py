@@ -35,14 +35,14 @@ class GameState:
             map : str,
             sender: Sender
             ) -> None:
-        self.player1 = player1
-        self.player2 = player2
-        self.board = board
-        self.ui = ui
-        self.__turn_count = 0
-        self.__current_player = None
-        self.__game_over = False
-        self.__map = map
+        self.player1 = player1 # Reference to this game's player 1 object
+        self.player2 = player2 # Reference to this game's player 2 object
+        self.board = board # Reference to this game's GameBoard object
+        self.ui = ui # Reference to this game's UserInterface object
+        self.__turn_count = 0 # Keeps track of the current game turn
+        self.__current_player = None # Reference to the current turn's player
+        self.__game_over = False # Is the game over?
+        self.__map = map # Reference to this game's map name
         if sender is None:
             self.online = False
         else:

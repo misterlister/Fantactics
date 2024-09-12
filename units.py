@@ -47,102 +47,102 @@ class Unit:
             ability_description
             ) -> None:
         
-        self.__unit_type = unit_type
-        self.__max_hp = hp
-        self.__curr_hp = hp
-        self.__damage = dam_val
-        self.__damage_type = dam_type
-        self.__defense = def_val
-        self.__armour_type = arm_type
-        self.__movement = move
-        self.__move_type = move_type
-        self.__sprite = sprite
-        self.__name = self.make_name(name_list, title_list)
-        self.__ability_name = ability_name
-        self.__ability_range = ability_range
-        self.__ability_min_range = ability_min_range
-        self.__ability_value = ability_value
-        self.__ability_description = ability_description
-        self.__ability_disabled_duration = 0
-        self.__ability_used = False
+        self.__unit_type = unit_type # Name of this unit's unit type
+        self.__max_hp = hp # This unit's maximum HP
+        self.__curr_hp = hp # This unit's current HP
+        self.__damage = dam_val # Damage value for this unit
+        self.__damage_type = dam_type # Damage type for this unit
+        self.__defense = def_val # Defensive value for this unit
+        self.__armour_type = arm_type # Armour type for this unit
+        self.__movement = move # Movement range for this unit
+        self.__move_type = move_type # Movement type for this unit
+        self.__sprite = sprite # Reference to this unit's sprite image
+        self.__name = self.make_name(name_list, title_list) # This unit's generated name and title
+        self.__ability_name = ability_name # Name of this unit's ability
+        self.__ability_range = ability_range # Maximum range of spaces for this unit's ability
+        self.__ability_min_range = ability_min_range # Minimum range of spaces for this unit's ability
+        self.__ability_value = ability_value # Integer value for the power of this unit's ability
+        self.__ability_description = ability_description # String describing this unit's ability
+        self.__ability_disabled_duration = 0 # Number of turns this unit's ability is disabled for
+        self.__ability_used = False # Is this unit's ability used up?
         self.__space = None # Space where a unit currently is
         self.__action_space = None # Space where a unit is currently acting from
-        self.__dead = False
-        self.__player = None
+        self.__dead = False # Is this unit dead?
+        self.__player = None # Reference to this unit's player
         self.__ability_targets = TARGET_NONE
         self._ability_area_of_effect = []
         
-    def get_unit_type(self):
+    def get_unit_type(self) -> str:
         return self.__unit_type
 
-    def get_max_hp(self):
+    def get_max_hp(self) -> int:
         return self.__max_hp
 
-    def get_curr_hp(self):
+    def get_curr_hp(self) -> int:
         return self.__curr_hp
 
-    def get_damage_val(self):
+    def get_damage_val(self) -> int:
         return self.__damage
     
-    def get_damage_type(self):
+    def get_damage_type(self) -> DamageType:
         return self.__damage_type
     
-    def get_defense_val(self):
+    def get_defense_val(self)  -> int:
         return self.__defense
     
-    def get_armour_type(self):
+    def get_armour_type(self) -> ArmourType:
         return self.__armour_type
     
-    def get_movement(self):
+    def get_movement(self) -> int:
         return self.__movement
     
-    def get_move_type(self):
+    def get_move_type(self) -> MoveType:
         return self.__move_type
     
     def get_player(self):
         return self.__player
     
-    def get_sprite(self):
+    def get_sprite(self) -> SpriteType:
         return self.__sprite
     
-    def get_name(self):
+    def get_name(self) -> str:
         return self.__name
     
-    def get_space(self):
+    def get_space(self) -> Space:
         return self.__space
     
-    def get_action_space(self):
+    def get_action_space(self) -> Space:
         return self.__action_space
     
-    def get_ability_name(self):
+    def get_ability_name(self) -> str:
         return self.__ability_name
     
-    def get_ability_range(self):
+    def get_ability_range(self) -> int:
         return self.__ability_range
     
-    def get_ability_min_range(self):
+    def get_ability_min_range(self) -> int:
         return self.__ability_min_range
     
-    def get_ability_value(self):
+    def get_ability_value(self) -> int:
         return self.__ability_value
     
-    def get_ability_description(self):
+    def get_ability_description(self) -> str:
         return self.__ability_description
     
     def get_ability_targets(self):
         return self.__ability_targets
     
-    def get_special_damage_type(self):
+    def get_special_damage_type(self) -> DamageType:
         return self.__damage_type
     
-    def get_damage_mod(self):
+    def get_damage_mod(self)  -> int:
         mod_total = 0
         mod_total += get_aura_damage_mods(self)
         if mod_total < 0:
             mod_total = 0
         return mod_total
     
-    def get_defense_mod(self):
+    def get_defense_mod(self) -> int:
         mod_total = 0
         mod_total += get_aura_defense_mods(self)
         mod_total += self.__action_space.get_defense_mod()
@@ -151,7 +151,7 @@ class Unit:
     def expend_ability(self):
         self.__ability_used = True
     
-    def ability_expended(self):
+    def ability_expended(self) -> bool:
         return self.__ability_used
     
     def disable_ability(self, duration: int):
@@ -160,10 +160,10 @@ class Unit:
     def decrement_disabled_counter(self):
         self.__ability_disabled_duration -= 1
         
-    def get_disabled_message(self):
+    def get_disabled_message(self) -> str:
         return f"{self.get_name()} cannot use their ability for {self.__ability_disabled_duration} turns."
     
-    def ability_disabled(self):
+    def ability_disabled(self) -> bool:
         if self.__ability_disabled_duration > 0:
                 return True
         return False
@@ -227,10 +227,10 @@ class Unit:
         else:
             self.__curr_hp += healing
 
-    def is_dead(self):
+    def is_dead(self) -> bool:
         return self.__dead
     
-    def first_strike_damage(self):
+    def first_strike_damage(self) -> int:
         damage = self.__damage + self.get_damage_mod()
         return ceil(damage * FIRST_STRIKE_BOOST)
 
@@ -256,7 +256,7 @@ class Unit:
                 self_loc.assign_unit(None)
         return attack_log
     
-    def attack_preview(self, target, first_strike = False):
+    def attack_preview(self, target, first_strike = False) -> int:
         if first_strike:
             attack_damage = self.first_strike_damage()
         else:
@@ -264,6 +264,7 @@ class Unit:
         damage_dealt = self.calculate_damage(target, attack_damage, self.__damage_type)
         return damage_dealt
 
+    # Overriden by child classes
     def ability_preview(self, target):
         return None, None
 
@@ -290,6 +291,7 @@ class Unit:
             atk_damage = ceil(atk_damage * POOR_EFFECT_MOD)
         return atk_damage
 
+    # Overriden by child classes
     def special_ability(self, target, space):
         pass
 
@@ -367,7 +369,7 @@ class Unit:
             else: 
                 return False
     
-    def get_area_of_effect(self, space):
+    def get_area_of_effect(self, space) -> list:
         space_list = []
         space_list.append(space)
         if Direction.UP in self._ability_area_of_effect:
@@ -452,7 +454,7 @@ class Peasant(Unit):
             attack_log.extend(self.basic_attack(target))
         return attack_log
     
-    def get_damage_mod(self):
+    def get_damage_mod(self) -> int:
         mod_total = 0
         mod_total += get_aura_damage_mods(self)
         mod_total += self.bravery_mod()
@@ -460,7 +462,7 @@ class Peasant(Unit):
             mod_total = 0
         return mod_total
     
-    def get_defense_mod(self):
+    def get_defense_mod(self) -> int:
         mod_total = 0
         mod_total += get_aura_defense_mods(self)
         mod_total += self.get_action_space().get_defense_mod()
@@ -469,18 +471,18 @@ class Peasant(Unit):
             mod_total = 0
         return mod_total
 
-    def is_brave(self):
+    def is_brave(self) -> bool:
         return self.__brave 
     
     def end_brave(self):
         self.__brave = False
         
-    def bravery_mod(self):
+    def bravery_mod(self) -> int:
         if self.is_brave():
             return self.get_ability_value()
         return 0
     
-    def ability_preview(self, target: Unit):
+    def ability_preview(self, target: Unit) -> [int, int]:
         if target == None:
             return None, None
         self.__brave = True
@@ -501,7 +503,7 @@ class Peasant(Unit):
             move_log.append(self.promotion())
         return move_log
     
-    def promotion(self):
+    def promotion(self) -> str:
         player = self.get_player()
         new_unit = player.get_state().promote_unit(self)
         before_name = self.get_name()
@@ -597,20 +599,20 @@ class Archer(Unit):
             target.get_space().assign_unit(None)
         return attack_log
     
-    def ability_preview(self, target: Unit):
+    def ability_preview(self, target: Unit) -> tuple[int, int]:
         if target == None:
             return None, None
         damage = self.get_ability_value() + self.get_damage_mod()
         damage_dealt = self.calculate_damage(target, damage, self.__special_damage_type)
         return damage_dealt, 0
     
-    def get_damage_mod(self):
+    def get_damage_mod(self) -> int:
         damage_mod = super().get_damage_mod()
         damage_mod += self.get_action_space().get_defense_mod()
         return damage_mod
     
     # Variation of defense calculation that doubles terrain bonuses
-    def get_defense_mod(self):
+    def get_defense_mod(self) -> int:
         defense_mod =  super().get_defense_mod()
         defense_mod += self.get_action_space().get_defense_mod()
         return defense_mod
@@ -680,7 +682,7 @@ class Cavalry(Unit):
             target.get_player().add_effected_unit(target)
         return attack_log
     
-    def ability_preview(self, target: Unit):
+    def ability_preview(self, target: Unit) -> tuple[int, int]:
         if target == None:
             return None, None
         damage = self.get_ability_value() + self.get_damage_mod()
@@ -725,7 +727,7 @@ class Sorcerer(Unit):
         self.heal(self.__heal_value)
         return super().attack(target, damage, damage_type)
 
-    def retaliate(self, target: Unit):
+    def retaliate(self, target: Unit) -> str:
         attack_log = super().retaliate(target)
         return attack_log + "\n" + self.siphon_message()
     
@@ -736,7 +738,7 @@ class Sorcerer(Unit):
             attack_log.append(siphon)
         return attack_log
     
-    def siphon_message(self, mul = 1):
+    def siphon_message(self, mul = 1) -> str:
         healing = self.__heal_value * mul
         return f"{self.get_name()} heals {healing} hp by siphoning life force\n"
         
@@ -784,7 +786,7 @@ class Sorcerer(Unit):
             target.get_space().assign_unit(None)
         return attack_log
     
-    def ability_preview(self, target: Unit):
+    def ability_preview(self, target: Unit) -> tuple:
         if target == None:
             return None, None
         ability_damage = self.get_ability_value() + self.get_damage_mod()
@@ -946,7 +948,7 @@ class Archmage(Unit):
             target.get_space().assign_unit(None)
         return attack_log
     
-    def ability_preview(self, target: Unit):
+    def ability_preview(self, target: Unit) -> tuple[int, int]:
         if target == None:
             return None, None
         ability_damage = self.get_ability_value() + self.get_damage_mod()
@@ -964,7 +966,7 @@ class Archmage(Unit):
             damage_received = self.calculate_damage(self, ability_damage, self.__special_damage_type)
         return damage_dealt, damage_received
     
-    def get_special_damage_type(self):
+    def get_special_damage_type(self) -> DamageType:
         return self.__special_damage_type
 
 class General(Unit):
@@ -1002,7 +1004,7 @@ class General(Unit):
         return attack_log
 
 
-def weapon_matchup(weapon, armour):
+def weapon_matchup(weapon, armour) -> Effect:
     if weapon == DamageType.SLASH:
         if armour == ArmourType.ROBES:
             return Effect.STRONG
@@ -1045,14 +1047,14 @@ def weapon_matchup(weapon, armour):
         
     return None
 
-def get_aura_damage_mods(unit: Unit):
+def get_aura_damage_mods(unit: Unit) -> int:
     mod = 0
     # Add damage bonus if the unit is close to their General
     if unit.adjacent_to(General, True, AURA_RANGE):
         mod += AURA_MOD
     return mod
     
-def get_aura_defense_mods(unit: Unit):
+def get_aura_defense_mods(unit: Unit) -> int:
     mod = 0
     # Add defense bonus if the unit is close to their Healer
     if unit.adjacent_to(Healer, True, AURA_RANGE):

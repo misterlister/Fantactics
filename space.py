@@ -2,12 +2,12 @@ from constants import TerrainType
 
 class Terrain:
     def __init__(self, space, sprite, move_cost, defense_mod, name, description) -> None:
-        self.__space = space
-        self._sprite = sprite
-        self.__move_cost = move_cost
-        self.__defense_mod = defense_mod
-        self.__name = name
-        self.__description = description
+        self.__space = space # Reference to this object's space
+        self._sprite = sprite # Reference to this object's sprite
+        self.__move_cost = move_cost # Movement cost for unit's moving through this terrain
+        self.__defense_mod = defense_mod # Defense bonus for units in this terrain
+        self.__name = name # Name of this terrain
+        self.__description = description # Description of this terrain
         
     def get_space(self):
         return self.__space
