@@ -45,19 +45,19 @@ class GameBoard:
             y_start: int = DEFAULT_Y_POS,
             square_size: int = DEFAULT_SQUARE_SIZE
                  ) -> None:
-        self.__player_colour = player_colour
-        self.window = window
-        self.root = root
-        self.ui = ui
-        self.__x_start = x_start
-        self.__y_start = y_start
-        self.x_end = x_start + (BOARD_COLS * square_size) 
-        self.y_end = y_start + (BOARD_ROWS * square_size)
-        self.square_size = square_size
-        self.__spaces = [[Space(i, j) for j in range(BOARD_COLS)] for i in range(BOARD_ROWS)]
+        self.__player_colour = player_colour # Keeps track of the current player's colour
+        self.window = window # Reference to the game window object
+        self.root = root # Reference to the game's root Tk object
+        self.ui = ui # Reference to the game's UserInterface object
+        self.__x_start = x_start # x-position of the beginning of the gameBoard within the game window
+        self.__y_start = y_start # y-position of the beginning of the gameBoard within the game window
+        self.x_end = x_start + (BOARD_COLS * square_size) # x-position of the end of the gameBoard within the game window
+        self.y_end = y_start + (BOARD_ROWS * square_size) # y-position of the end of the gameBoard within the game window
+        self.square_size = square_size # pixel size of the GameBoard squares
+        self.__spaces = [[Space(i, j) for j in range(BOARD_COLS)] for i in range(BOARD_ROWS)] # A list of the board's Space objects
         self.rowLabel = []
         self.colLabel = []
-        self.connect_spaces(self.__spaces)
+        self.connect_spaces(self.__spaces) # Links each Space object to its neighbours
         self.draw_board()
         self.__transparent_square = self.set_transparency()
         self.bind_buttons()
@@ -172,7 +172,6 @@ class GameBoard:
         self.select_space(space)
         self.update_terrain_panel(space)
         self.update_stats_panel(self.__selected_unit)
-        return
 
     def click_unit_selected(self, unit: Unit, space: Space):
         unit = self.__selected_unit
@@ -235,7 +234,6 @@ class GameBoard:
         self.combat(unit, space.get_unit())
         self.ui.controlBar.buttons['attack'].untoggle_keys()
         self.end_turn()
-        return
     
     def ability_action(self, unit: Unit, space: Space, from_setup: bool = False):
         
@@ -246,7 +244,6 @@ class GameBoard:
         self.activate_ability(unit, space)
         self.ui.controlBar.buttons['attack'].untoggle_keys()
         self.end_turn()
-        return
 
     def setup_action(self, action, unit: Unit, space: Space, colour):
         self.__action_confirmed = True
@@ -388,7 +385,7 @@ class GameBoard:
         self.window.canvas.create_line(x1, y1, x2, y2, width=LINE_WIDTH, fill=colour, tags=('temp'))
         self.window.canvas.create_line(x2, y1, x1, y2, width=LINE_WIDTH, fill=colour, tags=('temp'))
         
-    def get_space(self, row, col):
+    def get_space(self, row, col) -> Space:
         return self.__spaces[row][col]
         
     def place_unit(self, unit, row: int, col: int) -> bool:
@@ -551,15 +548,17 @@ class GameBoard:
         self.clear_terrain_panel()
         self.ui.controlBar.buttons['attack'].untoggle_keys()
 
-    def get_col_x(self, col):
+    def get_col_x(self, col) -> int:
         x = self.__x_start + (col * (self.square_size))
         return x
         
-    def get_row_y(self, row):
+    def get_row_y(self, row) -> int:
         y = self.__y_start + (row * (self.square_size))
         return y
-    def chng_action_space(self, action_space:Space):
+    
+    def change_action_space(self, action_space: Space):
         self.__action_space = action_space
+        
     def set_action_space(self, unit: Unit, space: Space):
         if self.__action_space is not None: # If a new action space is being selected, overriding another
             self.draw_space(self.__selected_space)
@@ -682,12 +681,10 @@ class GameBoard:
             self.move_and_wait(unit,space)
 
     def move_and_wait(self, unit: Unit, space: Space, from_setup: bool = False):
-        
         if self.online and from_setup:
             self.sender.move(self.__action_space,unit,space)
         self.ui.controlBar.buttons['attack'].untoggle_keys()
         self.move_unit(unit, space)
-
         self.end_turn()
         
 def gen_randomized_map():
