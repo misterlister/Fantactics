@@ -212,7 +212,7 @@ class GameState:
             return True
         return False
     
-    def team_surrender(self, vanquished: Player, message: str):
+    def team_surrender(self, vanquished: Player):
         if vanquished == self.player1:
             winning_team = self.player2.get_team_colour()
         else:
