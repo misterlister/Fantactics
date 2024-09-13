@@ -49,8 +49,8 @@ class Sender:
         message += str(target_space.get_row()) + ','
         message += str(target_space.get_col()) + ']'
 
-        print("Sending Move:")
-        print(message)
+        #print("Sending Move:")
+        #print(message)
         self.send(message)
 
 

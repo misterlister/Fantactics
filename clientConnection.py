@@ -52,7 +52,7 @@ class Receiver():
 
     
     def parseMessage (self, message: str) -> bool: 
-        print("RECEIVED::::", message)
+        #print("RECEIVED::::", message)
 
         if message == "[CLR:WHITE]":
             self.game.set_player_colour("white")
@@ -103,6 +103,7 @@ class Receiver():
             self.game.board.ability_action(unit,target_space)
 
         if(message == "[END]"):
+            self.game.player2.surrender()
             connClosedEvent.set()
             print("Game closed by server")
 
@@ -110,6 +111,7 @@ class Receiver():
 
     def killConnection(self):
         setConnClosed()
+
 
 # End of receiver class.
     
@@ -134,6 +136,7 @@ def establishConn(ip, port) -> tuple[bool, socket.socket]:
 
 def check_conn_status(root):
     if connClosedEvent.is_set():
-        root.destroy()
+        print("CLOSED EVENT")
+        pass#root.destroy()
     else:
         root.after(1, lambda: check_conn_status(root))
