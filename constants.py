@@ -27,6 +27,9 @@ BORDER_WIDTH = 4
 PANEL_WIDTH, PANEL_HEIGHT = 320, 720 
 CONTROL_PANEL_HEIGHT = 80
 
+P1_COL = "white"
+P2_COL = "black"
+
 # Size of the game squares
 DEFAULT_SQUARE_SIZE = 64 + SPRITE_BUFFER
 # Space between the game square line and the selection squares
