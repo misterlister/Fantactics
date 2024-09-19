@@ -449,7 +449,7 @@ class GameBoard:
         self.outline_spaces(valid_spaces, 'green')
         return valid_spaces
     
-    def get_ability_spaces(self, unit, space) -> set:
+    def get_ability_spaces(self, unit: Unit, space: Space) -> set:
         range = unit.get_ability_range()
         valid_spaces = set()
         min_range = unit.get_ability_min_range()
