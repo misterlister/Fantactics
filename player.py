@@ -110,11 +110,11 @@ class CPU_Player(Player):
         self.__difficulty: CPU_Difficulty = difficulty
     
     def take_turn(self) -> None:
-        print("Choosing Action")
         self.choose_action()
         
     def choose_action(self):
         self.get_attacking_units()
+        self.get_ranged_units()
         # If there are no targets to attack, move a unit instead
         if len(self.__attacking_units) == 0 and len(self.__ranged_units) == 0:
             self.get_movable_units()
@@ -159,15 +159,22 @@ class CPU_Player(Player):
             # Check if the unit has a ranged ability (Sorcerer, Archer, Archmage)
             if isinstance(unit, (Sorcerer, Archer, Archmage)):
                 # Check that the unit's ability isn't disabled
-                if not unit.ability_disabled:
+                if not unit.ability_disabled():
                     spaces = self.get_state().board.get_movement_spaces(unit, unit.get_space())
                     targetable_spaces = {} # Temporary dictionary to hold valid attackable spaces
                     
                     for space in spaces:
-                        targets = self.get_state().board.get_ability_spaces(unit, space)
-                        
-                        if len(targets) > 0: # Only add spaces that have valid attack targets
-                            targetable_spaces[space] = targets
+                        if space is not None:
+                            targets = self.get_state().board.get_ability_spaces(unit, space)
+                            valid_targets = []
+                            for target in targets:
+                                if target is not None:
+                                    target_unit = target.get_unit()
+                                    if target_unit is not None and target_unit.get_player() != self:
+                                        valid_targets.append(target)
+                            
+                            if len(valid_targets) > 0: # Only add spaces that have valid attack targets
+                                targetable_spaces[space] = valid_targets
                             
                     if len(targetable_spaces) > 0: # Only add units that have at least one target
                         self.__ranged_units[unit] = targetable_spaces
