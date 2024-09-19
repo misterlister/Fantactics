@@ -34,8 +34,11 @@ CPU_DELAY = 1000
 class CPU_Persona(IntEnum):
     Aggressive = 1
     Careful = 2
-    Magical = 3
-    Physical = 4
+    
+class CPU_Difficulty(IntEnum):
+    Easy = 1
+    Medium = 2
+    Hard = 3
 
 # Size of the game squares
 DEFAULT_SQUARE_SIZE = 64 + SPRITE_BUFFER
