@@ -183,7 +183,7 @@ class GameBoard:
                     if space == self.__target_space and self.__action_confirmed:
                         if self.online:
                             self.sender.attack(self.__action_space,unit,space)
-                        self.attack_action(unit, space)
+                        self.attack_action(unit, space, self.__action_space)
                     else:
                         self.setup_action(self.attack_action, unit, space, "red")
                     return
@@ -226,17 +226,16 @@ class GameBoard:
     def right_click(self, event):
         self.cancel_action()
 
-    def attack_action(self, unit: Unit, space: Space, from_setup: bool = False):
+    def attack_action(self, unit: Unit, space: Space, move_space: Unit, from_setup: bool = False):
         if self.online and from_setup: 
-            self.sender.attack(self.__action_space,unit,space)
-        self.update_stats_panel(space.get_unit()) 
-        self.move_unit(unit, self.__action_space)
+            self.sender.attack(move_space, unit, space)
+        self.update_stats_panel(space.get_unit())
+        self.move_unit(unit, move_space)
         self.combat(unit, space.get_unit())
         self.ui.controlBar.buttons['attack'].untoggle_keys()
         self.end_turn()
     
     def ability_action(self, unit: Unit, space: Space, from_setup: bool = False):
-        
         if self.online and from_setup:
             self.sender.ability(self.__action_space,unit,space)
         self.move_unit(unit, self.__action_space)
