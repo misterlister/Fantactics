@@ -30,7 +30,7 @@ CONTROL_PANEL_HEIGHT = 80
 P1_COL = "white"
 P2_COL = "black"
 
-CPU_DELAY = 1
+CPU_DELAY = 1000
 class CPU_Persona(IntEnum):
     Aggressive = 1
     Careful = 2
