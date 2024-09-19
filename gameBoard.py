@@ -198,7 +198,7 @@ class GameBoard:
                         ### Send self.__action_space, unit, space, ability_action to server
                         if self.online:
                             self.sender.ability(self.__action_space,unit,space)
-                        self.ability_action(unit, space)
+                        self.ability_action(unit, space, self.__action_space)
                     else:
                         self.setup_action(self.ability_action, unit, space, "yellow")
                     return
@@ -235,10 +235,10 @@ class GameBoard:
         self.ui.controlBar.buttons['attack'].untoggle_keys()
         self.end_turn()
     
-    def ability_action(self, unit: Unit, space: Space, from_setup: bool = False):
+    def ability_action(self, unit: Unit, space: Space, move_space: Space, from_setup: bool = False):
         if self.online and from_setup:
-            self.sender.ability(self.__action_space,unit,space)
-        self.move_unit(unit, self.__action_space)
+            self.sender.ability(move_space, unit, space)
+        self.move_unit(unit, move_space)
         self.update_stats_panel(space.get_unit()) 
         self.activate_ability(unit, space)
         self.ui.controlBar.buttons['attack'].untoggle_keys()
@@ -352,14 +352,15 @@ class GameBoard:
         self.ui.statsPanel["terrainPanel"].update_terrain_panel()
 
     def outline_space(self, space: Space, colour: str) -> None:
-        row = space.get_row()
-        col = space.get_col()
-        x1 = self.get_col_x(col) + (LINE_WIDTH)
-        y1 = self.get_row_y(row) + (LINE_WIDTH)
-        x2 = self.get_col_x(col+1) - (LINE_WIDTH + 2)
-        y2 = self.get_row_y(row+1) - (LINE_WIDTH + 2)
-        self.window.canvas.create_rectangle(x1, y1, x2, y2, width=SELECTION_BUFFER, outline=colour, tags=('temp'))
-        self.window.canvas.create_rectangle(x1-2, y1-2, x2+2, y2+2, width=3, outline="black", tags=('temp'))
+        if space != None:
+            row = space.get_row()
+            col = space.get_col()
+            x1 = self.get_col_x(col) + (LINE_WIDTH)
+            y1 = self.get_row_y(row) + (LINE_WIDTH)
+            x2 = self.get_col_x(col+1) - (LINE_WIDTH + 2)
+            y2 = self.get_row_y(row+1) - (LINE_WIDTH + 2)
+            self.window.canvas.create_rectangle(x1, y1, x2, y2, width=SELECTION_BUFFER, outline=colour, tags=('temp'))
+            self.window.canvas.create_rectangle(x1-2, y1-2, x2+2, y2+2, width=3, outline="black", tags=('temp'))
 
     def outline_spaces(self, spaces: list, colour: str) -> None:
         for space in spaces:
@@ -481,12 +482,13 @@ class GameBoard:
     def update_guarded_spaces(self, valid_spaces: list, unit: Unit):
         guarded_spaces = set()
         for space in valid_spaces:
-            target = space.get_unit()
-            if target != None:
-                if not target.is_ally(unit):
-                    if not target.is_unit_type(Soldier):
-                        if target.adjacent_to(Soldier, True):
-                            guarded_spaces.add(space)
+            if space != None:
+                target = space.get_unit()
+                if target != None:
+                    if not target.is_ally(unit):
+                        if not target.is_unit_type(Soldier):
+                            if target.adjacent_to(Soldier, True):
+                                guarded_spaces.add(space)
         self.__guarded_spaces = guarded_spaces
     
     def draw_space_list(self, spaces: list):
