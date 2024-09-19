@@ -19,7 +19,8 @@ from constants import (
     BOARD_COLS, 
     BOARD_ROWS,
     P1_COL,
-    P2_COL
+    P2_COL,
+    CPU_DELAY
     )
 
 from random import randint
@@ -278,4 +279,4 @@ class GameState:
             self.ui.logItems['text'].update_label()
             # If this player is controlled by a CPU, tell it to take a turn
             if isinstance(self.__current_player, CPU_Player):
-                self.board.root.after(500, self.__current_player.take_turn)
+                self.board.root.after(CPU_DELAY, self.__current_player.take_turn)
