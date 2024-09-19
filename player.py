@@ -107,18 +107,18 @@ class CPU_Player(Player):
         self.choose_action()
         
     def choose_action(self):
-        sleep(CPU_DELAY)
         self.get_attacking_units()
         # If there are no targets to attack, move a unit instead
         if len(self.__attacking_units) == 0:
             self.get_movable_units()
             unit, space = self.choose_move_target()
+            self.get_state().board.draw_all_spaces()
             self.move_unit(unit, space)
-            return
-        
-        unit = self.choose_attacker()
-        target, space = self.choose_attack_target(unit)
-        self.attack_action(unit, target, space)
+        else:
+            unit = self.choose_attacker()
+            target, space = self.choose_attack_target(unit)
+            self.get_state().board.draw_all_spaces()
+            self.attack_action(unit, target, space)
         
     def get_attacking_units(self):
         self.__attacking_units = {}
@@ -154,12 +154,20 @@ class CPU_Player(Player):
         return unit, space
     
     def move_unit(self, unit: Unit, space: Space):
+        # Highlight the selected unit's space
         self.select_space(unit.get_space(), SELECT_COL)
-        #sleep(CPU_DELAY)
-        self.select_space(space, ACTION_COL)
-        #sleep(CPU_DELAY)
-        self.get_state().board.move_unit(unit, space)
+        # Schedule highlighting of destination after a delay
+        self.get_state().board.root.after(CPU_DELAY, self.highlight_move_space, unit, space)
         
+    def highlight_move_space(self, unit: Unit, space: Space):
+        # Highlight the selected destination space
+        self.select_space(space, ACTION_COL)
+        # Schedule movement execution after a delay
+        self.get_state().board.root.after(CPU_DELAY, self.execute_move, unit, space)
+    
+    def execute_move(self, unit: Unit, space: Space):
+        self.get_state().board.move_and_wait(unit, space)
+    
     def choose_attacker(self):
         unit = random.choice(list(self.__attacking_units.keys()))
         return unit
@@ -180,12 +188,24 @@ class CPU_Player(Player):
             return None, None  # No valid targets
         
     def attack_action(self, unit: Unit, target: Space, move_space: Space):
+        # Highlight the selected unit's space
         self.select_space(unit.get_space(), SELECT_COL)
-        #sleep(CPU_DELAY)
+        # Schedule highlighting of the movement space after a delay
+        self.get_state().board.root.after(CPU_DELAY, self.highlight_attack_space, unit, target, move_space)
+        
+    def highlight_attack_space(self, unit: Unit, target: Space, move_space: Space):    
+        # Highlight the selected destination space
         self.select_space(move_space, ACTION_COL)
-        #sleep(CPU_DELAY)
+        # Schedule highlighting of the target's space after a delay
+        self.get_state().board.root.after(CPU_DELAY, self.highlight_target, unit, target, move_space)
+    
+    def highlight_target(self, unit: Unit, target: Space, move_space: Space):
+        # Highlight the target's space
         self.select_space(target, ATTACK_COL)
-        #sleep(CPU_DELAY)
+        # Execute attack after a delay
+        self.get_state().board.root.after(CPU_DELAY, self.execute_attack, unit, target, move_space)
+        
+    def execute_attack(self, unit: Unit, target: Space, move_space: Space):
         self.get_state().board.attack_action(unit, target, move_space)
         
     def select_space(self, space: Space, colour: str):
