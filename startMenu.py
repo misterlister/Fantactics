@@ -8,7 +8,8 @@ from constants import (
     WINDOW_HEIGHT,
     EMPTY_SPRITE,
     P1_COL,
-    P2_COL
+    P2_COL,
+    CPU_Difficulty
 )
 from graphics import Window
 from gameBoard import GameBoard
@@ -66,7 +67,7 @@ class Game():
                 player = P1_COL
                 cpu = P2_COL
             self.player1 = Player(player)
-            self.player2 = CPU_Player(cpu)
+            self.player2 = CPU_Player(cpu, difficulty=CPU_Difficulty.Medium)
         else:
             self.player1 = Player(P1_COL)
             self.player2 = Player(P2_COL)
