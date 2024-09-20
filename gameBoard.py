@@ -253,7 +253,7 @@ class GameBoard:
         self.draw_space(self.__action_space)
         self.preview_sprite(unit, self.__action_space)
         target = space.get_unit()
-        self.ui.controlBar.buttons['confirm'].change_unclick_func(lambda: action(unit, space, True))
+        self.ui.controlBar.buttons['confirm'].change_unclick_func(lambda: action(unit, space, self.__action_space, True))
         if action == self.ability_action: # If this is an ability, highlight the area of effect
             self.__area_of_effect_spaces = unit.get_area_of_effect(space)
             for effect_space in self.__area_of_effect_spaces:
@@ -678,8 +678,8 @@ class GameBoard:
 
     def confirm(self, unit: Unit, space: Space):
             if self.online:
-                self.sender.move(self.__action_space,unit,space)
-            self.move_and_wait(unit,space)
+                self.sender.move(self.__action_space, unit, space)
+            self.move_and_wait(unit, space)
 
     def move_and_wait(self, unit: Unit, space: Space, from_setup: bool = False):
         if self.online and from_setup:
