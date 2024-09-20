@@ -187,8 +187,8 @@ class GameState:
     def check_victory_conditions(self):
         p1_units = self.player1.get_unit_list()
         p2_units = self.player2.get_unit_list()
-        p1_team = P1_COL
-        p2_team = P2_COL
+        p1_team = self.player1.get_team_colour()
+        p2_team = self.player2.get_team_colour()
         messages = []
         p2_victory = self.check_unit_death(self.player1, p1_units, p1_team, messages)
         p1_victory = self.check_unit_death(self.player2, p2_units, p2_team, messages)        
