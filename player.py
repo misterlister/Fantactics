@@ -191,7 +191,35 @@ class CPU_Player(Player):
     
     def choose_move_target(self):
         unit = random.choice(list(self.__movable_units.keys()))
-        space = random.choice(list(self.__movable_units[unit]))
+        space = None
+        if self.__difficulty == CPU_Difficulty.Easy:
+            space = random.choice(list(self.__movable_units[unit]))
+        else:
+            # Get all potential move spaces
+            spaces = list(self.__movable_units[unit])  
+            
+            if self.__persona == CPU_Persona.Aggressive:
+                # Aggressive CPU will choose from furthest spaces it can move
+                max_row = max(space.get_row() for space in spaces)
+                aggressive_spaces = [space for space in spaces if space.get_row() == max_row]
+                space = random.choice(aggressive_spaces)
+                
+            elif self.__persona == CPU_Persona.Careful:
+                # Careful CPU will choose to move to the most defensive terrain
+                max_defense = max(space.get_defense_mod() for space in spaces)
+                careful_spaces = [space for space in spaces if space.get_defense_mod() == max_defense]
+                space = random.choice(careful_spaces)
+                
+            elif self.__persona == CPU_Persona.Balanced:
+                # Choose a random space ahead of the current space
+                current_row = unit.get_space().get_row()
+                balanced_spaces = [space for space in spaces if space.get_row() > current_row]
+                # Confirm that a space exists
+                if balanced_spaces:
+                    space = random.choice(balanced_spaces)
+                    
+        if space is None:
+            space = random.choice(list(self.__movable_units[unit]))
         return unit, space
     
     def move_unit(self, unit: Unit, space: Space):
