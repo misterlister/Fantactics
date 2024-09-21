@@ -17,13 +17,16 @@ from units import (
 
 from constants import (
     BOARD_COLS, 
-    BOARD_ROWS
+    BOARD_ROWS,
+    P1_COL,
+    P2_COL,
+    CPU_DELAY
     )
 
 from random import randint
 from clientSender import Sender
 
-from player import Player
+from player import Player, CPU_Player
 
 class GameState:
     def __init__(
@@ -33,7 +36,8 @@ class GameState:
             board: GameBoard,
             ui,
             map : str,
-            sender: Sender
+            sender: Sender,
+            cpu_game: bool
             ) -> None:
         self.player1 = player1 # Reference to this game's player 1 object
         self.player2 = player2 # Reference to this game's player 2 object
@@ -48,13 +52,12 @@ class GameState:
         else:
             self.online = True
         self.sender = sender
-
+        self.__cpu_game = cpu_game # Is there a cpu player in this game?
         self.setup_board()
 
     def setup_board(self):
         try:
-            
-            if self.player1.get_team_colour() == "white":
+            if self.player1.get_team_colour() == P1_COL:
                 player_white = True
                 opp_white = False
 
@@ -91,7 +94,7 @@ class GameState:
     def promote_unit(self, unit) -> Unit:
         team_colour = unit.get_player().get_team_colour()
         col = unit.get_space().get_col()
-        if team_colour == "white":
+        if team_colour == P1_COL:
             team = True
         else:
             team = False
@@ -100,12 +103,12 @@ class GameState:
         elif col == 1 or col == 6:
             new_unit = Cavalry(team)
         elif col == 2:
-            if team_colour == "white":
+            if team_colour == P1_COL:
                 new_unit = Healer(team)
             else:
                 new_unit = Sorcerer(team)
         elif col == 5:
-            if team_colour == "white":
+            if team_colour == P1_COL:
                 new_unit = Sorcerer(team)
             else:
                 new_unit = Healer(team)
@@ -184,8 +187,8 @@ class GameState:
     def check_victory_conditions(self):
         p1_units = self.player1.get_unit_list()
         p2_units = self.player2.get_unit_list()
-        p1_team = "white"
-        p2_team = "black"
+        p1_team = self.player1.get_team_colour()
+        p2_team = self.player2.get_team_colour()
         messages = []
         p2_victory = self.check_unit_death(self.player1, p1_units, p1_team, messages)
         p1_victory = self.check_unit_death(self.player2, p2_units, p2_team, messages)        
@@ -212,7 +215,7 @@ class GameState:
             return True
         return False
     
-    def team_surrender(self, vanquished: Player, message: str):
+    def team_surrender(self, vanquished: Player):
         if vanquished == self.player1:
             winning_team = self.player2.get_team_colour()
         else:
@@ -242,13 +245,12 @@ class GameState:
         return False
             
     def next_turn(self):
-
         if self.check_victory_conditions():
             self.end_game()
         else:
             if self.__current_player == None: # At start of game, set turn to Player 1
                 self.__turn_count += 1
-                if self.player1.get_team_colour() == "white":
+                if self.player1.get_team_colour() == P1_COL:
                     self.set_turn(self.player1)
                 else:
                     self.set_turn(self.player2)
@@ -262,16 +264,19 @@ class GameState:
                     if self.online:
                         self.sender.end_turn()
                     self.set_turn(self.player2)
-                    if self.player1.get_team_colour == "black":
+                    if self.player1.get_team_colour == P2_COL:
                         self.__turn_count += 1
                     self.player2.advance_timed_effects()
                     self.ui.logItems['text'].insert_turn_divider()
                 else:
                     self.player2.end_turn()
                     self.set_turn(self.player1)
-                    if self.player2.get_team_colour == "black":
+                    if self.player2.get_team_colour == P2_COL:
                         self.__turn_count += 1
                     self.__turn_count += 1
                     self.player1.advance_timed_effects()
                     self.ui.logItems['text'].insert_turn_divider()
             self.ui.logItems['text'].update_label()
+            # If this player is controlled by a CPU, tell it to take a turn
+            if isinstance(self.__current_player, CPU_Player):
+                self.board.root.after(CPU_DELAY, self.__current_player.take_turn)

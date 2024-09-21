@@ -482,7 +482,7 @@ class Peasant(Unit):
             return self.get_ability_value()
         return 0
     
-    def ability_preview(self, target: Unit) -> [int, int]:
+    def ability_preview(self, target: Unit):
         if target == None:
             return None, None
         self.__brave = True
@@ -495,12 +495,17 @@ class Peasant(Unit):
         return damage_dealt, damage_received
     
     def move(self, space):
+        player = self.get_player()
         move_log = super().move(space)
         row = self.get_space().get_row()
-        team = self.get_player().get_team_colour()
-        if ((row == 0 and team == "white")
-            or (row == BOARD_ROWS -1 and team == "black")):
-            move_log.append(self.promotion())
+        
+        if player is player.get_state().player1:
+            if (row == 0):
+                move_log.append(self.promotion())
+        else:
+            if (row == BOARD_ROWS -1):
+                move_log.append(self.promotion())
+            
         return move_log
     
     def promotion(self) -> str:

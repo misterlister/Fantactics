@@ -27,6 +27,20 @@ BORDER_WIDTH = 4
 PANEL_WIDTH, PANEL_HEIGHT = 320, 720 
 CONTROL_PANEL_HEIGHT = 80
 
+P1_COL = "white"
+P2_COL = "black"
+
+CPU_DELAY = 1000
+class CPU_Persona(IntEnum):
+    Balanced = 1
+    Aggressive = 2
+    Careful = 3
+    
+class CPU_Difficulty(IntEnum):
+    Easy = 1
+    Medium = 2
+    Hard = 3
+
 # Size of the game squares
 DEFAULT_SQUARE_SIZE = 64 + SPRITE_BUFFER
 # Space between the game square line and the selection squares

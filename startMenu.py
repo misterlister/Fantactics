@@ -6,11 +6,15 @@ from userInterface import CanvasButton, ToggleButton
 from constants import (
     WINDOW_WIDTH,
     WINDOW_HEIGHT,
-    EMPTY_SPRITE
+    EMPTY_SPRITE,
+    P1_COL,
+    P2_COL,
+    CPU_Difficulty
 )
 from graphics import Window
 from gameBoard import GameBoard
-from gameState import Player, GameState
+from gameState import GameState
+from player import Player, CPU_Player
 from userInterface import UserInterface
 from clientSender import Sender
 
@@ -36,12 +40,12 @@ class Game():
     def start(self):
         self.userInterface = UserInterface(self.root)
         self.board = GameBoard(self.window, self.root, self.userInterface, self.player_colour, self.sender)
-        if self.player_colour == "white":
-            self.player1 = Player("white")
-            self.player2 = Player("black")
+        if self.player_colour == P1_COL:
+            self.player1 = Player(P1_COL)
+            self.player2 = Player(P2_COL)
         else:
-            self.player1 = Player("black")
-            self.player2 = Player("white")
+            self.player1 = Player(P2_COL)
+            self.player2 = Player(P1_COL)
         self.state = GameState(self.player1, self.player2, self.board, self.userInterface, self.map, self.sender)
 
     def set_player_colour(self, colour:str):
@@ -50,12 +54,27 @@ class Game():
     def set_map(self, map: str):
         self.map = map
 
-    def start_one_player(self):
+    def start_one_player(self, is_cpu_game: bool):
         self.userInterface = UserInterface(self.root)
-        self.board = GameBoard(self.window, self.root, self.userInterface, "white", None)
-        self.player1 = Player("white")
-        self.player2 = Player("black")
-        self.state = GameState(self.player1, self.player2, self.board, self.userInterface, self.map, None)
+        # If this is a cpu game, randomly pick the player colour
+        if is_cpu_game:
+            if random.randint(0, 1) == 1:
+                # cpu is Player 1
+                player = P2_COL
+                cpu = P1_COL
+            else:
+                # cpu is Player 2
+                player = P1_COL
+                cpu = P2_COL
+            self.player1 = Player(player)
+            self.player2 = CPU_Player(cpu, difficulty=CPU_Difficulty.Medium)
+        else:
+            self.player1 = Player(P1_COL)
+            self.player2 = Player(P2_COL)
+            
+        self.board = GameBoard(self.window, self.root, self.userInterface, P1_COL, None)
+
+        self.state = GameState(self.player1, self.player2, self.board, self.userInterface, self.map, None, is_cpu_game)
 
 
 class StartMenu():
@@ -82,6 +101,7 @@ class StartMenu():
         self.backgroundImage = ImageTk.PhotoImage(Image.open('Assets/title_background.png'))
         self.background = self.canvas.create_image(0, 0, image=self.backgroundImage, anchor='nw')
         self.map = map
+        self.cpu_game = True # Default to False
 
         self.credImg = [
             ImageTk.PhotoImage(Image.open('Assets/Text/hayden.png')),
@@ -269,7 +289,7 @@ class StartMenu():
     def start(self):
         self.enabled = False
         self.canvas.destroy()
-        self.game.start_one_player()
+        self.game.start_one_player(self.cpu_game)
 
     def start_online(self):
         self.enabled = False
