@@ -482,7 +482,7 @@ class Peasant(Unit):
             return self.get_ability_value()
         return 0
     
-    def ability_preview(self, target: Unit) -> [int, int]:
+    def ability_preview(self, target: Unit):
         if target == None:
             return None, None
         self.__brave = True
