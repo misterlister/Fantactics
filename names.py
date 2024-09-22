@@ -34,9 +34,16 @@ class Names:
         "Emma",
         "Trent",
         "Pat",
-        "Ralph"
-        
-        
+        "Ralph",
+        "Athelflad",
+        "Unferth",
+        "Ethel",
+        "Bart",
+        "Hilda",
+        "Dunstan",
+        "Agnes",
+        "Stanley",
+        "Mildred"
     ]
 
     Noble = [
@@ -60,7 +67,11 @@ class Names:
         "Liliana",
         "Thorin",
         "Cleopatra",
-        "Geraldus"
+        "Geraldus",
+        "Guinevere",
+        "Ealdraed",
+        "Elizabeth",
+        "Percival"
     ]
 
     Mage = [
@@ -77,7 +88,13 @@ class Names:
         "Artemis",
         "Beatrix",
         "Tiberius",
-        "Zara"
+        "Zara",
+        "Zephyr",
+        "Seraphina",
+        "Atticus",
+        "Selene",
+        "Peregrine",
+        "Andromeda"
     ]
 
 class Titles:
@@ -103,7 +120,13 @@ class Titles:
         "Goatherd",
         "Candlemaker",
         "Stonemason",
-        "Unreliable"
+        "Unreliable",
+        "Gardener",
+        "Winemaker",
+        "Wheelright",
+        "Locksmith",
+        "Birdcatcher",
+        "Tavern Keeper"
     ]
 
     Soldier = [
