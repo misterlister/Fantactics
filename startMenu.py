@@ -14,7 +14,8 @@ from constants import (
 from graphics import Window
 from gameBoard import GameBoard
 from gameState import GameState
-from player import Player, CPU_Player
+from player import Player
+from cpu import CPU_Player
 from userInterface import UserInterface
 from clientSender import Sender
 
