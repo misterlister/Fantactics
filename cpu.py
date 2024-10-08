@@ -12,7 +12,7 @@ from units import (
 
 import random
 
-from space import Space
+from space import Space, Forest, Fortress
 
 from constants import (
     CPU_DELAY,
@@ -35,15 +35,16 @@ VAL_TERRAIN_FOREST = 1
 VAL_TERRAIN_FORTRESS = 2
 
 # Combat
-
-VAL_PEASANT = 2
-VAL_SOLDIER = 3
-VAL_ARCHER = 3
-VAL_SORCERER = 4
-VAL_HEALER = 5
-VAL_CAVALRY = 5
-VAL_ARCHMAGE = 6
-VAL_GENERAL = 7
+COMBAT_VAL = {
+    Peasant: 2,
+    Soldier: 3,
+    Archer: 3,
+    Sorcerer: 4,
+    Healer: 5,
+    Cavalry: 5,
+    Archmage: 6,
+    General: 7
+}
 
 VAL_DEFEAT_GENERAL = 99
 
@@ -51,12 +52,111 @@ PERSONA_ADJUSTMENT = 1.2
 
 ######
 
+class Persona:
+    
+    def generate_combat_victory_value(self, unit: Unit, target: Unit, space: Space):
+        if isinstance(target, General):
+            return VAL_DEFEAT_GENERAL
+        terrain_value = self.movement_value(space)
+        defeat_value = self.target_defeat_value(target)
+        combat_victory_value = terrain_value + defeat_value
+        return combat_victory_value
+        
+    def generate_combat_loss_value(self, unit: Unit, target: Unit, damage_dealt: int):
+        damage_value = self.target_damage_value(target, damage_dealt)
+        loss_value = self.unit_loss_value(unit)
+        combat_loss_value = damage_value - loss_value
+        return combat_loss_value
+    
+    def generate_combat_stalemate_value(self, unit: Unit, target: Unit, space: Space, damage_dealt: int, damage_taken: int):
+        terrain_value = self.movement_value(space)
+        target_damage_value = self.target_damage_value(target, damage_dealt)
+        unit_damage_value = self.unit_damage_value(unit, damage_taken)
+        combat_outcome_value = 2 * (target_damage_value / unit_damage_value)
+        overall_value = terrain_value + combat_outcome_value
+        return overall_value
+    
+    def generate_ability_stalemate_value(self, unit: Unit, target: Unit, space: Space, damage_dealt: int = 0, damage_taken: int = 0):
+        pass
+    
+    def movement_value(self, space: Space):
+        if isinstance(space.get_terrain(), Forest):
+            return VAL_TERRAIN_FOREST
+        if isinstance(space.get_terrain(), Fortress):
+            return VAL_TERRAIN_FORTRESS
+        return VAL_TERRAIN_BASE
+    
+    def target_damage_value(self, target: Unit, damage_dealt: int):
+        target_hp = target.get_curr_hp()
+        damage_fraction = damage_dealt / target_hp
+        damage_value = damage_fraction * COMBAT_VAL[type(target)]
+        return damage_value
+    
+    def target_defeat_value(self, target: Unit):
+        defeat_value = COMBAT_VAL[type(target)]
+        return defeat_value
+    
+    def unit_damage_value(self, unit: Unit, damage_taken: int):
+        unit_hp = unit.get_curr_hp()
+        damage_fraction = damage_taken / unit_hp
+        damage_value = damage_fraction * COMBAT_VAL[type(unit)]
+        return damage_value
+    
+    def unit_loss_value(self, unit: Unit):
+        loss_value = COMBAT_VAL[type(unit)]
+        return loss_value
+    
+    
+class AggressivePersona(Persona):
+    
+    def movement_value(self, space: Space):
+        if isinstance(space.get_terrain(), Forest):
+            return VAL_TERRAIN_FOREST
+        if isinstance(space.get_terrain(), Fortress):
+            return VAL_TERRAIN_FORTRESS
+        return VAL_TERRAIN_BASE
+    
+    # Increase value of damaging targets
+    def target_damage_value(self, target: Unit, damage_dealt: int):
+        target_hp = target.get_curr_hp()
+        damage_fraction = damage_dealt / target_hp
+        damage_value = damage_fraction * COMBAT_VAL[type(target)] * PERSONA_ADJUSTMENT
+        return damage_value
+    
+    # Increase value of defeating targets
+    def target_defeat_value(self, target: Unit):
+        defeat_value = COMBAT_VAL[type(target)] * PERSONA_ADJUSTMENT
+        return defeat_value
+    
+class CarefulPersona(Persona):
+    
+    # Add extra value to defensive terrain
+    def movement_value(self, space: Space):
+        if isinstance(space.get_terrain(), Forest):
+            return VAL_TERRAIN_FOREST * PERSONA_ADJUSTMENT
+        if isinstance(space.get_terrain(), Fortress):
+            return VAL_TERRAIN_FORTRESS * PERSONA_ADJUSTMENT
+        return VAL_TERRAIN_BASE
+    
+    # Increase negative value of units receiving damage
+    def unit_damage_value(self, unit: Unit, damage_taken: int):
+        unit_hp = unit.get_curr_hp()
+        damage_fraction = damage_taken / unit_hp
+        damage_value = damage_fraction * COMBAT_VAL[type(unit)] * PERSONA_ADJUSTMENT
+        return damage_value
+    
+    # Increase negative value of losing units
+    def unit_loss_value(self, unit: Unit):
+        loss_value = COMBAT_VAL[type(unit)] * PERSONA_ADJUSTMENT
+        return loss_value
+    
 
 class AttackTarget:
-    def __init__(self, space: Space, unit: Unit, target: Unit) -> None:
+    def __init__(self, space: Space, unit: Unit, target: Unit, persona: Persona) -> None:
         self.space = space
         self.unit = unit
         self.target = target
+        self.persona = persona
         self.__value = self.determine_value()
         
     def determine_value(self):
@@ -65,14 +165,14 @@ class AttackTarget:
         damage_dealt = self.unit.attack_preview(self.target, True)
         damage_taken = self.target.attack_preview(self.unit, False)
         if damage_dealt >= self.target.get_curr_hp():
-            # Determine value if the target is defeated
-            value = 1
+            # Value if the target is defeated
+            value = self.persona.generate_combat_victory_value(self.target, self.space)
         elif damage_taken >= self.unit.get_curr_hp():
-            # Determine value if the unit is lost
-            value = 1
+            # Value if the unit is lost
+            value = self.persona.generate_combat_loss_value(self.unit, self.target, damage_dealt)
         else:
-            # Determine the value of the damage exchange
-            value = 1
+            # Value of the damage exchange
+            value = self.persona.generate_combat_stalemate_value(self.unit, self.target, self.space, damage_dealt, damage_taken)
         # Reset unit's action space
         self.unit.reset_action_space()
         return value
@@ -81,10 +181,11 @@ class AttackTarget:
         return self.__value
     
 class AbilityTarget:
-    def __init__(self, space: Space, unit: Unit, target: Unit) -> None:
+    def __init__(self, space: Space, unit: Unit, target: Unit, persona: Persona) -> None:
         self.space = space
         self.unit = unit
         self.target = target
+        self.persona = persona
         self.__value = self.determine_value()
         
     def determine_value(self):
@@ -97,7 +198,7 @@ class AbilityTarget:
         return self.__value
         
 class Move_Space:
-    def __init__(self, space: Space, unit: Unit, persona: CPU_Persona) -> None:
+    def __init__(self, space: Space, unit: Unit, persona: Persona) -> None:
         self.space = space
         self.unit = unit
         unit.set_action_space(space)
@@ -124,7 +225,7 @@ class Move_Space:
         return self.terrain_value
         
 class Movable_Unit:
-    def __init__(self, unit: Unit, persona: CPU_Persona) -> None:
+    def __init__(self, unit: Unit, persona: Persona) -> None:
         self.unit = unit
         self.persona = persona
         self.spaces = []
