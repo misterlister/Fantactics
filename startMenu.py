@@ -47,7 +47,7 @@ class Game():
         else:
             self.player1 = Player(P2_COL)
             self.player2 = Player(P1_COL)
-        self.state = GameState(self.player1, self.player2, self.board, self.userInterface, self.map, self.sender)
+        self.state = GameState(self.player1, self.player2, self.board, self.userInterface, self.map, self.sender, False)
 
     def set_player_colour(self, colour:str):
         self.player_colour = colour
