@@ -26,7 +26,9 @@ from constants import (
 from random import randint
 from clientSender import Sender
 
-from player import Player, CPU_Player
+from player import Player
+
+from cpu import CPU_Player
 
 class GameState:
     def __init__(

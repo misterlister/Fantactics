@@ -415,6 +415,9 @@ class Unit:
             return True
         return False
     
+    def ability_splash_preview(self, target):
+        return 0
+    
 
 class Peasant(Unit):
     def __init__(self, p1 = True) -> None:
@@ -807,6 +810,14 @@ class Sorcerer(Unit):
             damage_received = self.calculate_damage(self, ability_damage, self.__special_damage_type)
         return damage_dealt, damage_received
     
+    def ability_splash_preview(self, target: Unit) -> int:
+        if target == None:
+            return None
+        full_damage = self.get_ability_value() + self.get_damage_mod()
+        splash_damage = ceil(full_damage/2)
+        damage_dealt = self.calculate_damage(target, splash_damage, self.__special_damage_type)
+        return damage_dealt
+    
     def get_special_damage_type(self):
         return self.__special_damage_type
 
@@ -970,6 +981,14 @@ class Archmage(Unit):
         elif target_space == self_space:
             damage_received = self.calculate_damage(self, ability_damage, self.__special_damage_type)
         return damage_dealt, damage_received
+
+    def ability_splash_preview(self, target: Unit) -> int:
+        if target == None:
+            return None
+        full_damage = self.get_ability_value() + self.get_damage_mod()
+        splash_damage = ceil(full_damage/2)
+        damage_dealt = self.calculate_damage(target, splash_damage, self.__special_damage_type)
+        return damage_dealt
     
     def get_special_damage_type(self) -> DamageType:
         return self.__special_damage_type
