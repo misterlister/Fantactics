@@ -21,7 +21,8 @@ from constants import (
     ATTACK_COL,
     ABILITY_COL,
     CPU_Persona,
-    CPU_Difficulty
+    CPU_Difficulty,
+    BOARD_ROWS
 )
 
 from player import Player
@@ -33,6 +34,9 @@ from player import Player
 VAL_TERRAIN_BASE = 0
 VAL_TERRAIN_FOREST = 1
 VAL_TERRAIN_FORTRESS = 2
+VAL_PEASANT_PROMOTE = 3
+
+VAL_ADVANCE_ROWS = 1
 
 # Combat
 COMBAT_VAL = {
@@ -46,6 +50,8 @@ COMBAT_VAL = {
     General: 7
 }
 
+PEASANT_ABILITY_MOD = -0.5
+
 VAL_DEFEAT_GENERAL = 99
 
 PERSONA_ADJUSTMENT = 1.2
@@ -54,10 +60,27 @@ PERSONA_ADJUSTMENT = 1.2
 
 class Persona:
     
-    def generate_combat_victory_value(self, unit: Unit, target: Unit, space: Space):
+    def generate_combat_value(self, unit: Unit, target: Unit, space: Space, damage_dealt: int, damage_taken: int, secondary_attack: bool = False):
+        value = 0
+        
+        if damage_dealt >= target.get_curr_hp():
+            # Value if the target is defeated
+            value += self.generate_combat_victory_value(target, space, secondary_attack)
+        elif damage_taken >= unit.get_curr_hp():
+            # Value if the unit is lost
+            value += self.generate_combat_loss_value(unit, target, damage_dealt)
+        else:
+            # Value of the damage exchange
+            value += self.generate_combat_stalemate_value(unit, target, space, damage_dealt, damage_taken, secondary_attack)
+        return value
+    
+    def generate_combat_victory_value(self, unit: Unit, target: Unit, space: Space, secondary_attack: bool = False):
         if isinstance(target, General):
             return VAL_DEFEAT_GENERAL
-        terrain_value = self.movement_value(space)
+        if secondary_attack:
+            terrain_value = 0
+        else:
+            terrain_value = self.movement_value(unit, space)
         defeat_value = self.target_defeat_value(target)
         combat_victory_value = terrain_value + defeat_value
         return combat_victory_value
@@ -68,23 +91,183 @@ class Persona:
         combat_loss_value = damage_value - loss_value
         return combat_loss_value
     
-    def generate_combat_stalemate_value(self, unit: Unit, target: Unit, space: Space, damage_dealt: int, damage_taken: int):
-        terrain_value = self.movement_value(space)
+    def generate_combat_stalemate_value(self, unit: Unit, target: Unit, space: Space, damage_dealt: int, damage_taken: int, secondary_attack: bool = False):
+        if secondary_attack:
+            terrain_value = 0
+        else:
+            terrain_value = self.movement_value(unit, space)
         target_damage_value = self.target_damage_value(target, damage_dealt)
-        unit_damage_value = self.unit_damage_value(unit, damage_taken)
+        if damage_taken == 0:
+            unit_damage_value = 1
+        else:
+            unit_damage_value = self.unit_damage_value(unit, damage_taken)
         combat_outcome_value = 2 * (target_damage_value / unit_damage_value)
         overall_value = terrain_value + combat_outcome_value
         return overall_value
     
-    def generate_ability_stalemate_value(self, unit: Unit, target: Unit, space: Space, damage_dealt: int = 0, damage_taken: int = 0):
-        pass
+    def generate_ability_value(self, unit: Unit, target: Unit, space: Space):
+        value = 0
+        match unit:
+            case Peasant():
+                value = self.peasant_ability_value(unit, target, space)
+            case Soldier():
+                value = self.soldier_ability_value(unit, target, space)
+            case Cavalry():
+                value = self.cavalry_ability_value(unit, target, space)
+            case Sorcerer():
+                value = self.sorcerer_ability_value(unit, target, space)
+            case Archmage():
+                value = self.archmage_ability_value(unit, target, space)
+            case Archer():
+                value = self.archer_ability_value(unit, target, space)
+            case General():
+                value = self.general_ability_value(unit, target, space)
+            case Healer():
+                value = self.healer_ability_value(unit, target, space)
+            case _:
+                print("Error: unit type not matching for ability value checking")
+        return value
     
-    def movement_value(self, space: Space):
+    def peasant_ability_value(self, unit: Unit, target: Unit, space: Space):
+        # Reduce combat value by the peasant ability modifier to reflect cost of using ability
+        value = PEASANT_ABILITY_MOD
+        damage_dealt, damage_taken = unit.ability_preview(target)
+        value += self.generate_combat_value(unit, target, space, damage_dealt, damage_taken)
+        return value
+    
+    def soldier_ability_value(self, unit: Unit, target: Unit, space: Space):
+        # Grant 1/2 of a unit's value if that unit is injured and not adjacent to a Soldier
+        if isinstance(target, (General, Archer, Archmage, Sorcerer)): 
+            if not target.adjacent_to(Soldier, True):
+                if target.__curr_hp < target.__max_hp()/2:
+                    return COMBAT_VAL[type(target)] / 2
+        return 0
+    
+    def cavalry_ability_value(self, unit: Unit, target: Unit, space: Space):
+        # Increase combat value if the foe is a high-priority ability target
+        value = 0
+        if isinstance(target, (Healer, Archer, Archmage, Sorcerer)): 
+            value += COMBAT_VAL[type(target)] / 3
+        damage_dealt, damage_taken = unit.ability_preview(target)
+        value += self.generate_combat_value(unit, target, space, damage_dealt, damage_taken)
+        return value
+    
+    def sorcerer_ability_value(self, unit: Unit, target: Unit, space: Space):
+        value = 0
+        # Calculate main target damage
+        damage_dealt, damage_taken = unit.ability_preview(target)
+        # Disregard damage taken
+        damage_taken = 0
+        value += self.generate_combat_value(unit, target, space, damage_dealt, damage_taken)
+        # Add left space splash value
+        value += self.get_splash_damage_value(unit, space.get_left())
+        # Add right space splash value
+        value += self.get_splash_damage_value(unit, space.get_right())
+        return value
+    
+    def archmage_ability_value(self, unit: Unit, target: Unit, space: Space):
+        value = 0
+        # Calculate main target damage
+        damage_dealt, damage_taken = unit.ability_preview(target)
+        # Disregard damage taken
+        damage_taken = 0
+        value += self.generate_combat_value(unit, target, space, damage_dealt, damage_taken)
+        # Add left space splash value
+        value += self.get_splash_damage_value(unit, space.get_left())
+        # Add right space splash value
+        value += self.get_splash_damage_value(unit, space.get_right())
+        # Add upper space splash value
+        value += self.get_splash_damage_value(unit, space.get_up())
+        # Add lower space splash value
+        value += self.get_splash_damage_value(unit, space.get_down())
+        return value
+    
+    def archer_ability_value(self, unit: Unit, target: Unit, space: Space):
+        # Calculate target damage
+        damage_dealt, damage_taken = unit.ability_preview(target)
+        value = self.generate_combat_value(unit, target, space, damage_dealt, damage_taken)
+        return value
+    
+    def general_ability_value(self, unit: Unit, target: Unit, space: Space):
+        # Create value that increases as the game goes on longer
+        turn_number = unit.get_player().get_state().get_turn()
+        val = random.randint(1,50)
+        if val < turn_number:
+            value = VAL_DEFEAT_GENERAL
+        else:
+            value = 1
+        return value
+    
+    def healer_ability_value(self, unit: Unit, target: Unit, space: Space):
+        # Calculate target damage
+        terrain_value = self.movement_value(unit, space)
+        heal_value = 0
+        heal_value += self.get_heal_value(unit, space.get_left())
+        heal_value += self.get_heal_value(unit, space.get_right())
+        heal_value += self.get_heal_value(unit, space.get_up())
+        heal_value += self.get_heal_value(unit, space.get_down())
+        value = heal_value + terrain_value
+        return value
+    
+    def get_heal_value(self, unit: Unit, space: Space):
+        if space is None:
+            return 0
+        
+        target = space.get_unit()
+        
+        if target == None:
+            return 0
+        
+        if unit.get_player() != target.get_player():
+            return 0
+        
+        ability_value = unit.get_ability_value()
+        
+        target_missing_hp = target.get_max_hp() - target.get_curr_hp()
+        
+        heal_amount = min(ability_value, target_missing_hp)
+        
+        if heal_amount < 1:
+            return 0
+        
+        value = (heal_amount / target.get_max_hp()) * COMBAT_VAL[type(target)]
+        
+        return value
+        
+    
+    def get_splash_damage_value(self, unit: Unit, space: Space):
+        if space is None:
+            return 0
+        
+        target = space.get_unit()
+        
+        if target == None:
+            return 0
+        
+        splash_damage = unit.ability_splash_preview(target)
+        if splash_damage == 0:
+            return
+        
+        value = self.generate_combat_value(unit, target, space, splash_damage, 0, True)
+        
+        if unit.get_player() == target.get_player():
+            value = -value
+            
+        return value
+    
+    def movement_value(self, unit: Unit, space: Space):
+        move_value = VAL_TERRAIN_BASE
         if isinstance(space.get_terrain(), Forest):
-            return VAL_TERRAIN_FOREST
-        if isinstance(space.get_terrain(), Fortress):
-            return VAL_TERRAIN_FORTRESS
-        return VAL_TERRAIN_BASE
+            move_value += VAL_TERRAIN_FOREST
+        elif isinstance(space.get_terrain(), Fortress):
+            move_value += VAL_TERRAIN_FORTRESS
+            
+        if space.get_row() > unit.get_space().get_row():
+            move_value += VAL_ADVANCE_ROWS
+        if isinstance(unit, Peasant) and space.get_row() == BOARD_ROWS -1:
+            move_value += VAL_PEASANT_PROMOTE
+            
+        return move_value
     
     def target_damage_value(self, target: Unit, damage_dealt: int):
         target_hp = target.get_curr_hp()
@@ -109,12 +292,21 @@ class Persona:
     
 class AggressivePersona(Persona):
     
-    def movement_value(self, space: Space):
+    # Increase value of advancing forwards
+    def movement_value(self, unit: Unit, space: Space):
+        move_value = VAL_TERRAIN_BASE
         if isinstance(space.get_terrain(), Forest):
-            return VAL_TERRAIN_FOREST
-        if isinstance(space.get_terrain(), Fortress):
-            return VAL_TERRAIN_FORTRESS
-        return VAL_TERRAIN_BASE
+            move_value += VAL_TERRAIN_FOREST
+        elif isinstance(space.get_terrain(), Fortress):
+            move_value += VAL_TERRAIN_FORTRESS
+            
+        if space.get_row() > unit.get_space().get_row():
+            move_value += VAL_ADVANCE_ROWS * PERSONA_ADJUSTMENT
+            
+        if isinstance(unit, Peasant) and space.get_row() == BOARD_ROWS -1:
+            move_value += VAL_PEASANT_PROMOTE
+            
+        return move_value
     
     # Increase value of damaging targets
     def target_damage_value(self, target: Unit, damage_dealt: int):
@@ -131,12 +323,20 @@ class AggressivePersona(Persona):
 class CarefulPersona(Persona):
     
     # Add extra value to defensive terrain
-    def movement_value(self, space: Space):
+    def movement_value(self, unit: Unit, space: Space):
+        move_value = VAL_TERRAIN_BASE
         if isinstance(space.get_terrain(), Forest):
-            return VAL_TERRAIN_FOREST * PERSONA_ADJUSTMENT
-        if isinstance(space.get_terrain(), Fortress):
-            return VAL_TERRAIN_FORTRESS * PERSONA_ADJUSTMENT
-        return VAL_TERRAIN_BASE
+            move_value += VAL_TERRAIN_FOREST * PERSONA_ADJUSTMENT
+        elif isinstance(space.get_terrain(), Fortress):
+            move_value += VAL_TERRAIN_FORTRESS * PERSONA_ADJUSTMENT
+            
+        if space.get_row() > unit.get_space().get_row():
+            move_value += VAL_ADVANCE_ROWS
+            
+        if isinstance(unit, Peasant) and space.get_row() == BOARD_ROWS -1:
+            move_value += VAL_PEASANT_PROMOTE
+            
+        return move_value
     
     # Increase negative value of units receiving damage
     def unit_damage_value(self, unit: Unit, damage_taken: int):
@@ -149,6 +349,30 @@ class CarefulPersona(Persona):
     def unit_loss_value(self, unit: Unit):
         loss_value = COMBAT_VAL[type(unit)] * PERSONA_ADJUSTMENT
         return loss_value
+    
+    # Increase value of ranged attacks and healing
+    def generate_ability_value(self, unit: Unit, target: Unit, space: Space):
+        value = 0
+        match unit:
+            case Peasant():
+                value = self.peasant_ability_value(unit, target, space)
+            case Soldier():
+                value = self.soldier_ability_value(unit, target, space)
+            case Cavalry():
+                value = self.cavalry_ability_value(unit, target, space)
+            case Sorcerer():
+                value = self.sorcerer_ability_value(unit, target, space) * PERSONA_ADJUSTMENT
+            case Archmage():
+                value = self.archmage_ability_value(unit, target, space) * PERSONA_ADJUSTMENT
+            case Archer():
+                value = self.archer_ability_value(unit, target, space) * PERSONA_ADJUSTMENT
+            case General():
+                value = self.general_ability_value(unit, target, space)
+            case Healer():
+                value = self.healer_ability_value(unit, target, space) * PERSONA_ADJUSTMENT
+            case _:
+                print("Error: unit type not matching for ability value checking")
+        return value
     
 
 class AttackTarget:
@@ -164,15 +388,7 @@ class AttackTarget:
         self.unit.set_action_space(self.space)
         damage_dealt = self.unit.attack_preview(self.target, True)
         damage_taken = self.target.attack_preview(self.unit, False)
-        if damage_dealt >= self.target.get_curr_hp():
-            # Value if the target is defeated
-            value = self.persona.generate_combat_victory_value(self.target, self.space)
-        elif damage_taken >= self.unit.get_curr_hp():
-            # Value if the unit is lost
-            value = self.persona.generate_combat_loss_value(self.unit, self.target, damage_dealt)
-        else:
-            # Value of the damage exchange
-            value = self.persona.generate_combat_stalemate_value(self.unit, self.target, self.space, damage_dealt, damage_taken)
+        value = self.persona.generate_combat_value(self.unit, self.target, self.space, damage_dealt, damage_taken)
         # Reset unit's action space
         self.unit.reset_action_space()
         return value
@@ -189,9 +405,11 @@ class AbilityTarget:
         self.__value = self.determine_value()
         
     def determine_value(self):
-        
-        value = 1
-        
+        # Set unit's action space
+        self.unit.set_action_space(self.space)
+        value = self.persona.generate_ability_value(self.unit, self.target, self.space)
+        # Reset unit's action space
+        self.unit.reset_action_space()
         return value
     
     def get_value(self):
@@ -205,7 +423,6 @@ class Move_Space:
         self.persona = persona
         self.melee_targets = []
         self.ability_targets = []
-        self.terrain_value = self.set_terrain_value()
         self.__max_value = self.set_max_value()
         unit.reset_action_space()
     
@@ -217,12 +434,6 @@ class Move_Space:
     
     def get_max_value(self):
         return self.__max_value
-    
-    def get_move_value(self):
-        # Increase terrain value for Careful CPU
-        if self.persona is CPU_Persona.Careful:
-            return self.terrain_value * PERSONA_ADJUSTMENT
-        return self.terrain_value
         
 class Movable_Unit:
     def __init__(self, unit: Unit, persona: Persona) -> None:
