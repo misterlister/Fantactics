@@ -349,7 +349,7 @@ class CarefulPersona(Persona):
     def unit_loss_value(self, unit: Unit):
         loss_value = COMBAT_VAL[type(unit)] * PERSONA_ADJUSTMENT
         return loss_value
-    
+
     # Increase value of ranged attacks and healing
     def generate_ability_value(self, unit: Unit, target: Unit, space: Space):
         value = 0
@@ -373,7 +373,7 @@ class CarefulPersona(Persona):
             case _:
                 print("Error: unit type not matching for ability value checking")
         return value
-    
+
 
 class AttackTarget:
     def __init__(self, space: Space, unit: Unit, target: Unit, persona: Persona) -> None:
@@ -382,7 +382,7 @@ class AttackTarget:
         self.target = target
         self.persona = persona
         self.__value = self.determine_value()
-        
+
     def determine_value(self):
         # Set unit's acting action space
         self.unit.set_action_space(self.space)
@@ -392,10 +392,10 @@ class AttackTarget:
         # Reset unit's action space
         self.unit.reset_action_space()
         return value
-    
+
     def get_value(self):
         return self.__value
-    
+
 class AbilityTarget:
     def __init__(self, space: Space, unit: Unit, target: Unit, persona: Persona) -> None:
         self.space = space
@@ -403,7 +403,7 @@ class AbilityTarget:
         self.target = target
         self.persona = persona
         self.__value = self.determine_value()
-        
+
     def determine_value(self):
         # Set unit's action space
         self.unit.set_action_space(self.space)
@@ -411,43 +411,108 @@ class AbilityTarget:
         # Reset unit's action space
         self.unit.reset_action_space()
         return value
-    
+
     def get_value(self):
         return self.__value
-        
-class Move_Space:
-    def __init__(self, space: Space, unit: Unit, persona: Persona) -> None:
+
+class MoveSpace:
+    def __init__(self, space: Space, unit: Unit, persona: Persona, board) -> None:
         self.space = space
         self.unit = unit
         unit.set_action_space(space)
         self.persona = persona
-        self.melee_targets = []
-        self.ability_targets = []
+        self.board = board
+        self.attack_targets = self.find_attack_targets()
+        self.ability_targets = self.find_ability_targets()
+        self.move_value = persona.movement_value(self.unit, self.space)
         self.__max_value = self.set_max_value()
         unit.reset_action_space()
     
-    def set_terrain_value(self):
-        pass
-    
     def set_max_value(self):
-        pass
-    
-    def get_max_value(self):
+        self.sort_ability_targets()
+        self.sort_attack_targets()
+        if len(self.attack_targets > 0):
+            attackMax = self.attack_targets[0].get_value()
+        else:
+            attackMax = 0
+        if len(self.ability_targets > 0):
+            abilityMax = self.ability_targets[0].get_value()
+        else:
+            abilityMax = 0
+        return max(attackMax, abilityMax, self.move_value)
+
+    def get_value(self):
         return self.__max_value
-        
-class Movable_Unit:
-    def __init__(self, unit: Unit, persona: Persona) -> None:
+
+    def find_attack_targets(self):
+        attack_targets = []
+        targets = self.board.get_attack_spaces(self.unit, self.space)
+
+        for target in targets:
+            target_unit = target.get_unit()
+            if target_unit is not None:
+                new_target = AttackTarget(self.space, self.unit, target_unit, self.persona)
+                attack_targets.append(new_target)
+
+        return attack_targets
+
+    def sort_attack_targets(self):
+        # Sort attack_targets by their value in descending order
+        self.attack_targets.sort(key=lambda target: target.get_value(), reverse=True)
+
+    def find_ability_targets(self):
+        ability_targets = []
+        targets = self.board.get_ability_spaces(self.unit, self.space)
+
+        for target in targets:
+            target_unit = target.get_unit()
+            if target_unit is not None:
+                new_target = AbilityTarget(self.space, self.unit, target_unit, self.persona)
+                ability_targets.append(new_target)
+
+        return ability_targets
+
+    def sort_ability_targets(self):
+        # Sort ability_targets by their value in descending order
+        self.ability_targets.sort(key=lambda target: target.get_value(), reverse=True)
+
+
+class MovableUnit:
+    def __init__(self, unit: Unit, persona: Persona, board) -> None:
         self.unit = unit
         self.persona = persona
-        self.spaces = []
+        self.board = board
+        self.move_spaces = self.find_spaces()
         self.__max_value = self.set_max_value()
         
     def set_max_value(self):
-        pass
+        self.sort_move_spaces()
+        if len(self.move_spaces > 0):
+            spaceMax = self.move_spaces[0].get_value()
+        else:
+            spaceMax = 0
+        return spaceMax
+        
+    def sort_move_spaces(self):
+        # Sort attack_targets by their value in descending order
+        self.move_spaces.sort(key=lambda target: target.get_value(), reverse=True)
         
     def get_value(self):
         return self.__max_value
     
+    def find_spaces(self):
+        move_spaces = []
+        spaces = self.board.get_movement_spaces(self.unit, self.unit.get_space())
+
+        for space in spaces:
+            new_space = MoveSpace(space, self.unit, self.persona, self.board)
+            move_spaces.append(new_space)
+
+        return move_spaces
+    
+    def choose_space(self, difficulty: CPU_Difficulty):
+        if difficulty == CPU_Difficulty.Easy:
+            pass
 
 class CPU_Player(Player):
     def __init__(self, team: str, difficulty: CPU_Difficulty) -> None:
