@@ -31,10 +31,6 @@ P1_COL = "white"
 P2_COL = "black"
 
 CPU_DELAY = 1000
-class CPU_Persona(IntEnum):
-    Balanced = 1
-    Aggressive = 2
-    Careful = 3
     
 class CPU_Difficulty(IntEnum):
     Easy = 1
