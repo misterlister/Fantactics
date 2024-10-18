@@ -486,9 +486,8 @@ class GameBoard:
                 target = space.get_unit()
                 if target != None:
                     if not target.is_ally(unit):
-                        if not target.is_unit_type(Soldier):
-                            if target.adjacent_to(Soldier, True):
-                                guarded_spaces.add(space)
+                        if target.adjacent_to(Soldier, True):
+                            guarded_spaces.add(space)
         self.__guarded_spaces = guarded_spaces
     
     def draw_space_list(self, spaces: list):

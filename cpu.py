@@ -20,9 +20,9 @@ from constants import (
     ACTION_COL,
     ATTACK_COL,
     ABILITY_COL,
-    CPU_Persona,
     CPU_Difficulty,
-    BOARD_ROWS
+    BOARD_ROWS,
+    ActionType
 )
 
 from player import Player
@@ -65,13 +65,17 @@ class Persona:
         
         if damage_dealt >= target.get_curr_hp():
             # Value if the target is defeated
-            value += self.generate_combat_victory_value(target, space, secondary_attack)
+            value += self.generate_combat_victory_value(unit, target, space, secondary_attack)
         elif damage_taken >= unit.get_curr_hp():
             # Value if the unit is lost
             value += self.generate_combat_loss_value(unit, target, damage_dealt)
         else:
             # Value of the damage exchange
             value += self.generate_combat_stalemate_value(unit, target, space, damage_dealt, damage_taken, secondary_attack)
+            
+        if unit.get_player() == target.get_player():
+            value = -value
+            
         return value
     
     def generate_combat_victory_value(self, unit: Unit, target: Unit, space: Space, secondary_attack: bool = False):
@@ -139,7 +143,7 @@ class Persona:
         # Grant 1/2 of a unit's value if that unit is injured and not adjacent to a Soldier
         if isinstance(target, (General, Archer, Archmage, Sorcerer)): 
             if not target.adjacent_to(Soldier, True):
-                if target.__curr_hp < target.__max_hp()/2:
+                if target.get_curr_hp() < target.get_max_hp()/2:
                     return COMBAT_VAL[type(target)] / 2
         return 0
     
@@ -249,9 +253,6 @@ class Persona:
             return
         
         value = self.generate_combat_value(unit, target, space, splash_damage, 0, True)
-        
-        if unit.get_player() == target.get_player():
-            value = -value
             
         return value
     
@@ -266,6 +267,9 @@ class Persona:
             move_value += VAL_ADVANCE_ROWS
         if isinstance(unit, Peasant) and space.get_row() == BOARD_ROWS -1:
             move_value += VAL_PEASANT_PROMOTE
+            
+        if unit.get_space() == space:
+            move_value /= 2
             
         return move_value
     
@@ -306,6 +310,9 @@ class AggressivePersona(Persona):
         if isinstance(unit, Peasant) and space.get_row() == BOARD_ROWS -1:
             move_value += VAL_PEASANT_PROMOTE
             
+        if unit.get_space() == space:
+            move_value = 0
+            
         return move_value
     
     # Increase value of damaging targets
@@ -336,6 +343,9 @@ class CarefulPersona(Persona):
         if isinstance(unit, Peasant) and space.get_row() == BOARD_ROWS -1:
             move_value += VAL_PEASANT_PROMOTE
             
+        if unit.get_space() == space:
+            move_value /= 2
+            
         return move_value
     
     # Increase negative value of units receiving damage
@@ -349,7 +359,7 @@ class CarefulPersona(Persona):
     def unit_loss_value(self, unit: Unit):
         loss_value = COMBAT_VAL[type(unit)] * PERSONA_ADJUSTMENT
         return loss_value
-    
+
     # Increase value of ranged attacks and healing
     def generate_ability_value(self, unit: Unit, target: Unit, space: Space):
         value = 0
@@ -373,7 +383,6 @@ class CarefulPersona(Persona):
             case _:
                 print("Error: unit type not matching for ability value checking")
         return value
-    
 
 class AttackTarget:
     def __init__(self, space: Space, unit: Unit, target: Unit, persona: Persona) -> None:
@@ -382,7 +391,7 @@ class AttackTarget:
         self.target = target
         self.persona = persona
         self.__value = self.determine_value()
-        
+
     def determine_value(self):
         # Set unit's acting action space
         self.unit.set_action_space(self.space)
@@ -392,10 +401,10 @@ class AttackTarget:
         # Reset unit's action space
         self.unit.reset_action_space()
         return value
-    
+
     def get_value(self):
         return self.__value
-    
+
 class AbilityTarget:
     def __init__(self, space: Space, unit: Unit, target: Unit, persona: Persona) -> None:
         self.space = space
@@ -403,7 +412,7 @@ class AbilityTarget:
         self.target = target
         self.persona = persona
         self.__value = self.determine_value()
-        
+
     def determine_value(self):
         # Set unit's action space
         self.unit.set_action_space(self.space)
@@ -411,172 +420,180 @@ class AbilityTarget:
         # Reset unit's action space
         self.unit.reset_action_space()
         return value
-    
+
     def get_value(self):
         return self.__value
-        
-class Move_Space:
-    def __init__(self, space: Space, unit: Unit, persona: Persona) -> None:
+
+class MoveSpace:
+    def __init__(self, space: Space, unit: Unit, persona: Persona, board) -> None:
         self.space = space
         self.unit = unit
         unit.set_action_space(space)
         self.persona = persona
-        self.melee_targets = []
-        self.ability_targets = []
+        self.board = board
+        self.attack_targets = self.find_attack_targets()
+        self.ability_targets = self.find_ability_targets()
+        self.move_value = persona.movement_value(self.unit, self.space)
         self.__max_value = self.set_max_value()
         unit.reset_action_space()
     
-    def set_terrain_value(self):
-        pass
-    
     def set_max_value(self):
-        pass
-    
-    def get_max_value(self):
+        self.sort_ability_targets()
+        self.sort_attack_targets()
+        if len(self.attack_targets) > 0:
+            attackMax = self.attack_targets[0].get_value()
+        else:
+            attackMax = 0
+        if len(self.ability_targets) > 0:
+            abilityMax = self.ability_targets[0].get_value()
+        else:
+            abilityMax = 0
+        maxVal = max(attackMax, abilityMax, self.move_value)
+        return maxVal
+
+    def get_value(self):
         return self.__max_value
+
+    def find_attack_targets(self):
+        attack_targets = []
+        targets = self.board.get_attack_spaces(self.unit, self.space)
+
+        for target in targets:
+            target_unit = target.get_unit()
+            if target_unit is not None:
+                new_target = AttackTarget(self.space, self.unit, target_unit, self.persona)
+                attack_targets.append(new_target)
+
+        return attack_targets
+
+    def sort_attack_targets(self):
+        # Sort attack_targets by their value in descending order
+        self.attack_targets.sort(key=lambda target: target.get_value(), reverse=True)
+
+    def find_ability_targets(self):
+        ability_targets = []
+        targets = self.board.get_ability_spaces(self.unit, self.space)
+
+        for target in targets:
+            if target is not None:
+                target_unit = target.get_unit()
+                if target_unit is not None:
+                    if not self.unit.ability_expended() and not self.unit.ability_disabled():
+                        new_target = AbilityTarget(self.space, self.unit, target_unit, self.persona)
+                        ability_targets.append(new_target)
+
+        return ability_targets
+
+    def sort_ability_targets(self):
+        # Sort ability_targets by their value in descending order
+        self.ability_targets.sort(key=lambda target: target.get_value(), reverse=True)
+
+    def choose_action(self, difficulty: CPU_Difficulty):
+        if len(self.attack_targets) > 0 and self.__max_value == self.attack_targets[0].get_value():
+            target_space = self.choose_target(self.attack_targets, difficulty)
+            actionType = ActionType.ATTACK
+        elif len(self.ability_targets) > 0 and self.__max_value == self.ability_targets[0].get_value():
+            target_space = self.choose_target(self.ability_targets, difficulty)
+            actionType = ActionType.ABILITY
+        else:
+            target_space = self.space
+            actionType = ActionType.MOVE
+
+        return target_space, self.space, actionType
+
+    def choose_target(self, actionList: list, difficulty: CPU_Difficulty):
         
-class Movable_Unit:
-    def __init__(self, unit: Unit, persona: Persona) -> None:
+        # Add Difficulty calculation
+        
+        target_space = actionList[0].target.get_space()
+        
+        return target_space
+
+class MovableUnit:
+    def __init__(self, unit: Unit, persona: Persona, board) -> None:
         self.unit = unit
         self.persona = persona
-        self.spaces = []
+        self.board = board
+        self.move_spaces = self.find_spaces()
         self.__max_value = self.set_max_value()
         
     def set_max_value(self):
-        pass
+        self.sort_move_spaces()
+        if len(self.move_spaces) > 0:
+            spaceMax = self.move_spaces[0].get_value()
+        else:
+            spaceMax = 0
+        print(f"Unit: {type(self.unit)}, val: {spaceMax}")
+        return spaceMax
+        
+    def sort_move_spaces(self):
+        # Sort move_spaces by their value in descending order
+        self.move_spaces.sort(key=lambda target: target.get_value(), reverse=True)
         
     def get_value(self):
         return self.__max_value
     
+    def find_spaces(self):
+        move_spaces = []
+        spaces = self.board.get_movement_spaces(self.unit, self.unit.get_space())
+
+        for space in spaces:
+            new_space = MoveSpace(space, self.unit, self.persona, self.board)
+            move_spaces.append(new_space)
+
+        return move_spaces
+    
+    def choose_action(self, difficulty: CPU_Difficulty):
+        target_space, move_space, actionType = self.move_spaces[0].choose_action(difficulty)
+        #if difficulty == CPU_Difficulty.Easy:
+            #pass
+        return self.unit, target_space, move_space, actionType
 
 class CPU_Player(Player):
     def __init__(self, team: str, difficulty: CPU_Difficulty) -> None:
         super().__init__(team)
-        self.__attacking_units: dict[Unit, dict[Space, list[Unit]]] = {}
-        self.__ranged_units: dict[Unit, dict[Space, list[Unit]]] = {}
-        self.__movable_units: dict[Unit, list[Space]] = {}
-        self.__persona: str = self.set_persona()
+        self.__persona: Persona = self.set_persona()
+        print(type(self.__persona))####
         self.__difficulty: CPU_Difficulty = difficulty
+        self.__movable_units = []
     
     def take_turn(self) -> None:
         # Disable player board interaction while CPU action executes
         self.get_state().board.unbind_buttons()
+        self.set_movable_units()
+        self.sort_movable_units()
         # Choose and execute CPU action
         self.choose_action()
         # Enable player board interaction when CPU is done
         self.get_state().board.bind_buttons()
-        
+
+    def set_movable_units(self):
+        self.__movable_units = []
+        board = self.get_state().board
+        for unit in self.get_unit_list():
+            movable_unit = MovableUnit(unit, self.__persona, board)
+            self.__movable_units.append(movable_unit)
+    
+    def sort_movable_units(self):
+        # Sort movable_units by their value in descending order
+        self.__movable_units.sort(key=lambda target: target.get_value(), reverse=True)
+
     def choose_action(self):
-        self.get_attacking_units()
-        self.get_ranged_units()
-        # If there are no targets to attack, move a unit instead
-        if len(self.__attacking_units) == 0 and len(self.__ranged_units) == 0:
-            self.get_movable_units()
-            unit, space = self.choose_move_target()
-            self.get_state().board.draw_all_spaces()
-            self.move_unit(unit, space)
-        else:
-            melee_attack = self.choose_if_melee_attack()
-            if melee_attack:
-                unit = self.choose_attacker(self.__attacking_units)
-                target, space = self.choose_attack_target(unit, self.__attacking_units)
-                if self.choose_if_activate_melee_ability(unit, target):
-                    attack_type = self.attack_action
-                else:
-                    attack_type = self.ability_action
-                self.get_state().board.draw_all_spaces()
-                attack_type(unit, target, space)
-            else:
-                unit = self.choose_attacker(self.__ranged_units)
-                target, space = self.choose_attack_target(unit, self.__ranged_units)
-                self.get_state().board.draw_all_spaces()
-                self.ability_action(unit, target, space)
+        # Implement choice here
         
-    def get_attacking_units(self):
-        self.__attacking_units = {}
-        for unit in self.get_unit_list():
-            spaces = self.get_state().board.get_movement_spaces(unit, unit.get_space())
-            attackable_spaces = {} # Temporary dictionary to hold valid attackable spaces
-            
-            for space in spaces:
-                targets = self.get_state().board.get_attack_spaces(unit, space)
-                
-                if len(targets) > 0: # Only add spaces that have valid attack targets
-                    attackable_spaces[space] = targets
-                    
-            if len(attackable_spaces) > 0: # Only add units that have at least one target
-                self.__attacking_units[unit] = attackable_spaces
-            
-    def get_ranged_units(self):
-        self.__ranged_units = {}
-        for unit in self.get_unit_list():
-            # Check if the unit has a ranged ability (Sorcerer, Archer, Archmage)
-            if isinstance(unit, (Sorcerer, Archer, Archmage)):
-                # Check that the unit's ability isn't disabled
-                if not unit.ability_disabled():
-                    spaces = self.get_state().board.get_movement_spaces(unit, unit.get_space())
-                    targetable_spaces = {} # Temporary dictionary to hold valid attackable spaces
-                    
-                    for space in spaces:
-                        if space is not None:
-                            targets = self.get_state().board.get_ability_spaces(unit, space)
-                            valid_targets = []
-                            for target in targets:
-                                if target is not None:
-                                    target_unit = target.get_unit()
-                                    if target_unit is not None and target_unit.get_player() != self:
-                                        valid_targets.append(target)
-                            
-                            if len(valid_targets) > 0: # Only add spaces that have valid attack targets
-                                targetable_spaces[space] = valid_targets
-                            
-                    if len(targetable_spaces) > 0: # Only add units that have at least one target
-                        self.__ranged_units[unit] = targetable_spaces
-            
-    def get_movable_units(self):
-        self.__movable_units = {}
-        for unit in self.get_unit_list():
-            current_space = unit.get_space()
-            spaces = self.get_state().board.get_movement_spaces(unit, unit.get_space())
-            if current_space in spaces: # Remove the unit's current space from movement options
-                spaces.remove(current_space)
-            if len(spaces) > 0: # Only add this unit if it has at least one space to move to
-                self.__movable_units[unit] = spaces
-    
-    def choose_move_target(self):
-        unit = random.choice(list(self.__movable_units.keys()))
-        space = None
-        if self.__difficulty == CPU_Difficulty.Easy:
-            space = random.choice(list(self.__movable_units[unit]))
+        unit, target_space, move_space, actionType = self.__movable_units[0].choose_action(self.__difficulty)
+        if actionType == ActionType.ATTACK:
+            selected_action = self.attack_action
+        elif actionType == ActionType.ABILITY:
+            selected_action = self.ability_action
         else:
-            # Get all potential move spaces
-            spaces = list(self.__movable_units[unit])  
-            
-            if self.__persona == CPU_Persona.Aggressive:
-                # Aggressive CPU will choose from furthest spaces it can move
-                max_row = max(space.get_row() for space in spaces)
-                aggressive_spaces = [space for space in spaces if space.get_row() == max_row]
-                space = random.choice(aggressive_spaces)
-                
-            elif self.__persona == CPU_Persona.Careful:
-                # Careful CPU will choose to move to the most defensive terrain
-                max_defense = max(space.get_defense_mod() for space in spaces)
-                careful_spaces = [space for space in spaces if space.get_defense_mod() == max_defense]
-                space = random.choice(careful_spaces)
-                
-            elif self.__persona == CPU_Persona.Balanced:
-                # Choose a random space ahead of the current space
-                current_row = unit.get_space().get_row()
-                balanced_spaces = [space for space in spaces if space.get_row() > current_row]
-                # Confirm that a space exists
-                if balanced_spaces:
-                    space = random.choice(balanced_spaces)
-                    
-        if space is None:
-            space = random.choice(list(self.__movable_units[unit]))
-        return unit, space
-    
-    def move_unit(self, unit: Unit, space: Space):
+            selected_action = self.move_unit
+        print("ActionType:", actionType) #####
+        print("Action Value:", self.__movable_units[0].get_value())
+        self.get_state().board.draw_all_spaces()
+        selected_action(unit, target_space, move_space)
+
+    def move_unit(self, unit: Unit, target: Space, space: Space):
         # Highlight the selected unit's space
         self.select_space(unit.get_space(), SELECT_COL)
         # Schedule highlighting of destination after a delay
@@ -590,39 +607,7 @@ class CPU_Player(Player):
     
     def execute_move(self, unit: Unit, space: Space):
         self.get_state().board.move_and_wait(unit, space)
-        
-    def choose_if_melee_attack(self):
-        if len(self.__attacking_units) == 0:
-            return False
-        if len(self.__ranged_units) == 0:
-            return True
-        if self.__persona == CPU_Persona.Careful:
-            return False
-        if self.__persona == CPU_Persona.Aggressive:
-            return True
-        if random.randint(0,1) == 1:
-            return True
-        return False
-    
-    def choose_attacker(self, attacker_dict):
-        unit = random.choice(list(attacker_dict.keys()))
-        return unit
-        
-    def choose_attack_target(self, unit: Unit, attacker_dict):
-        target_options = []
 
-        # Collect all attackable targets from all spaces
-        for space, enemies in attacker_dict[unit].items():
-            for enemy in enemies:
-                target_options.append((enemy, space))  # Store the enemy and the space
-        
-        # Randomly select a target from the list of options
-        if target_options:
-            chosen_enemy, chosen_space = random.choice(target_options)
-            return chosen_enemy, chosen_space
-        else:
-            return None, None  # No valid targets
-        
     def attack_action(self, unit: Unit, target: Space, move_space: Space):
         self.highlight_selected_unit(unit, target, move_space, self.highlight_target)
         
@@ -658,22 +643,18 @@ class CPU_Player(Player):
         
     def execute_ability(self, unit: Unit, target: Space, move_space: Space):
         self.get_state().board.ability_action(unit, target, move_space)
-        
-    def choose_if_activate_melee_ability(self, unit: Unit, target: Unit) -> bool:
-        # Check if the unit has a melee ability (Peasant or Cavalry)
-        if isinstance(unit, (Peasant, Cavalry)):
-            # Check if the ability is disabled or expended first
-            if not unit.ability_disabled() and not unit.ability_expended():
-                # Randomly choose between ability_action and attack_action
-                return False if random.randint(0, 1) == 1 else True
-        
-        # Default action if ability is unavailable or unit doesn't have one
-        return True
              
     def select_space(self, space: Space, colour: str):
         if colour == ATTACK_COL or colour == ACTION_COL or colour == SELECT_COL or colour == ABILITY_COL:
             self.get_state().board.outline_space(space, colour)
 
     def set_persona(self):
-        return random.choice(list(CPU_Persona))
+        choice = random.randint(0,2)
+        if choice == 0:
+            persona = CarefulPersona()
+        elif choice == 1:
+            persona = AggressivePersona()
+        else:
+            persona = Persona()
+        return persona
     
