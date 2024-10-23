@@ -12,7 +12,7 @@ from units import (
 
 import random
 
-from space import Space, Forest, Fortress
+from space import Space, Path, Plains, Forest, Fortress
 
 from constants import (
     CPU_DELAY,
@@ -22,18 +22,20 @@ from constants import (
     ABILITY_COL,
     CPU_Difficulty,
     BOARD_ROWS,
-    ActionType
+    ActionType,
 )
 
 from player import Player
 
 ###### Priority Values
 
-# Terrain
+TERRAIN_VAL = {
+    Path: 0,
+    Plains: 0,
+    Forest: 1,
+    Fortress: 2
+}
 
-VAL_TERRAIN_BASE = 0
-VAL_TERRAIN_FOREST = 1
-VAL_TERRAIN_FORTRESS = 2
 VAL_PEASANT_PROMOTE = 3
 
 VAL_ADVANCE_ROWS = 1
@@ -48,6 +50,12 @@ COMBAT_VAL = {
     Cavalry: 5,
     Archmage: 6,
     General: 7
+}
+
+DIFFICULTY_RATIO = {
+    CPU_Difficulty.Easy: 0.6,
+    CPU_Difficulty.Medium: 0.75,
+    CPU_Difficulty.Hard: 0.9
 }
 
 PEASANT_ABILITY_MOD = -0.5
@@ -257,19 +265,15 @@ class Persona:
         return value
     
     def movement_value(self, unit: Unit, space: Space):
-        move_value = VAL_TERRAIN_BASE
-        if isinstance(space.get_terrain(), Forest):
-            move_value += VAL_TERRAIN_FOREST
-        elif isinstance(space.get_terrain(), Fortress):
-            move_value += VAL_TERRAIN_FORTRESS
-            
+        current_terrain = unit.get_space().get_terrain()
+        current_terrain_value = TERRAIN_VAL[type(current_terrain)]
+        move_value = TERRAIN_VAL[type(space.get_terrain())]
+        if move_value < current_terrain_value:
+            move_value -= (move_value - current_terrain_value)
         if space.get_row() > unit.get_space().get_row():
             move_value += VAL_ADVANCE_ROWS
         if isinstance(unit, Peasant) and space.get_row() == BOARD_ROWS -1:
             move_value += VAL_PEASANT_PROMOTE
-            
-        if unit.get_space() == space:
-            move_value /= 2
             
         return move_value
     
@@ -298,20 +302,15 @@ class AggressivePersona(Persona):
     
     # Increase value of advancing forwards
     def movement_value(self, unit: Unit, space: Space):
-        move_value = VAL_TERRAIN_BASE
-        if isinstance(space.get_terrain(), Forest):
-            move_value += VAL_TERRAIN_FOREST
-        elif isinstance(space.get_terrain(), Fortress):
-            move_value += VAL_TERRAIN_FORTRESS
-            
+        current_terrain = unit.get_space().get_terrain()
+        current_terrain_value = TERRAIN_VAL[type(current_terrain)]
+        move_value = TERRAIN_VAL[type(space.get_terrain())]
+        if move_value < current_terrain_value:
+            move_value -= (move_value - current_terrain_value)
         if space.get_row() > unit.get_space().get_row():
             move_value += VAL_ADVANCE_ROWS * PERSONA_ADJUSTMENT
-            
         if isinstance(unit, Peasant) and space.get_row() == BOARD_ROWS -1:
             move_value += VAL_PEASANT_PROMOTE
-            
-        if unit.get_space() == space:
-            move_value = 0
             
         return move_value
     
@@ -331,20 +330,16 @@ class CarefulPersona(Persona):
     
     # Add extra value to defensive terrain
     def movement_value(self, unit: Unit, space: Space):
-        move_value = VAL_TERRAIN_BASE
-        if isinstance(space.get_terrain(), Forest):
-            move_value += VAL_TERRAIN_FOREST * PERSONA_ADJUSTMENT
-        elif isinstance(space.get_terrain(), Fortress):
-            move_value += VAL_TERRAIN_FORTRESS * PERSONA_ADJUSTMENT
-            
+        current_terrain = unit.get_space().get_terrain()
+        current_terrain_value = TERRAIN_VAL[type(current_terrain)]
+        move_value = TERRAIN_VAL[type(space.get_terrain())]
+        if move_value < current_terrain_value:
+            move_value -= (move_value - current_terrain_value)
+        move_value *= PERSONA_ADJUSTMENT
         if space.get_row() > unit.get_space().get_row():
             move_value += VAL_ADVANCE_ROWS
-            
         if isinstance(unit, Peasant) and space.get_row() == BOARD_ROWS -1:
             move_value += VAL_PEASANT_PROMOTE
-            
-        if unit.get_space() == space:
-            move_value /= 2
             
         return move_value
     
@@ -500,12 +495,11 @@ class MoveSpace:
             actionType = ActionType.MOVE
 
         return target_space, self.space, actionType
-
+    
     def choose_target(self, actionList: list, difficulty: CPU_Difficulty):
+        action_space = make_choice(actionList, difficulty)
         
-        # Add Difficulty calculation
-        
-        target_space = actionList[0].target.get_space()
+        target_space = action_space.target.get_space()
         
         return target_space
 
@@ -544,9 +538,8 @@ class MovableUnit:
         return move_spaces
     
     def choose_action(self, difficulty: CPU_Difficulty):
-        target_space, move_space, actionType = self.move_spaces[0].choose_action(difficulty)
-        #if difficulty == CPU_Difficulty.Easy:
-            #pass
+        chosen_space = make_choice(self.move_spaces, difficulty)
+        target_space, move_space, actionType = chosen_space.choose_action(difficulty)
         return self.unit, target_space, move_space, actionType
 
 class CPU_Player(Player):
@@ -562,8 +555,9 @@ class CPU_Player(Player):
         self.get_state().board.unbind_buttons()
         self.set_movable_units()
         self.sort_movable_units()
-        # Choose and execute CPU action
-        self.choose_action()
+        chosen_unit = make_choice(self.__movable_units, self.__difficulty)
+        selected_action, unit, target_space, move_space = self.choose_action(chosen_unit)
+        self.execute_action(selected_action, unit, target_space, move_space)
         # Enable player board interaction when CPU is done
         self.get_state().board.bind_buttons()
 
@@ -578,19 +572,20 @@ class CPU_Player(Player):
         # Sort movable_units by their value in descending order
         self.__movable_units.sort(key=lambda target: target.get_value(), reverse=True)
 
-    def choose_action(self):
-        # Implement choice here
+    def choose_action(self, movableUnit: MovableUnit):
+        unit, target_space, move_space, actionType = movableUnit.choose_action(self.__difficulty)
         
-        unit, target_space, move_space, actionType = self.__movable_units[0].choose_action(self.__difficulty)
         if actionType == ActionType.ATTACK:
             selected_action = self.attack_action
         elif actionType == ActionType.ABILITY:
             selected_action = self.ability_action
         else:
             selected_action = self.move_unit
-        print("ActionType:", actionType) #####
-        print("Action Value:", self.__movable_units[0].get_value())
-        self.get_state().board.draw_all_spaces()
+        return selected_action, unit, target_space, move_space
+        
+    def execute_action(self, selected_action, unit, target_space, move_space):
+        # Clear highighted spaces and redraw the board
+        self.get_state().board.deselect_space()
         selected_action(unit, target_space, move_space)
 
     def move_unit(self, unit: Unit, target: Space, space: Space):
@@ -658,3 +653,14 @@ class CPU_Player(Player):
             persona = Persona()
         return persona
     
+def make_choice(choicelist: list, difficulty: CPU_Difficulty) -> MovableUnit:
+    max_value = choicelist[0].get_value()
+    choices = 0
+    cutoff = max_value * DIFFICULTY_RATIO[difficulty]
+    for choice in choicelist:
+        if choice.get_value() >= cutoff:
+            choices += 1
+        else:
+            break
+    selection = random.randint(0, choices - 1)
+    return choicelist[selection]

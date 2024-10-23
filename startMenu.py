@@ -55,7 +55,7 @@ class Game():
     def set_map(self, map: str):
         self.map = map
 
-    def start_one_player(self, is_cpu_game: bool):
+    def start_one_player(self, is_cpu_game: bool, difficulty: CPU_Difficulty):
         self.userInterface = UserInterface(self.root)
         # If this is a cpu game, randomly pick the player colour
         if is_cpu_game:
@@ -68,7 +68,7 @@ class Game():
                 player = P1_COL
                 cpu = P2_COL
             self.player1 = Player(player)
-            self.player2 = CPU_Player(cpu, difficulty=CPU_Difficulty.Medium)
+            self.player2 = CPU_Player(cpu, difficulty)
         else:
             self.player1 = Player(P1_COL)
             self.player2 = Player(P2_COL)
@@ -103,6 +103,7 @@ class StartMenu():
         self.background = self.canvas.create_image(0, 0, image=self.backgroundImage, anchor='nw')
         self.map = map
         self.cpu_game = True # Default to False
+        self.difficulty = CPU_Difficulty.Hard
 
         self.credImg = [
             ImageTk.PhotoImage(Image.open('Assets/Text/hayden.png')),
@@ -290,7 +291,7 @@ class StartMenu():
     def start(self):
         self.enabled = False
         self.canvas.destroy()
-        self.game.start_one_player(self.cpu_game)
+        self.game.start_one_player(self.cpu_game, self.difficulty)
 
     def start_online(self):
         self.enabled = False
